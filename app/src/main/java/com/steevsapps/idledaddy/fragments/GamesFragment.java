@@ -143,7 +143,7 @@ public class GamesFragment extends Fragment
             fab.show();
         }
 
-        viewModel.getGames().observe(this, new Observer<List<Game>>() {
+        viewModel.getGames().observe(getViewLifecycleOwner(), new Observer<List<Game>>() {
             @Override
             public void onChanged(@Nullable List<Game> games) {
                 setGames(games);
@@ -165,19 +165,19 @@ public class GamesFragment extends Fragment
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.refresh:
-                fetchGames();
-                return true;
-            case R.id.sort_alphabetically:
-                viewModel.sort(GamesViewModel.SORT_ALPHABETICALLY);
-                return true;
-            case R.id.sort_hours_played:
-                viewModel.sort(GamesViewModel.SORT_HOURS_PLAYED);
-                return true;
-            case R.id.sort_hours_played_reversed:
-                viewModel.sort(GamesViewModel.SORT_HOURS_PLAYED_REVERSED);
-                return true;
+        int itemId = item.getItemId();
+        if (itemId == R.id.refresh) {
+            fetchGames();
+            return true;
+        } else if (itemId == R.id.sort_alphabetically) {
+            viewModel.sort(GamesViewModel.SORT_ALPHABETICALLY);
+            return true;
+        } else if (itemId == R.id.sort_hours_played) {
+            viewModel.sort(GamesViewModel.SORT_HOURS_PLAYED);
+            return true;
+        } else if (itemId == R.id.sort_hours_played_reversed) {
+            viewModel.sort(GamesViewModel.SORT_HOURS_PLAYED_REVERSED);
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }

@@ -32,18 +32,8 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.android.billingclient.api.Purchase;
 import com.bumptech.glide.Glide;
-import com.google.ads.consent.ConsentStatus;
-import com.google.ads.mediation.admob.AdMobAdapter;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.MobileAds;
 import com.google.android.material.navigation.NavigationView;
-import com.steevsapps.idledaddy.billing.BillingManager;
-import com.steevsapps.idledaddy.billing.BillingUpdatesListener;
-import com.steevsapps.idledaddy.consent.ConsentListener;
-import com.steevsapps.idledaddy.consent.ConsentManager;
 import com.steevsapps.idledaddy.dialogs.AboutDialog;
 import com.steevsapps.idledaddy.dialogs.AutoDiscoverDialog;
 import com.steevsapps.idledaddy.dialogs.CustomAppDialog;
@@ -68,7 +58,7 @@ import java.util.Locale;
 
 import in.dragonbra.javasteam.enums.EPersonaState;
 
-public class MainActivity extends BaseActivity implements BillingUpdatesListener, ConsentListener, DialogListener,
+public class MainActivity extends BaseActivity implements DialogListener,
         GamePickedListener, SharedPreferences.OnSharedPreferenceChangeListener {
     private final static String TAG = MainActivity.class.getSimpleName();
     private final static String DRAWER_ITEM = "DRAWER_ITEM";
@@ -90,11 +80,6 @@ public class MainActivity extends BaseActivity implements BillingUpdatesListener
     private Spinner spinnerNav;
     private SearchView searchView;
     private ViewStub adInflater;
-    private AdView adView;
-
-    private BillingManager billingManager;
-    private ConsentManager consentManager;
-
     private boolean logoutExpanded = false;
     private int drawerItemId;
 
@@ -195,8 +180,8 @@ public class MainActivity extends BaseActivity implements BillingUpdatesListener
         mainContainer = findViewById(R.id.main_container);
 
         // Setup Billing Manager & Consent Manager
-        billingManager = new BillingManager(this);
-        consentManager = new ConsentManager(this);
+        // billingManager = new BillingManager(this);
+        // consentManager = new ConsentManager(this);
 
         // Setup the navigation spinner (Games fragment only)
         spinnerNav = findViewById(R.id.spinner_nav);
@@ -236,24 +221,20 @@ public class MainActivity extends BaseActivity implements BillingUpdatesListener
         drawerView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.logout:
-                        // No page for this
-                        doLogout();
-                        break;
-                    case R.id.about:
-                        // Same here
-                        AboutDialog.newInstance().show(getSupportFragmentManager(), AboutDialog.TAG);
-                        closeDrawer();
-                        break;
-                    case R.id.remove_ads:
-                        billingManager.launchPurchaseFlow();
-                        closeDrawer();
-                        break;
-                    default:
-                        // Go to page
-                        selectItem(item.getItemId(), true);
-                        break;
+                int itemId = item.getItemId();
+                if (itemId == R.id.logout) {
+                    // No page for this
+                    doLogout();
+                } else if (itemId == R.id.about) {
+                    // Same here
+                    AboutDialog.newInstance().show(getSupportFragmentManager(), AboutDialog.TAG);
+                    closeDrawer();
+                } else if (itemId == R.id.remove_ads) {
+                    // billingManager.launchPurchaseFlow();
+                    closeDrawer();
+                } else {
+                    // Go to page
+                    selectItem(item.getItemId(), true);
                 }
                 return true;
             }
@@ -344,20 +325,15 @@ public class MainActivity extends BaseActivity implements BillingUpdatesListener
         }
 
         Fragment fragment;
-        switch (id) {
-            case R.id.home:
-                fragment = HomeFragment.newInstance(loggedIn, farming);
-                break;
-            case R.id.games:
-                fragment = GamesFragment.newInstance(steamService.getSteamId(),
-                        steamService.getCurrentGames(), spinnerNav.getSelectedItemPosition());
-                break;
-            case R.id.settings:
-                fragment = SettingsFragment.newInstance();
-                break;
-            default:
-                fragment = new Fragment();
-                break;
+        if (id == R.id.home) {
+            fragment = HomeFragment.newInstance(loggedIn, farming);
+        } else if (id == R.id.games) {
+            fragment = GamesFragment.newInstance(steamService.getSteamId(),
+                    steamService.getCurrentGames(), spinnerNav.getSelectedItemPosition());
+        } else if (id == R.id.settings) {
+            fragment = SettingsFragment.newInstance();
+        } else {
+            fragment = new Fragment();
         }
         final FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.content_frame, fragment);
@@ -418,7 +394,7 @@ public class MainActivity extends BaseActivity implements BillingUpdatesListener
         // Listen for preference changes
         prefs = PrefsManager.getPrefs();
         prefs.registerOnSharedPreferenceChangeListener(this);
-        billingManager.queryPurchases();
+        // billingManager.queryPurchases();
     }
 
     @Override
@@ -431,7 +407,7 @@ public class MainActivity extends BaseActivity implements BillingUpdatesListener
 
     @Override
     protected void onDestroy() {
-        billingManager.destroy();
+        // billingManager.destroy();
         super.onDestroy();
     }
 
@@ -471,26 +447,26 @@ public class MainActivity extends BaseActivity implements BillingUpdatesListener
         if (drawerToggle != null && drawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
-        switch (item.getItemId()) {
-            case R.id.logcat:
-                sendLogcat();
-                return true;
-            case R.id.auto_discovery:
-                AutoDiscoverDialog.newInstance().show(getSupportFragmentManager(), AutoDiscoverDialog.TAG);
-                return true;
-            case R.id.custom_app:
-                CustomAppDialog.newInstance().show(getSupportFragmentManager(), CustomAppDialog.TAG);
-                return true;
-            case R.id.import_shared_secret:
-                SharedSecretDialog.newInstance(steamService.getSteamId()).show(getSupportFragmentManager(), SharedSecretDialog.TAG);
-                return true;
-            //case R.id.spring_cleaning_event:
-            //    SpringCleaningDialog.newInstance().show(getSupportFragmentManager(), SpringCleaningDialog.TAG);
-            //    return true;
-            //case R.id.auto_vote:
-            //    steamService.autoVote();
-            //    return true;
-        }
+        int itemId = item.getItemId();
+        if (itemId == R.id.logcat) {
+            sendLogcat();
+            return true;
+        } else if (itemId == R.id.auto_discovery) {
+            AutoDiscoverDialog.newInstance().show(getSupportFragmentManager(), AutoDiscoverDialog.TAG);
+            return true;
+        } else if (itemId == R.id.custom_app) {
+            CustomAppDialog.newInstance().show(getSupportFragmentManager(), CustomAppDialog.TAG);
+            return true;
+        } else if (itemId == R.id.import_shared_secret) {
+            SharedSecretDialog.newInstance(steamService.getSteamId()).show(getSupportFragmentManager(), SharedSecretDialog.TAG);
+            return true;
+        } // else if (itemId == R.id.spring_cleaning_event) {
+        //     SpringCleaningDialog.newInstance().show(getSupportFragmentManager(), SpringCleaningDialog.TAG);
+        //     return true;
+        // } else if (itemId == R.id.auto_vote) {
+        //     steamService.autoVote();
+        //     return true;
+        // }
         return false;
     }
 
@@ -521,33 +497,26 @@ public class MainActivity extends BaseActivity implements BillingUpdatesListener
     }
 
     public void clickHandler(View v) {
-        switch (v.getId()) {
-            case R.id.start_idling:
-                v.setEnabled(false);
-                steamService.startFarming();
-                break;
-            case R.id.stop_idling:
-                stopSteam();
-                break;
-            case R.id.status:
-                startActivity(LoginActivity.createIntent(this));
-                break;
-            case R.id.redeem:
-                RedeemDialog.newInstance().show(getSupportFragmentManager(), "redeem");
-                break;
-            case R.id.stop_button:
-                steamService.stopGame();
-                break;
-            case R.id.pause_resume_button:
-                if (steamService.isPaused()) {
-                    steamService.resumeGame();
-                } else {
-                    steamService.pauseGame();
-                }
-                break;
-            case R.id.next_button:
-                steamService.skipGame();
-                break;
+        int id = v.getId();
+        if (id == R.id.start_idling) {
+            v.setEnabled(false);
+            steamService.startFarming();
+        } else if (id == R.id.stop_idling) {
+            stopSteam();
+        } else if (id == R.id.status) {
+            startActivity(LoginActivity.createIntent(this));
+        } else if (id == R.id.redeem) {
+            RedeemDialog.newInstance().show(getSupportFragmentManager(), "redeem");
+        } else if (id == R.id.stop_button) {
+            steamService.stopGame();
+        } else if (id == R.id.pause_resume_button) {
+            if (steamService.isPaused()) {
+                steamService.resumeGame();
+            } else {
+                steamService.pauseGame();
+            }
+        } else if (id == R.id.next_button) {
+            steamService.skipGame();
         }
     }
 
@@ -658,71 +627,70 @@ public class MainActivity extends BaseActivity implements BillingUpdatesListener
         }
     }
 
-    @Override
-    public void onBillingClientSetupFinished() {
-        if (billingManager.shouldDisplayAds()) {
-            consentManager.requestConsentInfo();
-            drawerView.getMenu().findItem(R.id.remove_ads).setVisible(true);
-        }
-    }
+    // @Override
+    // public void onBillingClientSetupFinished() {
+    //     if (billingManager.shouldDisplayAds()) {
+    //         consentManager.requestConsentInfo();
+    //         drawerView.getMenu().findItem(R.id.remove_ads).setVisible(true);
+    //     }
+    // }
 
-    @Override
-    public void onPurchasesUpdated(List<Purchase> purchases) {
-        if (!billingManager.shouldDisplayAds()) {
-            removeAds();
-            drawerView.getMenu().findItem(R.id.remove_ads).setVisible(false);
-        }
-    }
+    // @Override
+    // public void onPurchasesUpdated(List<Purchase> purchases) {
+    //     if (!billingManager.shouldDisplayAds()) {
+    //         removeAds();
+    //         drawerView.getMenu().findItem(R.id.remove_ads).setVisible(false);
+    //     }
+    // }
 
-    @Override
-    public void onPurchaseCanceled() {
-        if (billingManager.shouldDisplayAds()) {
-            consentManager.requestConsentInfo();
-        }
-    }
+    // @Override
+    // public void onPurchaseCanceled() {
+    //     if (billingManager.shouldDisplayAds()) {
+    //         consentManager.requestConsentInfo();
+    //     }
+    // }
 
-    @Override
-    public void onConsentInfoUpdated(ConsentStatus consentStatus, boolean userPrefersAdFree) {
-        if (userPrefersAdFree) {
-            billingManager.launchPurchaseFlow();
-        } else {
-            final Bundle args = new Bundle();
-            if (consentStatus == ConsentStatus.NON_PERSONALIZED) {
-                args.putString("npa", "1");
-            }
-            loadAds(args);
-        }
+    // @Override
+    // public void onConsentInfoUpdated(ConsentStatus consentStatus, boolean userPrefersAdFree) {
+    //     if (userPrefersAdFree) {
+    //         billingManager.launchPurchaseFlow();
+    //     } else {
+    //         final Bundle args = new Bundle();
+    //         if (consentStatus == ConsentStatus.NON_PERSONALIZED) {
+    //             args.putString("npa", "1");
+    //         }
+    //         loadAds(args);
+    //     }
+    // }
 
-    }
+    // @Override
+    // public void onConsentRevoked() {
+    //     if (billingManager.shouldDisplayAds()) {
+    //         consentManager.revokeConsent();
+    //     } else {
+    //         // Consent not needed. No ads are shown in Idle Daddy Premium
+    //         Toast.makeText(this, R.string.gdpr_consent_not_needed, Toast.LENGTH_LONG).show();
+    //     }
+    // }
 
-    @Override
-    public void onConsentRevoked() {
-        if (billingManager.shouldDisplayAds()) {
-            consentManager.revokeConsent();
-        } else {
-            // Consent not needed. No ads are shown in Idle Daddy Premium
-            Toast.makeText(this, R.string.gdpr_consent_not_needed, Toast.LENGTH_LONG).show();
-        }
-    }
+    // /**
+    //  * Inflate adView and load the ad request
+    //  */
+    // private void loadAds(Bundle args) {
+    //     if (adView == null) {
+    //         adView = (AdView) adInflater.inflate();
+    //     }
+    //     MobileAds.initialize(this, BuildConfig.AdmobAppId);
+    //     final AdRequest adRequest = new AdRequest.Builder()
+    //             .addNetworkExtrasBundle(AdMobAdapter.class, args)
+    //             .build();
+    //     adView.loadAd(adRequest);
+    // }
 
-    /**
-     * Inflate adView and load the ad request
-     */
-    private void loadAds(Bundle args) {
-        if (adView == null) {
-            adView = (AdView) adInflater.inflate();
-        }
-        MobileAds.initialize(this, BuildConfig.AdmobAppId);
-        final AdRequest adRequest = new AdRequest.Builder()
-                .addNetworkExtrasBundle(AdMobAdapter.class, args)
-                .build();
-        adView.loadAd(adRequest);
-    }
-
-    /**
-     * Remove the adView
-     */
-    private void removeAds() {
-        mainContainer.removeView(adView);
-    }
+    // /**
+    //  * Remove the adView
+    //  */
+    // private void removeAds() {
+    //     mainContainer.removeView(adView);
+    // }
 }

@@ -72,13 +72,11 @@ public class SharedSecretDialog extends DialogFragment implements View.OnClickLi
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.btn_shared_secret:
-                viewModel.getSharedSecret();
-                break;
-            case R.id.btn_enter_manually:
-                showManualDialog();
-                break;
+        int id = v.getId();
+        if (id == R.id.btn_shared_secret) {
+            viewModel.getSharedSecret();
+        } else if (id == R.id.btn_enter_manually) {
+            showManualDialog();
         }
     }
 

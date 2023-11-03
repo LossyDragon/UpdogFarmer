@@ -1059,7 +1059,7 @@ public class SteamService extends Service {
             auth.setBytesWritten(callback.getBytesToWrite());
             auth.setFileSize((int) sentryFile.length());
             auth.setOffset(callback.getOffset());
-            auth.seteResult(EResult.OK);
+            auth.setEResult(EResult.OK);
             auth.setLastError(0);
             auth.setSentryFileHash(sha1);
             auth.setOneTimePassword(otp);
