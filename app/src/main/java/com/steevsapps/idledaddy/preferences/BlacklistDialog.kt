@@ -1,102 +1,110 @@
-package com.steevsapps.idledaddy.preferences;
+package com.steevsapps.idledaddy.preferences
 
-import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.preference.Preference;
-import androidx.preference.PreferenceDialogFragmentCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import android.view.KeyEvent;
-import android.view.View;
-import android.view.inputmethod.EditorInfo;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.os.Bundle
+import android.view.KeyEvent
+import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.TextView.OnEditorActionListener
+import androidx.preference.Preference
+import androidx.preference.PreferenceDialogFragmentCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.steevsapps.idledaddy.R
+import com.steevsapps.idledaddy.adapters.BlacklistAdapter
 
-import com.steevsapps.idledaddy.R;
-import com.steevsapps.idledaddy.adapters.BlacklistAdapter;
+class BlacklistDialog :
+    PreferenceDialogFragmentCompat(),
+    View.OnClickListener,
+    OnEditorActionListener {
 
-public class BlacklistDialog extends PreferenceDialogFragmentCompat implements View.OnClickListener, EditText.OnEditorActionListener {
-    private final static String VALUE = "VALUE"; // Key to hold current value
+    private var currentValue: String? = null
 
-    private EditText input;
-    private ImageView addButton;
-    private RecyclerView recyclerView;
-    private RecyclerView.LayoutManager layoutManager;
-    private BlacklistAdapter adapter;
-    private BlacklistPreference preference;
-    private String currentValue;
+    private lateinit var adapter: BlacklistAdapter
+    private lateinit var addButton: ImageView
+    private lateinit var input: EditText
+    private lateinit var layoutManager: RecyclerView.LayoutManager
+    private lateinit var preference: BlacklistPreference
+    private lateinit var recyclerView: RecyclerView
 
-    public static BlacklistDialog newInstance(Preference preference) {
-        final BlacklistDialog fragment = new BlacklistDialog();
-        final Bundle args = new Bundle(1);
-        args.putString("key", preference.getKey());
-        fragment.setArguments(args);
-        return fragment;
-    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        preference = (BlacklistPreference) getPreference();
-        if (savedInstanceState == null) {
-            currentValue = preference.getValue();
+        preference = getPreference() as BlacklistPreference
+
+        currentValue = if (savedInstanceState == null) {
+            preference.value
         } else {
-            currentValue = savedInstanceState.getString(VALUE);
+            savedInstanceState.getString(VALUE)
         }
     }
 
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putString(VALUE, adapter.getValue());
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(VALUE, adapter.value)
     }
 
-    @Override
-    protected void onBindDialogView(View view) {
-        super.onBindDialogView(view);
-        input = view.findViewById(R.id.input);
-        input.setOnEditorActionListener(this);
-        addButton = view.findViewById(R.id.add);
-        addButton.setOnClickListener(this);
-        recyclerView = view.findViewById(R.id.recycler_view);
-        layoutManager = new LinearLayoutManager(recyclerView.getContext());
-        recyclerView.setLayoutManager(layoutManager);
-        adapter = new BlacklistAdapter(currentValue);
-        recyclerView.setAdapter(adapter);
-        recyclerView.setHasFixedSize(true);
+    override fun onBindDialogView(view: View) {
+        super.onBindDialogView(view)
+
+        adapter = BlacklistAdapter(currentValue)
+
+        addButton = view.findViewById(R.id.add)
+        addButton.setOnClickListener(this)
+
+        input = view.findViewById(R.id.input)
+        input.setOnEditorActionListener(this)
+
+        recyclerView = view.findViewById(R.id.recycler_view)
+        recyclerView.setAdapter(adapter)
+        recyclerView.setHasFixedSize(true)
+
+        layoutManager = LinearLayoutManager(recyclerView.context)
+
+        recyclerView.setLayoutManager(layoutManager)
     }
 
-    @Override
-    public void onDialogClosed(boolean positiveResult) {
+    override fun onDialogClosed(positiveResult: Boolean) {
         if (positiveResult) {
-            preference.persistStringValue(adapter.getValue());
+            preference.persistStringValue(adapter.value)
         }
     }
 
-    @Override
-    public void onClick(View view) {
-        if (view.getId() == R.id.add) {
-            addItem();
+    override fun onClick(view: View) {
+        if (view.id == R.id.add) {
+            addItem()
         }
     }
 
-    private void addItem() {
-        final String text = input.getText().toString().trim();
-        if (text.matches("\\d+")) {
-            adapter.addItem(text);
-            input.setText("");
-            recyclerView.scrollToPosition(0);
+    private fun addItem() {
+        val text = input.getText().toString().trim { it <= ' ' }
+        if (text.matches("\\d+".toRegex())) {
+            adapter.addItem(text)
+            input.setText("")
+            recyclerView.scrollToPosition(0)
         }
     }
 
-    @Override
-    public boolean onEditorAction(TextView textView, int actionId, KeyEvent event) {
+    override fun onEditorAction(textView: TextView, actionId: Int, event: KeyEvent): Boolean {
         if (actionId == EditorInfo.IME_ACTION_DONE) {
             // Submit
-            addItem();
-            return true;
+            addItem()
+            return true
         }
-        return false;
+
+        return false
+    }
+
+    companion object {
+        private const val VALUE = "VALUE" // Key to hold current value
+
+        @JvmStatic
+        fun newInstance(preference: Preference): BlacklistDialog = BlacklistDialog().apply {
+            Bundle(1).apply {
+                putString("key", preference.key)
+            }.also(this::setArguments)
+        }
     }
 }

@@ -1,28 +1,25 @@
-package com.steevsapps.idledaddy.steam;
+package com.steevsapps.idledaddy.steam
 
-import com.steevsapps.idledaddy.steam.model.GamesOwnedResponse;
-import com.steevsapps.idledaddy.steam.model.TimeQuery;
+import com.steevsapps.idledaddy.steam.model.GamesOwnedResponse
+import com.steevsapps.idledaddy.steam.model.TimeQuery
+import `in`.dragonbra.javasteam.types.KeyValue
+import retrofit2.Call
+import retrofit2.http.Field
+import retrofit2.http.FieldMap
+import retrofit2.http.FormUrlEncoded
+import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.QueryMap
 
-import java.util.Map;
-
-import in.dragonbra.javasteam.types.KeyValue;
-import retrofit2.Call;
-import retrofit2.http.Field;
-import retrofit2.http.FieldMap;
-import retrofit2.http.FormUrlEncoded;
-import retrofit2.http.GET;
-import retrofit2.http.POST;
-import retrofit2.http.QueryMap;
-
-public interface SteamAPI {
+interface SteamAPI {
     @GET("IPlayerService/GetOwnedGames/v0001/?include_appinfo=1&format=json")
-    Call<GamesOwnedResponse> getGamesOwned(@QueryMap Map<String,String> args);
+    fun getGamesOwned(@QueryMap args: Map<String?, String?>?): Call<GamesOwnedResponse?>?
 
     @FormUrlEncoded
     @POST("ISteamUserAuth/AuthenticateUser/v0001/")
-    Call<KeyValue> authenticateUser(@FieldMap(encoded = true) Map<String,String> args);
+    fun authenticateUser(@FieldMap(encoded = true) args: Map<String?, String?>?): Call<KeyValue?>?
 
     @FormUrlEncoded
     @POST("ITwoFactorService/QueryTime/v0001")
-    Call<TimeQuery> queryServerTime(@Field("steamid") String steamId);
+    fun queryServerTime(@Field("steamid") steamId: String?): Call<TimeQuery?>?
 }

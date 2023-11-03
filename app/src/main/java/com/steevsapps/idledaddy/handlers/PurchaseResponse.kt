@@ -1,29 +1,30 @@
-package com.steevsapps.idledaddy.handlers;
+package com.steevsapps.idledaddy.handlers
 
-import com.steevsapps.idledaddy.handlers.callbacks.PurchaseResponseCallback;
+import com.steevsapps.idledaddy.handlers.callbacks.PurchaseResponseCallback
+import `in`.dragonbra.javasteam.base.ClientMsgProtobuf
+import `in`.dragonbra.javasteam.base.IPacketMsg
+import `in`.dragonbra.javasteam.enums.EMsg
+import `in`.dragonbra.javasteam.handlers.ClientMsgHandler
+import `in`.dragonbra.javasteam.protobufs.steamclient.SteammessagesClientserver2.CMsgClientPurchaseResponse
 
-import in.dragonbra.javasteam.base.ClientMsgProtobuf;
-import in.dragonbra.javasteam.base.IPacketMsg;
-import in.dragonbra.javasteam.handlers.ClientMsgHandler;
-import in.dragonbra.javasteam.protobufs.steamclient.SteammessagesClientserver2;
+class PurchaseResponse : ClientMsgHandler() {
 
-public class PurchaseResponse extends ClientMsgHandler {
-    @Override
-    public void handleMsg(IPacketMsg packetMsg) {
-        if (packetMsg == null) {
-            throw new IllegalArgumentException("packetMsg is null");
-        }
-
-        switch (packetMsg.getMsgType()) {
-            case ClientPurchaseResponse:
-                handlePurchaseResponse(packetMsg);
-                break;
+    override fun handleMsg(packetMsg: IPacketMsg) {
+        when (packetMsg.msgType) {
+            EMsg.ClientPurchaseResponse -> handlePurchaseResponse(packetMsg)
+            else -> Unit
         }
     }
 
-    private void handlePurchaseResponse(IPacketMsg packetMsg) {
-        final ClientMsgProtobuf<SteammessagesClientserver2.CMsgClientPurchaseResponse.Builder> purchaseResponse;
-        purchaseResponse = new ClientMsgProtobuf<>(SteammessagesClientserver2.CMsgClientPurchaseResponse.class, packetMsg);
-        getClient().postCallback(new PurchaseResponseCallback(purchaseResponse.getTargetJobID(), purchaseResponse.getBody()));
+    private fun handlePurchaseResponse(packetMsg: IPacketMsg) {
+        val purchaseResponse = ClientMsgProtobuf<CMsgClientPurchaseResponse.Builder>(
+            CMsgClientPurchaseResponse::class.java,
+            packetMsg
+        )
+
+        PurchaseResponseCallback(
+            purchaseResponse.targetJobID,
+            purchaseResponse.body
+        ).also(getClient()::postCallback)
     }
 }

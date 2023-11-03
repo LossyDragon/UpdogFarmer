@@ -1,61 +1,43 @@
-package com.steevsapps.idledaddy.listeners;
+package com.steevsapps.idledaddy.listeners
 
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import android.view.MotionEvent;
-import android.view.View;
-import android.widget.AdapterView;
-
-import com.steevsapps.idledaddy.R;
-import com.steevsapps.idledaddy.fragments.GamesFragment;
+import android.view.MotionEvent
+import android.view.View
+import android.view.View.OnTouchListener
+import android.widget.AdapterView
+import androidx.fragment.app.FragmentManager
+import com.steevsapps.idledaddy.R
+import com.steevsapps.idledaddy.fragments.GamesFragment
 
 /**
  * Many events can trigger the onItemSelected call, and it is difficult to keep track of all of them.
  * This solution allows you to only respond to user-initiated changes using an OnTouchListener.
  */
-public class SpinnerInteractionListener implements AdapterView.OnItemSelectedListener, View.OnTouchListener {
-    private boolean userSelect = false;
-    private FragmentManager fm;
+class SpinnerInteractionListener(
+    private val fm: FragmentManager
+) : AdapterView.OnItemSelectedListener, OnTouchListener {
 
-    public SpinnerInteractionListener(FragmentManager fm) {
-        this.fm = fm;
+    private var userSelect = false
+
+    override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
+        userSelect = true
+        return false
     }
 
-    @Override
-    public boolean onTouch(View view, MotionEvent motionEvent) {
-        userSelect = true;
-        return false;
-    }
-
-    @Override
-    public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+    override fun onItemSelected(adapterView: AdapterView<*>?, view: View, position: Int, id: Long) {
         if (userSelect) {
-            handleSelection(position);
+            handleSelection(position)
         }
     }
 
-    @Override
-    public void onNothingSelected(AdapterView<?> adapterView) {
+    override fun onNothingSelected(adapterView: AdapterView<*>?) {}
 
-    }
-
-    private void handleSelection(int position) {
-        final Fragment fragment = fm.findFragmentById(R.id.content_frame);
-        if (fragment instanceof GamesFragment) {
-            final GamesFragment gamesFragment = (GamesFragment) fragment;
-            switch (position) {
-                case GamesFragment.TAB_GAMES:
-                    // Library
-                    gamesFragment.switchToGames();
-                    break;
-                case GamesFragment.TAB_LAST:
-                    // Last idling session
-                    gamesFragment.switchToLastSession();
-                    break;
-                case GamesFragment.TAB_BLACKLIST:
-                    // Blacklisted games
-                    gamesFragment.switchToBlacklist();
-                    break;
+    private fun handleSelection(position: Int) {
+        val fragment = fm.findFragmentById(R.id.content_frame)
+        if (fragment is GamesFragment) {
+            when (position) {
+                GamesFragment.TAB_GAMES -> fragment.switchToGames() // Library
+                GamesFragment.TAB_LAST -> fragment.switchToLastSession() // Last idling session
+                GamesFragment.TAB_BLACKLIST -> fragment.switchToBlacklist() // Blacklisted games
             }
         }
     }

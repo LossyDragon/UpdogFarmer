@@ -1,245 +1,248 @@
-package com.steevsapps.idledaddy.adapters;
+package com.steevsapps.idledaddy.adapters
 
-import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
-import androidx.recyclerview.widget.DiffUtil;
-import androidx.recyclerview.widget.RecyclerView;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.view.LayoutInflater
+import android.view.View
+import android.view.View.OnLongClickListener
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.DiffUtil.DiffResult
+import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.steevsapps.idledaddy.R
+import com.steevsapps.idledaddy.listeners.GamePickedListener
+import com.steevsapps.idledaddy.listeners.GamesListUpdateListener
+import com.steevsapps.idledaddy.preferences.PrefsManager.minimizeData
+import com.steevsapps.idledaddy.steam.model.Game
+import java.util.ArrayDeque
+import java.util.Deque
+import java.util.Locale
+import kotlin.math.ceil
 
-import com.bumptech.glide.Glide;
-import com.steevsapps.idledaddy.R;
-import com.steevsapps.idledaddy.listeners.GamePickedListener;
-import com.steevsapps.idledaddy.listeners.GamesListUpdateListener;
-import com.steevsapps.idledaddy.preferences.PrefsManager;
-import com.steevsapps.idledaddy.steam.model.Game;
+class GamesAdapter(
+    private val context: Context
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
+    private val dataSet: MutableList<Game> = ArrayList()
+    private val dataSetCopy: MutableList<Game> = ArrayList()
+    private val pendingUpdates: Deque<List<Game>> = ArrayDeque()
+    private var currentGames: ArrayList<Game>? = null
+    private var gamePickedListener: GamePickedListener? = null
+    private var headerEnabled = false
+    private var updateListener: GamesListUpdateListener? = null
 
-import static androidx.recyclerview.widget.RecyclerView.NO_POSITION;
-
-public class GamesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private List<Game> dataSet = new ArrayList<>();
-    private List<Game> dataSetCopy = new ArrayList<>();
-    private Context context;
-    private GamePickedListener gamePickedListener;
-    private ArrayList<Game> currentGames;
-    private boolean headerEnabled = false;
-    private Deque<List<Game>> pendingUpdates = new ArrayDeque<>();
-    private GamesListUpdateListener updateListener;
-
-    public final static int ITEM_HEADER = 1;
-    public final static int ITEM_NORMAL = 2;
-
-    public GamesAdapter(Context c) {
-        context = c;
-        try {
-            gamePickedListener = (GamePickedListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + " must implement GamePickedListener.");
+    init {
+        gamePickedListener = try {
+            context as GamePickedListener
+        } catch (e: ClassCastException) {
+            throw ClassCastException("$context must implement GamePickedListener.")
         }
     }
 
-    public void setListener(GamesListUpdateListener listener) {
-        this.updateListener = listener;
+    fun setListener(listener: GamesListUpdateListener?) {
+        updateListener = listener
     }
 
-    public void setData(List<Game> games) {
-        dataSet.clear();
-        dataSetCopy.clear();
-        dataSetCopy.addAll(games);
-        updateData(games);
+    fun setData(games: List<Game>) {
+        dataSet.clear()
+        dataSetCopy.clear()
+        dataSetCopy.addAll(games)
+        updateData(games)
     }
 
-    public void updateData(List<Game> games) {
-        pendingUpdates.push(games);
-        if (pendingUpdates.size() > 1) {
-            return;
+    fun updateData(games: List<Game>) {
+        pendingUpdates.push(games)
+
+        if (pendingUpdates.size > 1) {
+            return
         }
-        updateDataInternal(games);
+
+        updateDataInternal(games)
     }
 
-    private void updateDataInternal(final List<Game> newGames) {
-        final List<Game> oldGames = new ArrayList<>(dataSet);
-        final Handler handler = new Handler(Looper.getMainLooper());
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new GamesDiffCallback(newGames, oldGames));
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        applyDiffResult(newGames, diffResult);
-                    }
-                });
-            }
-        }).start();
+    private fun updateDataInternal(newGames: List<Game>) {
+        val oldGames: List<Game> = ArrayList(dataSet)
+        val handler = Handler(Looper.getMainLooper())
+
+        Thread {
+            val diffResult = DiffUtil.calculateDiff(GamesDiffCallback(newGames, oldGames))
+            handler.post { applyDiffResult(newGames, diffResult) }
+        }.start()
     }
 
-    private void applyDiffResult(List<Game> games, DiffUtil.DiffResult diffResult) {
-        pendingUpdates.remove(games);
-        dispatchUpdates(games, diffResult);
-        if (pendingUpdates.size() > 0) {
-            final List<Game> latest = pendingUpdates.pop();
-            pendingUpdates.clear();
-            updateDataInternal(latest);
+    private fun applyDiffResult(games: List<Game>, diffResult: DiffResult) {
+        pendingUpdates.remove(games)
+        dispatchUpdates(games, diffResult)
+
+        if (pendingUpdates.size > 0) {
+            val latest = pendingUpdates.pop()
+            pendingUpdates.clear()
+            updateDataInternal(latest)
         }
     }
 
-    private void dispatchUpdates(List<Game> games, DiffUtil.DiffResult diffResult) {
-        diffResult.dispatchUpdatesTo(new GamesListUpdateCallback(this, headerEnabled));
-        dataSet.clear();
-        dataSet.addAll(games);
-        if (updateListener != null) {
-            updateListener.onGamesListUpdated();
-        }
+    private fun dispatchUpdates(games: List<Game>, diffResult: DiffResult) {
+        diffResult.dispatchUpdatesTo(GamesListUpdateCallback(this, headerEnabled))
+        dataSet.clear()
+        dataSet.addAll(games)
+        updateListener?.onGamesListUpdated()
     }
 
-    public void filter(String text) {
-        final List<Game> newGames = new ArrayList<>();
+    fun filter(text: String) {
+        val newGames: MutableList<Game> = ArrayList()
         if (text.isEmpty()) {
-            newGames.addAll(dataSetCopy);
-            updateData(newGames);
+            newGames.addAll(dataSetCopy)
+            updateData(newGames)
         } else {
-            for (Game game : dataSetCopy) {
-                if (game.name.toLowerCase().contains(text.toLowerCase())) {
-                    newGames.add(game);
+            for (game in dataSetCopy) {
+                if (game.name
+                        .lowercase(Locale.getDefault())
+                        .contains(text.lowercase(Locale.getDefault()))
+                ) {
+                    newGames.add(game)
                 }
             }
-            updateData(newGames);
+
+            updateData(newGames)
         }
     }
 
-    public void setCurrentGames(ArrayList<Game> games) {
-        currentGames = games;
-        notifyDataSetChanged();
+    fun setCurrentGames(games: ArrayList<Game>?) {
+        currentGames = games
+        notifyDataSetChanged()
     }
 
-    public void setHeaderEnabled(boolean b) {
+    fun setHeaderEnabled(b: Boolean) {
         if (headerEnabled != b) {
-            headerEnabled = b;
+            headerEnabled = b
+
             if (headerEnabled) {
-                notifyItemInserted(0);
+                notifyItemInserted(0)
             } else {
-                notifyItemRemoved(0);
+                notifyItemRemoved(0)
             }
         }
     }
 
-    @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         if (viewType == ITEM_HEADER) {
-            final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.games_header_item, parent, false);
-            return new VHHeader(view);
+            val view = LayoutInflater
+                .from(parent.context)
+                .inflate(R.layout.games_header_item, parent, false)
+
+            return VHHeader(view)
         } else if (viewType == ITEM_NORMAL) {
-            final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.games_item, parent, false);
-            return new VHItem(view);
+            val view = LayoutInflater
+                .from(parent.context)
+                .inflate(R.layout.games_item, parent, false)
+
+            return VHItem(view)
         }
-        throw new IllegalArgumentException("Unknown view type: " + viewType);
+
+        throw IllegalArgumentException("Unknown view type: $viewType")
     }
 
-    @Override
-    public int getItemViewType(int position) {
-        if (headerEnabled && position == 0) {
-            return ITEM_HEADER;
-        }
-        return ITEM_NORMAL;
-    }
+    override fun getItemViewType(position: Int): Int =
+        if (headerEnabled && position == 0) ITEM_HEADER else ITEM_NORMAL
 
-    @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        if (holder.getItemViewType() == ITEM_HEADER) {
-            final VHHeader header = (VHHeader) holder;
-        } else if (holder.getItemViewType() == ITEM_NORMAL){
-            final VHItem item = (VHItem) holder;
-            final Game game = dataSet.get(headerEnabled ? position - 1 : position);
-            item.name.setText(game.name);
-            final int quantity = game.hoursPlayed < 1 ? 0 : (int) Math.ceil(game.hoursPlayed);
-            item.hours.setText(context.getResources()
-                    .getQuantityString(R.plurals.hours_on_record, quantity, game.hoursPlayed));
-            if (!PrefsManager.minimizeData()) {
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        if (holder.itemViewType == ITEM_HEADER) {
+            holder as VHHeader
+        } else if (holder.itemViewType == ITEM_NORMAL) {
+            val item = holder as VHItem
+            val game = dataSet[if (headerEnabled) position - 1 else position]
+
+            item.name.text = game.name
+
+            val quantity =
+                if (game.hoursPlayed < 1) 0 else ceil(game.hoursPlayed.toDouble()).toInt()
+
+            item.hours.text = context.resources
+                .getQuantityString(R.plurals.hours_on_record, quantity, game.hoursPlayed)
+
+            if (!minimizeData()) {
                 Glide.with(context)
-                        .load(game.iconUrl)
-                        .into(item.logo);
+                    .load(game.iconUrl)
+                    .into(item.logo)
             } else {
-                item.logo.setImageResource(R.drawable.ic_image_white_48dp);
+                item.logo.setImageResource(R.drawable.ic_image_white_48dp)
             }
-            item.itemView.setActivated(currentGames.contains(game));
+
+            item.itemView.isActivated = currentGames!!.contains(game)
         }
     }
 
-    @Override
-    public int getItemCount() {
-        if (headerEnabled) {
-            return dataSet.size() + 1;
-        }
-        return dataSet.size();
-    }
+    override fun getItemCount(): Int = if (headerEnabled) dataSet.size + 1 else dataSet.size
 
-    private class VHHeader extends RecyclerView.ViewHolder implements View.OnClickListener {
-        private VHHeader(View itemView) {
-            super(itemView);
-            itemView.setOnClickListener(this);
+    private inner class VHHeader(
+        itemView: View
+    ) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
+
+        init {
+            itemView.setOnClickListener(this)
         }
 
-        @Override
-        public void onClick(View v) {
-            gamePickedListener.onGamesPicked(dataSet);
-            currentGames.clear();
-            currentGames.addAll(dataSet);
-            notifyDataSetChanged();
+        override fun onClick(v: View) {
+            gamePickedListener!!.onGamesPicked(dataSet)
+            currentGames!!.clear()
+            currentGames!!.addAll(dataSet)
+            notifyDataSetChanged()
         }
     }
 
-    private class VHItem extends RecyclerView.ViewHolder
-            implements View.OnClickListener, View.OnLongClickListener {
-        private TextView name;
-        private ImageView logo;
-        private TextView hours;
+    private inner class VHItem(
+        itemView: View
+    ) : RecyclerView.ViewHolder(itemView), View.OnClickListener, OnLongClickListener {
 
-        private VHItem(View itemView) {
-            super(itemView);
-            name = itemView.findViewById(R.id.name);
-            logo = itemView.findViewById(R.id.logo);
-            hours = itemView.findViewById(R.id.hours);
-            itemView.setOnClickListener(this);
-            itemView.setOnLongClickListener(this);
+        val name: TextView = itemView.findViewById(R.id.name)
+        val logo: ImageView = itemView.findViewById(R.id.logo)
+        val hours: TextView = itemView.findViewById(R.id.hours)
+
+        init {
+            itemView.setOnClickListener(this)
+            itemView.setOnLongClickListener(this)
         }
 
-        @Override
-        public void onClick(View v) {
-            final int position = getAdapterPosition();
-            if (position == NO_POSITION) {
-                return;
+        override fun onClick(v: View) {
+            val position = getAdapterPosition()
+
+            if (position == RecyclerView.NO_POSITION) {
+                return
             }
-            final Game game = dataSet.get(headerEnabled ? position - 1 : position);
-            if (!currentGames.contains(game) && currentGames.size() < 32) {
-                currentGames.add(game);
-                itemView.setActivated(true);
-                gamePickedListener.onGamePicked(game);
+
+            val game = dataSet[if (headerEnabled) position - 1 else position]
+
+            if (!currentGames!!.contains(game) && currentGames!!.size < 32) {
+                currentGames!!.add(game)
+                itemView.isActivated = true
+                gamePickedListener!!.onGamePicked(game)
             } else {
-                currentGames.remove(game);
-                itemView.setActivated(false);
-                gamePickedListener.onGameRemoved(game);
+                currentGames!!.remove(game)
+                itemView.isActivated = false
+                gamePickedListener!!.onGameRemoved(game)
             }
         }
 
-        @Override
-        public boolean onLongClick(View v) {
-            final int position = getAdapterPosition();
-            if (position == NO_POSITION) {
-                return false;
+        override fun onLongClick(v: View): Boolean {
+            val position = getAdapterPosition()
+
+            if (position == RecyclerView.NO_POSITION) {
+                return false
             }
-            final Game game = dataSet.get(headerEnabled ? position - 1 : position);
-            gamePickedListener.onGameLongPressed(game);
-            return true;
+
+            val game = dataSet[if (headerEnabled) position - 1 else position]
+            gamePickedListener!!.onGameLongPressed(game)
+
+            return true
         }
+    }
+
+    companion object {
+        const val ITEM_HEADER = 1
+        const val ITEM_NORMAL = 2
     }
 }

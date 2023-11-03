@@ -1,5 +1,5 @@
-package com.steevsapps.idledaddy.listeners;
+package com.steevsapps.idledaddy.listeners
 
-public interface DialogListener {
-    void onYesPicked(String text);
+fun interface DialogListener {
+    fun onYesPicked(text: String)
 }

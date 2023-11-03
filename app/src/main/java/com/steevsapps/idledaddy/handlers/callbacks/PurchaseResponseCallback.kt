@@ -1,42 +1,33 @@
-package com.steevsapps.idledaddy.handlers.callbacks;
+package com.steevsapps.idledaddy.handlers.callbacks
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
+import `in`.dragonbra.javasteam.enums.EPurchaseResultDetail
+import `in`.dragonbra.javasteam.enums.EResult
+import `in`.dragonbra.javasteam.protobufs.steamclient.SteammessagesClientserver2.CMsgClientPurchaseResponse
+import `in`.dragonbra.javasteam.steam.steamclient.callbackmgr.CallbackMsg
+import `in`.dragonbra.javasteam.types.JobID
+import `in`.dragonbra.javasteam.types.KeyValue
+import java.io.ByteArrayInputStream
+import java.io.IOException
 
-import in.dragonbra.javasteam.enums.EPurchaseResultDetail;
-import in.dragonbra.javasteam.enums.EResult;
-import in.dragonbra.javasteam.protobufs.steamclient.SteammessagesClientserver2;
-import in.dragonbra.javasteam.steam.steamclient.callbackmgr.CallbackMsg;
-import in.dragonbra.javasteam.types.JobID;
-import in.dragonbra.javasteam.types.KeyValue;
+class PurchaseResponseCallback(
+    jobID: JobID?,
+    msg: CMsgClientPurchaseResponse.Builder
+) : CallbackMsg() {
 
-public class PurchaseResponseCallback extends CallbackMsg {
-    private final EResult result;
-    private final EPurchaseResultDetail purchaseResultDetails;
-    private final KeyValue purchaseReceiptInfo;
+    val result: EResult = EResult.from(msg.eresult)
 
-    public PurchaseResponseCallback(JobID jobID, SteammessagesClientserver2.CMsgClientPurchaseResponse.Builder msg) {
-        setJobID(jobID);
+    val purchaseResultDetails: EPurchaseResultDetail =
+        EPurchaseResultDetail.from(msg.purchaseResultDetails)
 
-        result = EResult.from(msg.getEresult());
-        purchaseResultDetails = EPurchaseResultDetail.from(msg.getPurchaseResultDetails());
-        purchaseReceiptInfo = new KeyValue();
+    val purchaseReceiptInfo: KeyValue = KeyValue()
+
+    init {
+        setJobID(jobID)
+
         try {
-            purchaseReceiptInfo.tryReadAsBinary(new ByteArrayInputStream(msg.getPurchaseReceiptInfo().toByteArray()));
-        } catch (IOException e) {
-            e.printStackTrace();
+            purchaseReceiptInfo.tryReadAsBinary(ByteArrayInputStream(msg.purchaseReceiptInfo.toByteArray()))
+        } catch (e: IOException) {
+            e.printStackTrace()
         }
-    }
-
-    public EResult getResult() {
-        return result;
-    }
-
-    public EPurchaseResultDetail getPurchaseResultDetails() {
-        return purchaseResultDetails;
-    }
-
-    public KeyValue getPurchaseReceiptInfo() {
-        return purchaseReceiptInfo;
     }
 }

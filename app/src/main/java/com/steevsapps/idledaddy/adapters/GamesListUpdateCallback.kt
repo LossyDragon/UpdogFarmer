@@ -1,37 +1,31 @@
-package com.steevsapps.idledaddy.adapters;
+package com.steevsapps.idledaddy.adapters
 
-import androidx.recyclerview.widget.ListUpdateCallback;
+import androidx.recyclerview.widget.ListUpdateCallback
 
 /**
  * This ListUpdateCallback considers that when the list header is enabled,
  * item positions will be off by one.
  */
-class GamesListUpdateCallback implements ListUpdateCallback {
-    private GamesAdapter adapter;
-    private int offset;
+internal class GamesListUpdateCallback(
+    private val adapter: GamesAdapter,
+    headerEnabled: Boolean
+) : ListUpdateCallback {
 
-    GamesListUpdateCallback(GamesAdapter adapter, boolean headerEnabled) {
-        this.adapter = adapter;
-        this.offset = headerEnabled ? 1 : 0;
+    private val offset: Int = if (headerEnabled) 1 else 0
+
+    override fun onInserted(position: Int, count: Int) {
+        adapter.notifyItemRangeInserted(position + offset, count)
     }
 
-    @Override
-    public void onInserted(int position, int count) {
-        adapter.notifyItemRangeInserted(position + offset, count);
+    override fun onRemoved(position: Int, count: Int) {
+        adapter.notifyItemRangeRemoved(position + offset, count)
     }
 
-    @Override
-    public void onRemoved(int position, int count) {
-        adapter.notifyItemRangeRemoved(position + offset, count);
+    override fun onMoved(fromPosition: Int, toPosition: Int) {
+        adapter.notifyItemMoved(fromPosition + offset, toPosition + offset)
     }
 
-    @Override
-    public void onMoved(int fromPosition, int toPosition) {
-        adapter.notifyItemMoved(fromPosition + offset, toPosition + offset);
-    }
-
-    @Override
-    public void onChanged(int position, int count, Object payload) {
-        adapter.notifyItemRangeChanged(position + offset, count, payload);
+    override fun onChanged(position: Int, count: Int, payload: Any?) {
+        adapter.notifyItemRangeChanged(position + offset, count, payload)
     }
 }

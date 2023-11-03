@@ -1,235 +1,234 @@
-package com.steevsapps.idledaddy.preferences;
+package com.steevsapps.idledaddy.preferences
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.steevsapps.idledaddy.steam.model.Game;
-import com.steevsapps.idledaddy.utils.CryptHelper;
-import com.steevsapps.idledaddy.utils.Utils;
-
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import android.content.Context
+import android.content.SharedPreferences
+import androidx.preference.PreferenceManager
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.steevsapps.idledaddy.steam.model.Game
+import com.steevsapps.idledaddy.utils.CryptHelper.decryptString
+import com.steevsapps.idledaddy.utils.CryptHelper.encryptString
+import com.steevsapps.idledaddy.utils.Utils.arrayToString
 
 /**
  * SharedPreferences manager
  */
-public class PrefsManager {
-    private final static int CURRENT_VERSION = 2;
+@Suppress("MemberVisibilityCanBePrivate")
+object PrefsManager {
 
-    private final static String USERNAME = "username";
-    private final static String PASSWORD = "password";
-    private final static String LOGIN_KEY = "login_key";
-    private final static String SENTRY_HASH = "sentry_hash";
-    private final static String SHARED_SECRET = "shared_secret";
-    private final static String OFFLINE = "offline";
-    private final static String STAY_AWAKE = "stay_awake";
-    private final static String MINIMIZE_DATA = "minimize_data";
-    private final static String PARENTAL_PIN = "parental_pin";
-    private final static String BLACKLIST = "blacklist";
-    private final static String LAST_SESSION = "last_session";
-    private final static String HOURS_UNTIL_DROPS = "hours_until_drops";
-    private final static String INCLUDE_FREE_GAMES = "include_free_games";
-    private final static String USE_CUSTOM_LOGINID = "use_custom_loginid";
-    private final static String PERSONA_NAME = "persona_name";
-    private final static String AVATAR_HASH = "avatar_hash";
-    private final static String API_KEY = "api_key";
-    private final static String LANGUAGE = "language";
-    private final static String VERSION = "version";
-    private final static String SORT_VALUE = "sort_value";
+    private const val CURRENT_VERSION = 2
 
-    private static SharedPreferences prefs;
+    private const val API_KEY = "api_key"
+    private const val AVATAR_HASH = "avatar_hash"
+    private const val BLACKLIST = "blacklist"
+    private const val HOURS_UNTIL_DROPS = "hours_until_drops"
+    private const val INCLUDE_FREE_GAMES = "include_free_games"
+    private const val LANGUAGE = "language"
+    private const val LAST_SESSION = "last_session"
+    private const val LOGIN_KEY = "login_key"
+    private const val MINIMIZE_DATA = "minimize_data"
+    private const val OFFLINE = "offline"
+    private const val PARENTAL_PIN = "parental_pin"
+    private const val PASSWORD = "password"
+    private const val PERSONA_NAME = "persona_name"
+    private const val SENTRY_HASH = "sentry_hash"
+    private const val SHARED_SECRET = "shared_secret"
+    private const val SORT_VALUE = "sort_value"
+    private const val STAY_AWAKE = "stay_awake"
+    private const val USERNAME = "username"
+    private const val USE_CUSTOM_LOGINID = "use_custom_loginid"
+    private const val VERSION = "version"
 
-    private PrefsManager() {
-    }
+    lateinit var prefs: SharedPreferences
+        private set
 
-    public static void init(Context c) {
-        if (prefs == null) {
-            prefs = PreferenceManager.getDefaultSharedPreferences(c);
+    @JvmStatic
+    val apiKey: String
+        get() = prefs.getString(API_KEY, "")!!
+
+    val language: String
+        get() = prefs.getString(LANGUAGE, "")!!
+
+    val version: Int
+        get() = prefs.getInt(VERSION, 1)
+
+    @JvmStatic
+    val sortValue: Int
+        get() = prefs.getInt(SORT_VALUE, 0)
+
+    val personaName: String
+        get() = prefs.getString(PERSONA_NAME, "")!!
+
+    val avatarHash: String
+        get() = prefs.getString(AVATAR_HASH, "")!!
+
+    @JvmStatic
+    val hoursUntilDrops: Int
+        get() = prefs.getInt(HOURS_UNTIL_DROPS, 3)
+
+    @JvmStatic
+    val username: String
+        get() = prefs.getString(USERNAME, "")!!
+
+    @JvmStatic
+    val loginKey: String
+        get() = prefs.getString(LOGIN_KEY, "")!!
+
+    @JvmStatic
+    val sentryHash: String
+        get() = prefs.getString(SENTRY_HASH, "")!!
+
+    @JvmStatic
+    val sharedSecret: String
+        get() = prefs.getString(SHARED_SECRET, "")!!
+
+    @JvmStatic
+    val offline: Boolean
+        get() = prefs.getBoolean(OFFLINE, false)
+
+    @JvmStatic
+    val parentalPin: String
+        get() = prefs.getString(PARENTAL_PIN, "")!!
+
+    @JvmStatic
+    val blacklist: List<String>
+        get() {
+            val blacklist = prefs.getString(BLACKLIST, "")!!
+                .split(",".toRegex())
+                .dropLastWhile { it.isEmpty() }
+                .toTypedArray()
+
+            return listOf(*blacklist)
         }
 
-        if (getVersion() != CURRENT_VERSION) {
-            onUpgrade(getVersion());
+    @JvmStatic
+    val lastSession: List<Game>
+        get() {
+            val json = prefs.getString(LAST_SESSION, "")
+            val type = object : TypeToken<List<Game>>() {}.type
+
+            return Gson().fromJson(json, type) ?: listOf()
+        }
+
+
+    fun init(c: Context) {
+        prefs = PreferenceManager.getDefaultSharedPreferences(c)
+
+        if (version != CURRENT_VERSION) {
+            onUpgrade(version)
         }
     }
 
-    private static void onUpgrade(int oldVersion) {
+    private fun onUpgrade(oldVersion: Int) {
         if (oldVersion < 2) {
             // Serialized names have changed
-            writeLastSession(new ArrayList<>());
+            writeLastSession(ArrayList())
         }
-        writeVersion(CURRENT_VERSION);
+
+        writeVersion(CURRENT_VERSION)
     }
 
     /**
      * Clear all preferences related to user
      */
-    public static void clearUser() {
+    @JvmStatic
+    fun clearUser() {
         prefs.edit()
-                .putString(USERNAME, "")
-                .putString(PASSWORD, "")
-                .putString(LOGIN_KEY, "")
-                .putString(SENTRY_HASH, "")
-                .putString(BLACKLIST, "")
-                .putString(LAST_SESSION, "")
-                .putString(PARENTAL_PIN, "")
-                .putString(PERSONA_NAME, "")
-                .putString(AVATAR_HASH, "")
-                .putString(API_KEY, "")
-                .apply();
+            .putString(USERNAME, "")
+            .putString(PASSWORD, "")
+            .putString(LOGIN_KEY, "")
+            .putString(SENTRY_HASH, "")
+            .putString(BLACKLIST, "")
+            .putString(LAST_SESSION, "")
+            .putString(PARENTAL_PIN, "")
+            .putString(PERSONA_NAME, "")
+            .putString(AVATAR_HASH, "")
+            .putString(API_KEY, "")
+            .apply()
     }
 
-    public static SharedPreferences getPrefs() {
-        return prefs;
+    fun writeUsername(username: String) {
+        writePref(USERNAME, username)
     }
 
-    public static void writeUsername(String username) {
-        writePref(USERNAME, username);
+    fun writePassword(context: Context, password: String) {
+        writePref(PASSWORD, encryptString(context, password))
     }
 
-    public static void writePassword(Context context, String password) {
-        writePref(PASSWORD, CryptHelper.encryptString(context, password));
+    @JvmStatic
+    fun writeLoginKey(loginKey: String) {
+        writePref(LOGIN_KEY, loginKey)
     }
 
-    public static void writeLoginKey(String loginKey) {
-        writePref(LOGIN_KEY, loginKey);
+    @JvmStatic
+    fun writeSentryHash(sentryHash: String) {
+        writePref(SENTRY_HASH, sentryHash)
     }
 
-    public static void writeSentryHash(String sentryHash) {
-        writePref(SENTRY_HASH, sentryHash);
+    @JvmStatic
+    fun writeSharedSecret(sharedSecret: String) {
+        writePref(SHARED_SECRET, sharedSecret)
     }
 
-    public static void writeSharedSecret(String sharedSecret) {
-        writePref(SHARED_SECRET, sharedSecret);
+    @JvmStatic
+    fun writeBlacklist(blacklist: List<String>) {
+        writePref(BLACKLIST, arrayToString(blacklist))
     }
 
-    public static void writeBlacklist(List<String> blacklist) {
-        writePref(BLACKLIST, Utils.arrayToString(blacklist));
+    @JvmStatic
+    fun writeLastSession(games: List<Game>) {
+        val json = Gson().toJson(games)
+        writePref(LAST_SESSION, json)
     }
 
-    public static void writeLastSession(List<Game> games) {
-        final String json = new Gson().toJson(games);
-        writePref(LAST_SESSION, json);
+    fun writePersonaName(personaName: String) {
+        writePref(PERSONA_NAME, personaName)
     }
 
-    public static void writePersonaName(String personaName) {
-        writePref(PERSONA_NAME, personaName);
+    fun writeAvatarHash(avatarHash: String) {
+        writePref(AVATAR_HASH, avatarHash)
     }
 
-    public static void writeAvatarHash(String avatarHash) {
-        writePref(AVATAR_HASH, avatarHash);
+    @JvmStatic
+    fun writeApiKey(apiKey: String) {
+        writePref(API_KEY, apiKey)
     }
 
-    public static void writeApiKey(String apiKey) {
-        writePref(API_KEY, apiKey);
+    fun writeLanguage(language: String) {
+        writePref(LANGUAGE, language)
     }
 
-    public static void writeLanguage(String language) {
-        writePref(LANGUAGE, language);
+    fun writeVersion(version: Int) {
+        writePref(VERSION, version)
     }
 
-    public static void writeVersion(int version) {
-        writePref(VERSION, version);
+    @JvmStatic
+    fun writeSortValue(sortValue: Int) {
+        writePref(SORT_VALUE, sortValue)
     }
 
-    public static void writeSortValue(int sortValue) {
-        writePref(SORT_VALUE, sortValue);
+    fun getPassword(context: Context): String =
+        decryptString(context, prefs.getString(PASSWORD, ""))
+
+    @JvmStatic
+    fun stayAwake(): Boolean = prefs.getBoolean(STAY_AWAKE, false)
+
+    @JvmStatic
+    fun minimizeData(): Boolean = prefs.getBoolean(MINIMIZE_DATA, false)
+
+    @JvmStatic
+    fun includeFreeGames(): Boolean = prefs.getBoolean(INCLUDE_FREE_GAMES, false)
+
+    @JvmStatic
+    fun useCustomLoginId(): Boolean = prefs.getBoolean(USE_CUSTOM_LOGINID, false)
+
+    /* ----- */
+
+    private fun writePref(key: String, value: String) {
+        prefs.edit().putString(key, value).apply()
     }
 
-    public static String getUsername() {
-        return prefs.getString(USERNAME, "");
-    }
-
-    public static String getPassword(Context context) {
-        return CryptHelper.decryptString(context, prefs.getString(PASSWORD, ""));
-    }
-
-    public static String getLoginKey() {
-        return prefs.getString(LOGIN_KEY, "");
-    }
-
-    public static String getSentryHash() {
-        return prefs.getString(SENTRY_HASH, "");
-    }
-
-    public static String getSharedSecret() {
-        return prefs.getString(SHARED_SECRET, "");
-    }
-
-    public static boolean getOffline() {
-        return prefs.getBoolean(OFFLINE, false);
-    }
-
-    public static boolean stayAwake() {
-        return prefs.getBoolean(STAY_AWAKE, false);
-    }
-
-    public static boolean minimizeData() { return prefs.getBoolean(MINIMIZE_DATA, false); }
-
-    public static String getParentalPin() {
-        return prefs.getString(PARENTAL_PIN, "");
-    }
-
-    public static List<String> getBlacklist() {
-        final String[] blacklist = prefs.getString(BLACKLIST, "").split(",");
-        return new ArrayList<>(Arrays.asList(blacklist));
-    }
-
-    public static List<Game> getLastSession() {
-        final String json = prefs.getString(LAST_SESSION, "");
-        final Type type = new TypeToken<List<Game>>(){}.getType();
-        final List<Game> games = new Gson().fromJson(json, type);
-        if (games == null) {
-            return new ArrayList<>();
-        }
-        return games;
-    }
-
-    public static String getPersonaName() {
-        return prefs.getString(PERSONA_NAME, "");
-    }
-
-    public static String getAvatarHash() {
-        return prefs.getString(AVATAR_HASH, "");
-    }
-
-    public static int getHoursUntilDrops() {
-        return prefs.getInt(HOURS_UNTIL_DROPS, 3);
-    }
-
-    public static boolean includeFreeGames() {
-        return prefs.getBoolean(INCLUDE_FREE_GAMES, false);
-    }
-
-    public static boolean useCustomLoginId() {
-        return prefs.getBoolean(USE_CUSTOM_LOGINID, false);
-    }
-
-    public static String getApiKey() {
-        return prefs.getString(API_KEY, "");
-    }
-
-    public static String getLanguage() {
-        return prefs.getString(LANGUAGE, "");
-    }
-
-    public static int getVersion() {
-        return prefs.getInt(VERSION, 1);
-    }
-
-    public static int getSortValue() {
-        return prefs.getInt(SORT_VALUE, 0);
-    }
-
-    private static void writePref(String key, String value) {
-        prefs.edit().putString(key, value).apply();
-    }
-
-    private static void writePref(String key, int value) {
-        prefs.edit().putInt(key, value).apply();
+    private fun writePref(key: String, value: Int) {
+        prefs.edit().putInt(key, value).apply()
     }
 }

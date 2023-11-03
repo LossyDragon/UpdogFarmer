@@ -1,63 +1,56 @@
-package com.steevsapps.idledaddy.preferences;
+package com.steevsapps.idledaddy.preferences
 
-import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.preference.Preference;
-import androidx.preference.PreferenceDialogFragmentCompat;
-import android.view.View;
-import android.widget.NumberPicker;
+import android.os.Bundle
+import android.view.View
+import android.widget.NumberPicker
+import android.widget.NumberPicker.OnValueChangeListener
+import androidx.preference.Preference
+import androidx.preference.PreferenceDialogFragmentCompat
+import com.steevsapps.idledaddy.R
 
-import com.steevsapps.idledaddy.R;
+class NumPickerDialog : PreferenceDialogFragmentCompat(), OnValueChangeListener {
 
-public class NumPickerDialog extends PreferenceDialogFragmentCompat implements NumberPicker.OnValueChangeListener {
-    private final static String VALUE = "VALUE";
+    private lateinit var numPicker: NumberPicker
+    private lateinit var preference: NumPickerPreference
 
-    private NumberPicker numPicker;
-    private NumPickerPreference preference;
-    private int currentValue;
+    private var currentValue = 0
 
-    public static NumPickerDialog newInstance(Preference preference) {
-        final NumPickerDialog fragment = new NumPickerDialog();
-        final Bundle args = new Bundle();
-        args.putString("key", preference.getKey());
-        fragment.setArguments(args);
-        return fragment;
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        preference = getPreference() as NumPickerPreference
+        currentValue = savedInstanceState?.getInt(VALUE) ?: preference.value
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        preference = (NumPickerPreference) getPreference();
-        if (savedInstanceState == null) {
-            currentValue = preference.getValue();
-        } else {
-            currentValue = savedInstanceState.getInt(VALUE);
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(VALUE, currentValue)
+    }
+
+    override fun onBindDialogView(view: View) {
+        super.onBindDialogView(view)
+        numPicker = view.findViewById(R.id.numpicker)
+        numPicker.setMaxValue(5)
+        numPicker.setMinValue(0)
+        numPicker.setOnValueChangedListener(this)
+        numPicker.value = currentValue
+    }
+
+    override fun onDialogClosed(positiveResult: Boolean) {
+        preference.persistValue(currentValue)
+    }
+
+    override fun onValueChange(numberPicker: NumberPicker, oldValue: Int, newValue: Int) {
+        currentValue = newValue
+    }
+
+    companion object {
+        private const val VALUE = "VALUE"
+
+        @JvmStatic
+        fun newInstance(preference: Preference): NumPickerDialog = NumPickerDialog().apply {
+            Bundle().apply {
+                putString("key", preference.key)
+            }.also(this::setArguments)
         }
-    }
-
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt(VALUE, currentValue);
-    }
-
-    @Override
-    protected void onBindDialogView(View view) {
-        super.onBindDialogView(view);
-        numPicker = view.findViewById(R.id.numpicker);
-        numPicker.setMinValue(0);
-        numPicker.setMaxValue(5);
-        numPicker.setValue(currentValue);
-        numPicker.setOnValueChangedListener(this);
-    }
-
-    @Override
-    public void onDialogClosed(boolean positiveResult) {
-        preference.persistValue(currentValue);
-    }
-
-    @Override
-    public void onValueChange(NumberPicker numberPicker, int oldValue, int newValue) {
-        currentValue = newValue;
     }
 }

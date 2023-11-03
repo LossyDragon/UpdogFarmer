@@ -1,571 +1,590 @@
-package com.steevsapps.idledaddy;
+package com.steevsapps.idledaddy
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.os.Build;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewStub;
-import android.widget.ArrayAdapter;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.SharedPreferences
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import android.content.res.Configuration
+import android.os.Build
+import android.os.Bundle
+import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewStub
+import android.widget.ArrayAdapter
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.Spinner
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.widget.SearchView
+import androidx.appcompat.widget.Toolbar
+import androidx.core.content.FileProvider
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.Fragment
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.bumptech.glide.Glide
+import com.google.android.material.navigation.NavigationView
+import com.steevsapps.idledaddy.LoginActivity.Companion.createIntent
+import com.steevsapps.idledaddy.dialogs.AboutDialog
+import com.steevsapps.idledaddy.dialogs.AutoDiscoverDialog
+import com.steevsapps.idledaddy.dialogs.CustomAppDialog
+import com.steevsapps.idledaddy.dialogs.GameOptionsDialog
+import com.steevsapps.idledaddy.dialogs.RedeemDialog
+import com.steevsapps.idledaddy.dialogs.SharedSecretDialog
+import com.steevsapps.idledaddy.fragments.GamesFragment
+import com.steevsapps.idledaddy.fragments.HomeFragment
+import com.steevsapps.idledaddy.fragments.SettingsFragment
+import com.steevsapps.idledaddy.listeners.DialogListener
+import com.steevsapps.idledaddy.listeners.GamePickedListener
+import com.steevsapps.idledaddy.listeners.SpinnerInteractionListener
+import com.steevsapps.idledaddy.preferences.PrefsManager
+import com.steevsapps.idledaddy.steam.SteamService
+import com.steevsapps.idledaddy.steam.model.Game
+import com.steevsapps.idledaddy.utils.Utils
+import `in`.dragonbra.javasteam.enums.EPersonaState
+import java.io.File
+import java.io.IOException
+import java.util.Locale
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.widget.SearchView;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.FileProvider;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+class MainActivity : BaseActivity(),
+    DialogListener,
+    GamePickedListener,
+    OnSharedPreferenceChangeListener {
 
-import com.bumptech.glide.Glide;
-import com.google.android.material.navigation.NavigationView;
-import com.steevsapps.idledaddy.dialogs.AboutDialog;
-import com.steevsapps.idledaddy.dialogs.AutoDiscoverDialog;
-import com.steevsapps.idledaddy.dialogs.CustomAppDialog;
-import com.steevsapps.idledaddy.dialogs.GameOptionsDialog;
-import com.steevsapps.idledaddy.dialogs.RedeemDialog;
-import com.steevsapps.idledaddy.dialogs.SharedSecretDialog;
-import com.steevsapps.idledaddy.fragments.GamesFragment;
-import com.steevsapps.idledaddy.fragments.HomeFragment;
-import com.steevsapps.idledaddy.fragments.SettingsFragment;
-import com.steevsapps.idledaddy.listeners.DialogListener;
-import com.steevsapps.idledaddy.listeners.GamePickedListener;
-import com.steevsapps.idledaddy.listeners.SpinnerInteractionListener;
-import com.steevsapps.idledaddy.preferences.PrefsManager;
-import com.steevsapps.idledaddy.steam.SteamService;
-import com.steevsapps.idledaddy.steam.model.Game;
-import com.steevsapps.idledaddy.utils.Utils;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
-
-import in.dragonbra.javasteam.enums.EPersonaState;
-
-public class MainActivity extends BaseActivity implements DialogListener,
-        GamePickedListener, SharedPreferences.OnSharedPreferenceChangeListener {
-    private final static String TAG = MainActivity.class.getSimpleName();
-    private final static String DRAWER_ITEM = "DRAWER_ITEM";
-    private final static String TITLE = "TITLE";
-    private final static String LOGOUT_EXPANDED = "LOGOUT_EXPANDED";
-
-    private String title = "";
-    private boolean loggedIn = false;
-    private boolean farming = false;
+    private var farming = false
+    private var loggedIn = false
+    private var title = ""
 
     // Views
-    private LinearLayout mainContainer;
-    private ImageView avatarView;
-    private TextView usernameView;
-    private DrawerLayout drawerLayout;
-    private NavigationView drawerView;
-    private ActionBarDrawerToggle drawerToggle;
-    private ImageView logoutToggle;
-    private Spinner spinnerNav;
-    private SearchView searchView;
-    private ViewStub adInflater;
-    private boolean logoutExpanded = false;
-    private int drawerItemId;
+    private lateinit var adInflater: ViewStub
+    private lateinit var avatarView: ImageView
+    private lateinit var drawerToggle: ActionBarDrawerToggle
+    private lateinit var drawerView: NavigationView
+    private lateinit var logoutToggle: ImageView
+    private lateinit var mainContainer: LinearLayout
+    private lateinit var searchView: SearchView
+    private lateinit var spinnerNav: Spinner
+    private lateinit var usernameView: TextView
+    private var drawerLayout: DrawerLayout? = null
 
-    private SharedPreferences prefs;
-    private SteamService steamService;
+    private var logoutExpanded = false
 
-    private BroadcastReceiver receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            loggedIn = steamService.isLoggedIn();
-            farming = steamService.isFarming();
-            switch (intent.getAction()) {
-                case SteamService.LOGIN_EVENT:
-                case SteamService.DISCONNECT_EVENT:
-                case SteamService.STOP_EVENT:
-                    updateStatus();
-                    break;
-                case SteamService.FARM_EVENT:
-                    showDropInfo(intent);
-                    break;
-                case SteamService.PERSONA_EVENT:
-                    updateDrawerHeader(intent);
-                    break;
-                case SteamService.NOW_PLAYING_EVENT:
-                    showNowPlaying();
-                    break;
+    private var drawerItemId = 0
+
+    private var prefs: SharedPreferences = PrefsManager.prefs
+
+    private var steamService: SteamService? = null
+
+    private val receiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            loggedIn = steamService!!.isLoggedIn
+            farming = steamService!!.isFarming
+            when (intent.action) {
+                SteamService.LOGIN_EVENT, SteamService.DISCONNECT_EVENT, SteamService.STOP_EVENT -> updateStatus()
+                SteamService.FARM_EVENT -> showDropInfo(intent)
+                SteamService.PERSONA_EVENT -> updateDrawerHeader(intent)
+                SteamService.NOW_PLAYING_EVENT -> showNowPlaying()
             }
         }
-    };
+    }
 
-    private void doLogout() {
-        steamService.logoff();
-        closeDrawer();
-        avatarView.setImageResource(R.color.transparent);
-        usernameView.setText("");
-        logoutExpanded = false;
-        logoutToggle.setRotation(0);
-        drawerView.getMenu().setGroupVisible(R.id.logout_group, false);
-        loggedIn = false;
-        farming = false;
-        updateStatus();
+    private val currentFragment: Fragment?
+        get() = supportFragmentManager.findFragmentById(R.id.content_frame)
+
+    private fun doLogout() {
+        steamService!!.logoff()
+
+        closeDrawer()
+
+        avatarView.setImageResource(R.color.transparent)
+        usernameView.text = ""
+
+        logoutExpanded = false
+
+        logoutToggle.rotation = 0f
+
+        drawerView.menu.setGroupVisible(R.id.logout_group, false)
+
+        loggedIn = false
+        farming = false
+
+        updateStatus()
     }
 
     /**
      * Update drawer header with avatar and username
      */
-    private void updateDrawerHeader(@Nullable Intent intent) {
-        final String personaName;
-        final String avatarHash;
+    private fun updateDrawerHeader(intent: Intent?) {
+        val personaName: String?
+        val avatarHash: String?
 
         if (intent != null) {
-            personaName = intent.getStringExtra(SteamService.PERSONA_NAME);
-            avatarHash = intent.getStringExtra(SteamService.AVATAR_HASH);
-            PrefsManager.writePersonaName(personaName);
-            PrefsManager.writeAvatarHash(avatarHash);
+            personaName = intent.getStringExtra(SteamService.PERSONA_NAME)
+            avatarHash = intent.getStringExtra(SteamService.AVATAR_HASH)
+            PrefsManager.writePersonaName(personaName ?: "")
+            PrefsManager.writeAvatarHash(avatarHash ?: "")
         } else {
-            personaName = PrefsManager.getPersonaName();
-            avatarHash = PrefsManager.getAvatarHash();
+            personaName = PrefsManager.personaName
+            avatarHash = PrefsManager.avatarHash
         }
 
-        if (!personaName.isEmpty()) {
-            usernameView.setText(personaName);
+        if (personaName!!.isNotEmpty()) {
+            usernameView.text = personaName
         }
 
-        if (!PrefsManager.minimizeData() && !avatarHash.isEmpty() && !avatarHash.equals("0000000000000000000000000000000000000000")) {
-            final String avatar = String.format(Locale.US,
-                    "http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/%s/%s_full.jpg",
-                    avatarHash.substring(0, 2),
-                    avatarHash);
-            Glide.with(this).load(avatar).into(avatarView);
+        if (!PrefsManager.minimizeData() &&
+            avatarHash!!.isNotEmpty() &&
+            avatarHash != "0000000000000000000000000000000000000000"
+        ) {
+            val avatar = String.format(
+                Locale.US,
+                "http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/%s/%s_full.jpg",
+                avatarHash.substring(0, 2),
+                avatarHash
+            )
+            Glide.with(this).load(avatar).into(avatarView)
         }
     }
 
-    @Override
-    protected void onServiceConnected() {
-        Log.i(TAG, "Service connected");
-        steamService = getService();
-        loggedIn = steamService.isLoggedIn();
-        farming = steamService.isFarming();
-        updateStatus();
-        updateDrawerHeader(null);
+    override fun onServiceConnected() {
+        Log.i(TAG, "Service connected")
+
+        steamService = service
+
+        loggedIn = steamService!!.isLoggedIn
+        farming = steamService!!.isFarming
+
+        updateStatus()
+        updateDrawerHeader(null)
 
         // Check if a Steam key was sent to us from another app
-        final Intent intent = getIntent();
-        if (Intent.ACTION_SEND.equals(intent.getAction())) {
-            handleKeyIntent(intent);
+        if (Intent.ACTION_SEND == intent.action) {
+            handleKeyIntent(intent)
         }
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-        final Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setContentView(R.layout.activity_main)
 
-        mainContainer = findViewById(R.id.main_container);
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+
+        mainContainer = findViewById(R.id.main_container)
 
         // Setup Billing Manager & Consent Manager
         // billingManager = new BillingManager(this);
         // consentManager = new ConsentManager(this);
 
-        // Setup the navigation spinner (Games fragment only)
-        spinnerNav = findViewById(R.id.spinner_nav);
-        final ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.spinner_nav_options, R.layout.simple_spinner_title);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerNav.setAdapter(adapter);
-        final SpinnerInteractionListener listener = new SpinnerInteractionListener(getSupportFragmentManager());
-        spinnerNav.setOnItemSelectedListener(listener);
-        spinnerNav.setOnTouchListener(listener);
+        val adapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.spinner_nav_options,
+            R.layout.simple_spinner_title
+        )
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
-        drawerLayout = findViewById(R.id.drawer_layout);
+        val listener = SpinnerInteractionListener(supportFragmentManager)
+
+        // Setup the navigation spinner (Games fragment only)
+        spinnerNav = findViewById(R.id.spinner_nav)
+        spinnerNav.setAdapter(adapter)
+        spinnerNav.onItemSelectedListener = listener
+        spinnerNav.setOnTouchListener(listener)
+
+        drawerLayout = findViewById(R.id.drawer_layout)
+
         // On tablets we use the DrawerView but not the DrawerLayout
         if (drawerLayout != null) {
-            drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.open_drawer, R.string.close_drawer) {
-                @Override
-                public void onDrawerClosed(View drawerView) {
-                    super.onDrawerClosed(drawerView);
-                    invalidateOptionsMenu();
+            drawerToggle = object : ActionBarDrawerToggle(
+                this,
+                drawerLayout,
+                R.string.open_drawer,
+                R.string.close_drawer
+            ) {
+                override fun onDrawerClosed(drawerView: View) {
+                    super.onDrawerClosed(drawerView)
+                    invalidateOptionsMenu()
                 }
 
-                @Override
-                public void onDrawerOpened(View drawerView) {
-                    super.onDrawerOpened(drawerView);
-                    invalidateOptionsMenu();
+                override fun onDrawerOpened(drawerView: View) {
+                    super.onDrawerOpened(drawerView)
+                    invalidateOptionsMenu()
                 }
-            };
-            drawerLayout.addDrawerListener(drawerToggle);
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setHomeButtonEnabled(true);
+            }
+
+            drawerLayout?.addDrawerListener(drawerToggle)
+
+            supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+            supportActionBar!!.setHomeButtonEnabled(true)
         }
-        drawerView = findViewById(R.id.left_drawer);
+
+        drawerView = findViewById(R.id.left_drawer)
+
         // Disable shadow
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            drawerView.setElevation(0f);
+            drawerView.elevation = 0f
         }
-        drawerView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                int itemId = item.getItemId();
-                if (itemId == R.id.logout) {
+
+        drawerView.setNavigationItemSelectedListener { item ->
+            val itemId = item.itemId
+            when (itemId) {
+                R.id.logout -> {
                     // No page for this
-                    doLogout();
-                } else if (itemId == R.id.about) {
-                    // Same here
-                    AboutDialog.newInstance().show(getSupportFragmentManager(), AboutDialog.TAG);
-                    closeDrawer();
-                } else if (itemId == R.id.remove_ads) {
-                    // billingManager.launchPurchaseFlow();
-                    closeDrawer();
-                } else {
-                    // Go to page
-                    selectItem(item.getItemId(), true);
+                    doLogout()
                 }
-                return true;
+                R.id.about -> {
+                    // Same here
+                    AboutDialog.newInstance().show(supportFragmentManager, AboutDialog.TAG)
+                    closeDrawer()
+                }
+                R.id.remove_ads -> {
+                    // billingManager.launchPurchaseFlow();
+                    closeDrawer()
+                }
+                else -> {
+                    // Go to page
+                    selectItem(item.itemId, true)
+                }
             }
-        });
+
+            true
+        }
 
         // Get avatar and username views from drawer header
-        final View headerView = drawerView.getHeaderView(0);
-        avatarView = headerView.findViewById(R.id.avatar);
-        usernameView = headerView.findViewById(R.id.username);
-        logoutToggle = headerView.findViewById(R.id.logout_toggle);
-        headerView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                logoutExpanded = !logoutExpanded;
-                final int rotation = logoutExpanded ? 180 : 0;
-                logoutToggle.animate().rotation(rotation).setDuration(250).start();
-                drawerView.getMenu().setGroupVisible(R.id.logout_group, logoutExpanded);
-            }
-        });
+        val headerView = drawerView.getHeaderView(0)
+        avatarView = headerView.findViewById(R.id.avatar)
+        usernameView = headerView.findViewById(R.id.username)
+        logoutToggle = headerView.findViewById(R.id.logout_toggle)
+        headerView.setOnClickListener {
+            logoutExpanded = !logoutExpanded
+            val rotation = if (logoutExpanded) 180 else 0
+            logoutToggle.animate().rotation(rotation.toFloat()).setDuration(250).start()
+            drawerView.menu.setGroupVisible(R.id.logout_group, logoutExpanded)
+        }
 
         // Update the navigation drawer and title on backstack changes
-        getSupportFragmentManager().addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
-            @Override
-            public void onBackStackChanged() {
-                loggedIn = steamService.isLoggedIn();
-                farming = steamService.isFarming();
-                updateStatus();
-            }
-        });
+        supportFragmentManager.addOnBackStackChangedListener {
+            loggedIn = steamService!!.isLoggedIn
+            farming = steamService!!.isFarming
+            updateStatus()
+        }
 
         // Ads
-        adInflater = findViewById(R.id.ad_inflater);
-
+        adInflater = findViewById(R.id.ad_inflater)
         if (savedInstanceState != null) {
-            drawerItemId = savedInstanceState.getInt(DRAWER_ITEM);
-            logoutExpanded = savedInstanceState.getBoolean(LOGOUT_EXPANDED);
-            setTitle(savedInstanceState.getString(TITLE));
-            drawerView.getMenu().setGroupVisible(R.id.logout_group, logoutExpanded);
-            logoutToggle.setRotation(logoutExpanded ? 180 : 0);
+            drawerItemId = savedInstanceState.getInt(DRAWER_ITEM)
+            logoutExpanded = savedInstanceState.getBoolean(LOGOUT_EXPANDED)
+            setTitle(savedInstanceState.getString(TITLE)!!)
+            drawerView.menu.setGroupVisible(R.id.logout_group, logoutExpanded)
+            logoutToggle.rotation = (if (logoutExpanded) 180 else 0).toFloat()
         } else {
-            logoutExpanded = false;
-            selectItem(R.id.home, false);
+            logoutExpanded = false
+            selectItem(R.id.home, false)
         }
     }
 
-    @Override
-    public void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        if (drawerToggle != null) {
-            drawerToggle.syncState();
-        }
+    public override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
+        drawerToggle.syncState()
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        if (drawerToggle != null) {
-            drawerToggle.onConfigurationChanged(newConfig);
-        }
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        drawerToggle.onConfigurationChanged(newConfig)
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt(DRAWER_ITEM, drawerItemId);
-        outState.putString(TITLE, title);
-        outState.putBoolean(LOGOUT_EXPANDED, logoutExpanded);
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        with(outState) {
+            putInt(DRAWER_ITEM, drawerItemId)
+            putString(TITLE, title)
+            putBoolean(LOGOUT_EXPANDED, logoutExpanded)
+        }
     }
 
     /**
      * Activate a Steam key sent from another app
      */
-    private void handleKeyIntent(Intent intent) {
-        final String key = intent.getStringExtra(Intent.EXTRA_TEXT);
-        if (!PrefsManager.getLoginKey().isEmpty() && key != null) {
-            steamService.redeemKey(key.trim());
+    private fun handleKeyIntent(intent: Intent) {
+        val key = intent.getStringExtra(Intent.EXTRA_TEXT)
+        if (PrefsManager.loginKey.isNotEmpty() && key != null) {
+            steamService!!.redeemKey(key.trim())
         } else {
-            Toast.makeText(getApplicationContext(), R.string.error_not_logged_in, Toast.LENGTH_LONG).show();
+            Toast.makeText(
+                applicationContext,
+                R.string.error_not_logged_in,
+                Toast.LENGTH_LONG
+            ).show()
         }
-        finish();
+
+        finish()
     }
 
-    private void selectItem(int id, boolean addToBackStack) {
+    private fun selectItem(id: Int, addToBackStack: Boolean) {
         if (drawerItemId == id) {
             // Already selected
-            closeDrawer();
-            return;
+            closeDrawer()
+            return
         }
 
-        Fragment fragment;
-        if (id == R.id.home) {
-            fragment = HomeFragment.newInstance(loggedIn, farming);
-        } else if (id == R.id.games) {
-            fragment = GamesFragment.newInstance(steamService.getSteamId(),
-                    steamService.getCurrentGames(), spinnerNav.getSelectedItemPosition());
-        } else if (id == R.id.settings) {
-            fragment = SettingsFragment.newInstance();
-        } else {
-            fragment = new Fragment();
+        val fragment: Fragment = when (id) {
+            R.id.home -> HomeFragment.newInstance(loggedIn, farming)
+            R.id.games -> {
+                GamesFragment.newInstance(
+                    steamService!!.steamId,
+                    steamService!!.currentGames, spinnerNav.selectedItemPosition
+                )
+            }
+            R.id.settings -> SettingsFragment.newInstance()
+            else -> Fragment()
         }
-        final FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.content_frame, fragment);
-        if (addToBackStack) {
-            ft.addToBackStack(null);
+
+        supportFragmentManager.beginTransaction().apply {
+            replace(R.id.content_frame, fragment)
+            if (addToBackStack) {
+                addToBackStack(null)
+            }
+            commit()
         }
-        ft.commit();
-        closeDrawer();
+
+        closeDrawer()
     }
 
-    private Fragment getCurrentFragment() {
-        return getSupportFragmentManager().findFragmentById(R.id.content_frame);
-    }
-
-    private void closeDrawer() {
-        if (drawerLayout != null) {
-            drawerLayout.closeDrawer(drawerView);
-        }
+    private fun closeDrawer() {
+        drawerLayout?.closeDrawer(drawerView)
     }
 
     /**
      * Show the navigation spinner (Games fragment only)
      */
-    private void showSpinnerNav() {
-        spinnerNav.setVisibility(View.VISIBLE);
+    private fun showSpinnerNav() {
+        spinnerNav.visibility = View.VISIBLE
     }
 
     /**
      * Hide it
      */
-    private void hideSpinnerNav() {
-        spinnerNav.setVisibility(View.GONE);
+    private fun hideSpinnerNav() {
+        spinnerNav.visibility = View.GONE
     }
 
-    @Override
-    public void setTitle(int titleId) {
-        title = getString(titleId);
-        super.setTitle(titleId);
+    override fun setTitle(titleId: Int) {
+        title = getString(titleId)
+        super.setTitle(titleId)
     }
 
-    @Override
-    public void setTitle(CharSequence title) {
-        this.title = title.toString();
-        super.setTitle(title);
+    override fun setTitle(title: CharSequence) {
+        this.title = title.toString()
+        super.setTitle(title)
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        final IntentFilter filter = new IntentFilter();
-        filter.addAction(SteamService.LOGIN_EVENT);
-        filter.addAction(SteamService.DISCONNECT_EVENT);
-        filter.addAction(SteamService.STOP_EVENT);
-        filter.addAction(SteamService.FARM_EVENT);
-        filter.addAction(SteamService.PERSONA_EVENT);
-        filter.addAction(SteamService.NOW_PLAYING_EVENT);
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, filter);
+    override fun onResume() {
+        super.onResume()
+
+        val filter = IntentFilter().apply {
+            addAction(SteamService.LOGIN_EVENT)
+            addAction(SteamService.DISCONNECT_EVENT)
+            addAction(SteamService.STOP_EVENT)
+            addAction(SteamService.FARM_EVENT)
+            addAction(SteamService.PERSONA_EVENT)
+            addAction(SteamService.NOW_PLAYING_EVENT)
+        }
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, filter)
+
         // Listen for preference changes
-        prefs = PrefsManager.getPrefs();
-        prefs.registerOnSharedPreferenceChangeListener(this);
+        prefs.registerOnSharedPreferenceChangeListener(this)
+
         // billingManager.queryPurchases();
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
-        prefs.unregisterOnSharedPreferenceChangeListener(this);
-
+    override fun onPause() {
+        super.onPause()
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver)
+        prefs.unregisterOnSharedPreferenceChangeListener(this)
     }
 
-    @Override
-    protected void onDestroy() {
+    @Suppress("RedundantOverride")
+    override fun onDestroy() {
         // billingManager.destroy();
-        super.onDestroy();
+        super.onDestroy()
     }
 
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        final boolean loggedIn = steamService != null && steamService.isLoggedIn();
-        drawerView.getHeaderView(0).setClickable(loggedIn);
-        menu.findItem(R.id.auto_discovery).setVisible(loggedIn);
-        menu.findItem(R.id.custom_app).setVisible(loggedIn);
-        menu.findItem(R.id.import_shared_secret).setVisible(loggedIn);
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        val loggedIn = steamService != null && steamService!!.isLoggedIn
+
+        drawerView.getHeaderView(0).isClickable = loggedIn
+
+        menu.findItem(R.id.auto_discovery).setVisible(loggedIn)
+        menu.findItem(R.id.custom_app).setVisible(loggedIn)
+        menu.findItem(R.id.import_shared_secret).setVisible(loggedIn)
         //menu.findItem(R.id.auto_vote).setVisible(loggedIn);
         //menu.findItem(R.id.spring_cleaning_event).setVisible(loggedIn);
-        menu.findItem(R.id.search).setVisible(drawerItemId == R.id.games);
-        return super.onPrepareOptionsMenu(menu);
+        menu.findItem(R.id.search).setVisible(drawerItemId == R.id.games)
+
+        return super.onPrepareOptionsMenu(menu)
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        searchView = (SearchView) menu.findItem(R.id.search).getActionView();
-        return true;
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        searchView = menu.findItem(R.id.search).actionView as SearchView
+
+        return true
     }
 
-    @Override
-    public void onBackPressed() {
-        if (!searchView.isIconified()) {
+    override fun onBackPressed() {
+        if (!searchView.isIconified) {
             // Dismiss the SearchView
-            searchView.setQuery("", false);
-            searchView.setIconified(true);
+            searchView.setQuery("", false)
+            searchView.isIconified = true
         } else {
-            super.onBackPressed();
+            super.onBackPressed()
         }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (drawerToggle != null && drawerToggle.onOptionsItemSelected(item)) {
-            return true;
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (drawerToggle.onOptionsItemSelected(item)) {
+            return true
         }
-        int itemId = item.getItemId();
-        if (itemId == R.id.logcat) {
-            sendLogcat();
-            return true;
-        } else if (itemId == R.id.auto_discovery) {
-            AutoDiscoverDialog.newInstance().show(getSupportFragmentManager(), AutoDiscoverDialog.TAG);
-            return true;
-        } else if (itemId == R.id.custom_app) {
-            CustomAppDialog.newInstance().show(getSupportFragmentManager(), CustomAppDialog.TAG);
-            return true;
-        } else if (itemId == R.id.import_shared_secret) {
-            SharedSecretDialog.newInstance(steamService.getSteamId()).show(getSupportFragmentManager(), SharedSecretDialog.TAG);
-            return true;
-        } // else if (itemId == R.id.spring_cleaning_event) {
-        //     SpringCleaningDialog.newInstance().show(getSupportFragmentManager(), SpringCleaningDialog.TAG);
-        //     return true;
-        // } else if (itemId == R.id.auto_vote) {
-        //     steamService.autoVote();
-        //     return true;
-        // }
-        return false;
+
+        val itemId = item.itemId
+        when (itemId) {
+            R.id.logcat -> {
+                sendLogcat()
+                return true
+            }
+            R.id.auto_discovery -> {
+                AutoDiscoverDialog.newInstance()
+                    .show(supportFragmentManager, AutoDiscoverDialog.TAG)
+                return true
+            }
+            R.id.custom_app -> {
+                CustomAppDialog.newInstance().show(supportFragmentManager, CustomAppDialog.TAG)
+                return true
+            }
+            R.id.import_shared_secret -> {
+                SharedSecretDialog.newInstance(steamService!!.steamId)
+                    .show(supportFragmentManager, SharedSecretDialog.TAG)
+                return true
+            } // else if (itemId == R.id.spring_cleaning_event) {
+            //     SpringCleaningDialog.newInstance().show(getSupportFragmentManager(), SpringCleaningDialog.TAG);
+            //     return true;
+            // } else if (itemId == R.id.auto_vote) {
+            //     steamService.autoVote();
+            //     return true;
+            // }
+            else -> return false
+        }
     }
 
     /**
      * Send Logcat output via email
      */
-    private void sendLogcat() {
-        final File cacheDir = getExternalCacheDir();
+    private fun sendLogcat() {
+        val cacheDir = externalCacheDir
         if (cacheDir == null) {
-            Log.i(TAG, "Unable to save Logcat. Shared storage is unavailable!");
-            return;
+            Log.i(TAG, "Unable to save Logcat. Shared storage is unavailable!")
+            return
         }
-        final File file = new File(cacheDir, "idledaddy-logcat.txt");
+
+        val file = File(cacheDir, "idledaddy-logcat.txt")
         try {
-            Utils.saveLogcat(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
+            Utils.saveLogcat(file)
+        } catch (e: IOException) {
+            e.printStackTrace()
+            return
         }
-        final Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.setType("*/*");
-        intent.putExtra(Intent.EXTRA_EMAIL, new String[]{"steevsapps@gmail.com"});
-        intent.putExtra(Intent.EXTRA_SUBJECT, "Idle Daddy Logcat");
-        intent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(this,
-                getApplicationContext().getPackageName() + ".provider", file));
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        startActivity(intent);
+
+        Intent(Intent.ACTION_SEND).apply {
+            val fileProvider = FileProvider.getUriForFile(
+                this@MainActivity,
+                applicationContext.packageName + ".provider",
+                file
+            )
+            setType("*/*")
+            putExtra(Intent.EXTRA_EMAIL, arrayOf("steevsapps@gmail.com"))
+            putExtra(Intent.EXTRA_SUBJECT, "Idle Daddy Logcat")
+            putExtra(Intent.EXTRA_STREAM, fileProvider)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }.also(::startActivity)
     }
 
-    public void clickHandler(View v) {
-        int id = v.getId();
-        if (id == R.id.start_idling) {
-            v.setEnabled(false);
-            steamService.startFarming();
-        } else if (id == R.id.stop_idling) {
-            stopSteam();
-        } else if (id == R.id.status) {
-            startActivity(LoginActivity.createIntent(this));
-        } else if (id == R.id.redeem) {
-            RedeemDialog.newInstance().show(getSupportFragmentManager(), "redeem");
-        } else if (id == R.id.stop_button) {
-            steamService.stopGame();
-        } else if (id == R.id.pause_resume_button) {
-            if (steamService.isPaused()) {
-                steamService.resumeGame();
-            } else {
-                steamService.pauseGame();
+    fun clickHandler(v: View) {
+        val id = v.id
+        when (id) {
+            R.id.start_idling -> {
+                v.setEnabled(false)
+                steamService!!.startFarming()
             }
-        } else if (id == R.id.next_button) {
-            steamService.skipGame();
+            R.id.stop_idling -> stopSteam()
+            R.id.status -> startActivity(createIntent(this))
+            R.id.redeem -> RedeemDialog.newInstance().show(supportFragmentManager, "redeem")
+            R.id.stop_button -> steamService!!.stopGame()
+            R.id.pause_resume_button -> {
+                if (steamService!!.isPaused) {
+                    steamService!!.resumeGame()
+                } else {
+                    steamService!!.pauseGame()
+                }
+            }
+            R.id.next_button -> steamService!!.skipGame()
         }
     }
 
     /**
      * Update the fragments
      */
-    private void updateStatus() {
-        invalidateOptionsMenu();
-        final Fragment fragment = getCurrentFragment();
-        if (fragment instanceof HomeFragment) {
-            drawerItemId = R.id.home;
-            setTitle(R.string.app_name);
-            hideSpinnerNav();
-            drawerView.getMenu().findItem(R.id.home).setChecked(true);
-            ((HomeFragment) fragment).update(loggedIn, farming);
-            showDropInfo(null);
-            showNowPlaying();
-        } else if (fragment instanceof GamesFragment) {
-            drawerItemId = R.id.games;
-            setTitle("");
-            showSpinnerNav();
-            drawerView.getMenu().findItem(R.id.games).setChecked(true);
-            ((GamesFragment) fragment).update(steamService.getCurrentGames());
-        } else if (fragment instanceof SettingsFragment) {
-            drawerItemId = R.id.settings;
-            setTitle(R.string.settings);
-            hideSpinnerNav();
-            drawerView.getMenu().findItem(R.id.settings).setChecked(true);
+    private fun updateStatus() {
+        invalidateOptionsMenu()
+
+        when (val fragment = currentFragment) {
+            is HomeFragment -> {
+                drawerItemId = R.id.home
+                setTitle(R.string.app_name)
+                hideSpinnerNav()
+                drawerView.menu.findItem(R.id.home).setChecked(true)
+                fragment.update(loggedIn, farming)
+                showDropInfo(null)
+                showNowPlaying()
+            }
+            is GamesFragment -> {
+                drawerItemId = R.id.games
+                setTitle("")
+                showSpinnerNav()
+                drawerView.menu.findItem(R.id.games).setChecked(true)
+                fragment.update(steamService!!.currentGames)
+            }
+            is SettingsFragment -> {
+                drawerItemId = R.id.settings
+                setTitle(R.string.settings)
+                hideSpinnerNav()
+                drawerView.menu.findItem(R.id.settings).setChecked(true)
+            }
         }
     }
 
     /**
      * Show/hide card drop info
      */
-    private void showDropInfo(@Nullable Intent intent) {
-        final Fragment fragment = getCurrentFragment();
-        if (fragment instanceof HomeFragment) {
-            final HomeFragment homeFragment = (HomeFragment) fragment;
+    private fun showDropInfo(intent: Intent?) {
+        val fragment = currentFragment
+        if (fragment is HomeFragment) {
             if (intent != null) {
                 // Called by FARM_EVENT, always show drop info
-                final int gameCount = intent.getIntExtra(SteamService.GAME_COUNT, 0);
-                final int cardCount = intent.getIntExtra(SteamService.CARD_COUNT, 0);
-                homeFragment.showDropInfo(gameCount, cardCount);
+                val gameCount = intent.getIntExtra(SteamService.GAME_COUNT, 0)
+                val cardCount = intent.getIntExtra(SteamService.CARD_COUNT, 0)
+                fragment.showDropInfo(gameCount, cardCount)
             } else if (farming) {
                 // Called by updateStatus(), only show drop info if we're farming
-                homeFragment.showDropInfo(steamService.getGameCount(), steamService.getCardCount());
+                fragment.showDropInfo(steamService!!.gameCount, steamService!!.cardCount)
             } else {
                 // Hide drop info
-                homeFragment.hideDropInfo();
+                fragment.hideDropInfo()
             }
         }
     }
@@ -573,57 +592,62 @@ public class MainActivity extends BaseActivity implements DialogListener,
     /**
      * Show now playing if we're idling any games
      */
-    private void showNowPlaying() {
-        final Fragment fragment = getCurrentFragment();
-        if (fragment instanceof HomeFragment) {
-            ((HomeFragment) fragment).showNowPlaying(steamService.getCurrentGames(), steamService.isFarming(), steamService.isPaused());
+    private fun showNowPlaying() {
+        val fragment = currentFragment
+        if (fragment is HomeFragment) {
+            fragment.showNowPlaying(
+                steamService!!.currentGames,
+                steamService!!.isFarming,
+                steamService!!.isPaused
+            )
         }
     }
 
-    @Override
-    public void onYesPicked(String text) {
-        final String key = text.toUpperCase().trim();
-        if (!key.isEmpty()) {
-            steamService.redeemKey(key);
+    override fun onYesPicked(text: String) {
+        val key = text.uppercase(Locale.getDefault()).trim()
+        if (key.isNotEmpty()) {
+            steamService!!.redeemKey(key)
         }
     }
 
-    @Override
-    public void onGamePicked(Game game) {
-        steamService.addGame(game);
+    override fun onGamePicked(game: Game) {
+        steamService!!.addGame(game)
     }
 
-    @Override
-    public void onGamesPicked(List<Game> games) {
-        steamService.addGames(games);
+    override fun onGamesPicked(games: List<Game>) {
+        steamService!!.addGames(games)
     }
 
-    @Override
-    public void onGameRemoved(Game game) {
-        steamService.removeGame(game);
+    override fun onGameRemoved(game: Game) {
+        steamService!!.removeGame(game)
     }
 
-    @Override
-    public void onGameLongPressed(Game game) {
+    override fun onGameLongPressed(game: Game) {
         // Show game options
-        GameOptionsDialog.newInstance(game).show(getSupportFragmentManager(), GameOptionsDialog.TAG);
+        GameOptionsDialog.newInstance(game).show(supportFragmentManager, GameOptionsDialog.TAG)
     }
 
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (key.equals("stay_awake")) {
-            if (PrefsManager.stayAwake()) {
-                // Keep device awake
-                steamService.acquireWakeLock();
-            } else {
-                // Allow device to sleep
-                steamService.releaseWakeLock();
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String?) {
+        when (key) {
+            "stay_awake" -> {
+                if (PrefsManager.stayAwake()) {
+                    // Keep device awake
+                    steamService!!.acquireWakeLock()
+                } else {
+                    // Allow device to sleep
+                    steamService!!.releaseWakeLock()
+                }
             }
-        } else if (key.equals("offline")) {
-            // Change status
-            steamService.changeStatus(PrefsManager.getOffline() ? EPersonaState.Offline : EPersonaState.Online);
-        } else if (key.equals("language")) {
-            Toast.makeText(this, R.string.language_changed, Toast.LENGTH_LONG).show();
+            "offline" -> {
+                // Change status
+                val status = if (PrefsManager.offline)
+                    EPersonaState.Offline else EPersonaState.Online
+
+                steamService!!.changeStatus(status)
+            }
+            "language" -> {
+                Toast.makeText(this, R.string.language_changed, Toast.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -693,4 +717,11 @@ public class MainActivity extends BaseActivity implements DialogListener,
     // private void removeAds() {
     //     mainContainer.removeView(adView);
     // }
+
+    companion object {
+        private val TAG = MainActivity::class.java.getSimpleName()
+        private const val DRAWER_ITEM = "DRAWER_ITEM"
+        private const val TITLE = "TITLE"
+        private const val LOGOUT_EXPANDED = "LOGOUT_EXPANDED"
+    }
 }

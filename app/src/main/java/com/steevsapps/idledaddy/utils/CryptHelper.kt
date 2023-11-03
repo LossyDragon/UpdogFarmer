@@ -1,145 +1,160 @@
-package com.steevsapps.idledaddy.utils;
+package com.steevsapps.idledaddy.utils
 
-import android.content.Context;
-import android.os.Build;
-import android.security.KeyPairGeneratorSpec;
-import androidx.annotation.RequiresApi;
-import android.text.TextUtils;
-import android.util.Base64;
-import android.util.Log;
+import android.content.Context
+import android.os.Build
+import android.security.KeyPairGeneratorSpec
+import android.text.TextUtils
+import android.util.Base64
+import android.util.Log
+import androidx.annotation.RequiresApi
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.math.BigInteger
+import java.nio.charset.Charset
+import java.security.InvalidAlgorithmParameterException
+import java.security.KeyPairGenerator
+import java.security.KeyStore
+import java.security.KeyStoreException
+import java.security.NoSuchAlgorithmException
+import java.security.NoSuchProviderException
+import java.security.UnrecoverableEntryException
+import java.security.cert.CertificateException
+import java.util.Calendar
+import java.util.GregorianCalendar
+import javax.crypto.Cipher
+import javax.crypto.CipherInputStream
+import javax.crypto.CipherOutputStream
+import javax.security.auth.x500.X500Principal
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.nio.charset.Charset;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
+object CryptHelper {
+    private val TAG = CryptHelper::class.java.getSimpleName()
 
-import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
-import javax.security.auth.x500.X500Principal;
+    private const val KEYSTORE = "AndroidKeyStore"
+    private const val ALIAS = "IdleDaddy"
+    private const val TYPE_RSA = "RSA"
+    private const val CYPHER = "RSA/ECB/PKCS1Padding"
+    private const val ENCODING = "UTF-8"
 
-public class CryptHelper {
-    private final static String TAG = CryptHelper.class.getSimpleName();
-    private final static String KEYSTORE = "AndroidKeyStore";
-    private final static String ALIAS = "IdleDaddy";
-    private final static String TYPE_RSA = "RSA";
-    private final static String CYPHER = "RSA/ECB/PKCS1Padding";
-    private final static String ENCODING = "UTF-8";
-
-    public static String encryptString(Context context, String toEncrypt) {
+    @JvmStatic
+    fun encryptString(context: Context, toEncrypt: String): String {
         if (TextUtils.isEmpty(toEncrypt)) {
-            return "";
+            return ""
         }
+
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                final KeyStore.PrivateKeyEntry privateKeyEntry = getPrivateKey(context);
+                val privateKeyEntry = getPrivateKey(context)
+
                 if (privateKeyEntry != null) {
-                    final PublicKey publicKey = privateKeyEntry.getCertificate().getPublicKey();
+                    val publicKey = privateKeyEntry.certificate.publicKey
 
                     // Encrypt the text
-                    final Cipher input = Cipher.getInstance(CYPHER);
-                    input.init(Cipher.ENCRYPT_MODE, publicKey);
+                    val input = Cipher.getInstance(CYPHER)
+                    input.init(Cipher.ENCRYPT_MODE, publicKey)
 
-                    final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                    final CipherOutputStream cipherOutputStream = new CipherOutputStream(outputStream, input);
-                    cipherOutputStream.write(toEncrypt.getBytes(Charset.forName(ENCODING)));
-                    cipherOutputStream.close();
+                    val outputStream = ByteArrayOutputStream()
+                    val cipherOutputStream = CipherOutputStream(outputStream, input)
+                    cipherOutputStream.write(toEncrypt.toByteArray(Charset.forName(ENCODING)))
+                    cipherOutputStream.close()
 
-                    return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT);
+                    return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
                 }
             } else {
-                return Base64.encodeToString(toEncrypt.getBytes(Charset.forName(ENCODING)), Base64.DEFAULT);
+                return Base64.encodeToString(
+                    toEncrypt.toByteArray(Charset.forName(ENCODING)),
+                    Base64.DEFAULT
+                )
             }
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to encrypt string", e);
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to encrypt string", e)
         }
-        return "";
+
+        return ""
     }
 
-    public static String decryptString(Context context, String encrypted) {
+    @JvmStatic
+    fun decryptString(context: Context, encrypted: String?): String {
         if (TextUtils.isEmpty(encrypted)) {
-            return "";
+            return ""
         }
+
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                final KeyStore.PrivateKeyEntry privateKeyEntry = getPrivateKey(context);
+                val privateKeyEntry = getPrivateKey(context)
+
                 if (privateKeyEntry != null) {
-                    final PrivateKey privateKey = privateKeyEntry.getPrivateKey();
+                    val privateKey = privateKeyEntry.privateKey
 
-                    final Cipher output = Cipher.getInstance(CYPHER);
-                    output.init(Cipher.DECRYPT_MODE, privateKey);
+                    val output = Cipher.getInstance(CYPHER)
+                    output.init(Cipher.DECRYPT_MODE, privateKey)
 
-                    final CipherInputStream cipherInputStream = new CipherInputStream(
-                            new ByteArrayInputStream(Base64.decode(encrypted, Base64.DEFAULT)), output);
+                    val cipherInputStream = CipherInputStream(
+                        ByteArrayInputStream(Base64.decode(encrypted, Base64.DEFAULT)), output
+                    )
 
-                    final List<Byte> values = new ArrayList<>();
-                    int nextByte;
-                    while ((nextByte = cipherInputStream.read()) != -1) {
-                        values.add((byte) nextByte);
+                    val values: MutableList<Byte> = ArrayList()
+                    var nextByte: Int
+                    while (cipherInputStream.read().also { nextByte = it } != -1) {
+                        values.add(nextByte.toByte())
                     }
 
-                    final byte[] bytes = new byte[values.size()];
-                    for (int i=0;i<bytes.length;i++) {
-                        bytes[i] = values.get(i);
+                    val bytes = ByteArray(values.size)
+                    for (i in bytes.indices) {
+                        bytes[i] = values[i]
                     }
 
-                    return new String(bytes, Charset.forName(ENCODING));
+                    return String(bytes, Charset.forName(ENCODING))
                 }
             } else {
-                return new String(Base64.decode(encrypted, Base64.DEFAULT), Charset.forName(ENCODING));
+                return String(Base64.decode(encrypted, Base64.DEFAULT), Charset.forName(ENCODING))
             }
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to decrypt string", e);
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to decrypt string", e)
         }
-        return "";
+
+        return ""
     }
 
     @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    private static KeyStore.PrivateKeyEntry getPrivateKey(Context context) throws KeyStoreException, NoSuchAlgorithmException,
-            CertificateException, IOException, UnrecoverableEntryException {
-        KeyStore ks = KeyStore.getInstance(KEYSTORE);
+    @Throws(
+        KeyStoreException::class,
+        NoSuchAlgorithmException::class,
+        CertificateException::class,
+        IOException::class,
+        UnrecoverableEntryException::class
+    )
+    private fun getPrivateKey(context: Context): KeyStore.PrivateKeyEntry? {
+        var ks = KeyStore.getInstance(KEYSTORE)
 
         // Weird artifact of Java API.  If you don't have an InputStream to load, you still need
         // to call "load", or it'll crash.
-        ks.load(null);
+        ks.load(null)
 
         // Load the keypair from the Android Key Store
-        KeyStore.Entry entry = ks.getEntry(ALIAS, null);
-
+        var entry = ks.getEntry(ALIAS, null)
         if (entry == null) {
-            Log.w(TAG, "No keys found under alias: " + ALIAS);
-            Log.w(TAG, "Generating new key...");
+            Log.w(TAG, "No keys found under alias: $ALIAS")
+            Log.w(TAG, "Generating new key...")
+
             try {
-                createKeys(context);
+                createKeys(context)
 
                 // Reload key store
-                ks = KeyStore.getInstance(KEYSTORE);
-                ks.load(null);
+                ks = KeyStore.getInstance(KEYSTORE)
+                ks.load(null)
+                entry = ks.getEntry(ALIAS, null)
 
-                entry = ks.getEntry(ALIAS, null);
                 if (entry == null) {
-                    Log.e(TAG, "Generating new key failed");
-                    return null;
+                    Log.e(TAG, "Generating new key failed")
+                    return null
                 }
-            } catch (NoSuchProviderException|InvalidAlgorithmParameterException e) {
-                Log.e(TAG, "Generating new key failed", e);
-                return null;
+            } catch (e: NoSuchProviderException) {
+                Log.e(TAG, "Generating new key failed", e)
+                return null
+            } catch (e: InvalidAlgorithmParameterException) {
+                Log.e(TAG, "Generating new key failed", e)
+                return null
             }
         }
 
@@ -148,38 +163,43 @@ public class CryptHelper {
          * by something else using the same keystore with the same alias.
          * You can determine the type using entry.getClass() and debug from there.
          */
-        if (!(entry instanceof KeyStore.PrivateKeyEntry)) {
-            Log.w(TAG, "Not an instance of a PrivateKeyEntry");
-            Log.w(TAG, "Exiting signData()...");
-            return null;
+        if (entry !is KeyStore.PrivateKeyEntry) {
+            Log.w(TAG, "Not an instance of a PrivateKeyEntry")
+            Log.w(TAG, "Exiting signData()...")
+
+            return null
         }
 
-        return (KeyStore.PrivateKeyEntry) entry;
+        return entry
     }
 
     @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    private static void createKeys(Context context) throws NoSuchAlgorithmException, NoSuchProviderException,
-            InvalidAlgorithmParameterException {
+    @Throws(
+        NoSuchAlgorithmException::class,
+        NoSuchProviderException::class,
+        InvalidAlgorithmParameterException::class
+    )
+    private fun createKeys(context: Context) {
         // Create a start and end time, for the validity range of the key pair that's about to be
         // generated.
-        final Calendar start = new GregorianCalendar();
-        final Calendar end = new GregorianCalendar();
-        end.add(Calendar.YEAR, 25);
+        val start: Calendar = GregorianCalendar()
+        val end: Calendar = GregorianCalendar()
+        end.add(Calendar.YEAR, 25)
 
-        final KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(context)
-                .setAlias(ALIAS)
-                .setSubject(new X500Principal("CN=" + ALIAS))
-                .setSerialNumber(BigInteger.valueOf(1337))
-                .setStartDate(start.getTime())
-                .setEndDate(end.getTime())
-                .build();
+        val spec = KeyPairGeneratorSpec.Builder(context)
+            .setAlias(ALIAS)
+            .setSubject(X500Principal("CN=$ALIAS"))
+            .setSerialNumber(BigInteger.valueOf(1337))
+            .setStartDate(start.time)
+            .setEndDate(end.time)
+            .build()
 
         // Initialize a KeyPair generator using the the intended algorithm (in this example, RSA
         // and the KeyStore.  This example uses the AndroidKeyStore.
-        final KeyPairGenerator generator = KeyPairGenerator.getInstance(TYPE_RSA, KEYSTORE);
-        generator.initialize(spec);
+        val generator = KeyPairGenerator.getInstance(TYPE_RSA, KEYSTORE)
+        generator.initialize(spec)
 
-        final KeyPair kp = generator.generateKeyPair();
-        Log.i(TAG, "Public key is " + kp.getPublic().toString());
+        val kp = generator.generateKeyPair()
+        Log.i(TAG, "Public key is " + kp.public.toString())
     }
 }
