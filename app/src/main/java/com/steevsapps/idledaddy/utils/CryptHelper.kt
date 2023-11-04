@@ -1,12 +1,10 @@
 package com.steevsapps.idledaddy.utils
 
-import android.content.Context
-import android.os.Build
-import android.security.KeyPairGeneratorSpec
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
 import android.text.TextUtils
 import android.util.Base64
 import android.util.Log
-import androidx.annotation.RequiresApi
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -37,34 +35,27 @@ object CryptHelper {
     private const val ENCODING = "UTF-8"
 
     @JvmStatic
-    fun encryptString(context: Context, toEncrypt: String): String {
+    fun encryptString(toEncrypt: String): String {
         if (TextUtils.isEmpty(toEncrypt)) {
             return ""
         }
 
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                val privateKeyEntry = getPrivateKey(context)
+            val privateKeyEntry = getPrivateKey()
 
-                if (privateKeyEntry != null) {
-                    val publicKey = privateKeyEntry.certificate.publicKey
+            if (privateKeyEntry != null) {
+                val publicKey = privateKeyEntry.certificate.publicKey
 
-                    // Encrypt the text
-                    val input = Cipher.getInstance(CYPHER)
-                    input.init(Cipher.ENCRYPT_MODE, publicKey)
+                // Encrypt the text
+                val input = Cipher.getInstance(CYPHER)
+                input.init(Cipher.ENCRYPT_MODE, publicKey)
 
-                    val outputStream = ByteArrayOutputStream()
-                    val cipherOutputStream = CipherOutputStream(outputStream, input)
-                    cipherOutputStream.write(toEncrypt.toByteArray(Charset.forName(ENCODING)))
-                    cipherOutputStream.close()
+                val outputStream = ByteArrayOutputStream()
+                val cipherOutputStream = CipherOutputStream(outputStream, input)
+                cipherOutputStream.write(toEncrypt.toByteArray(Charset.forName(ENCODING)))
+                cipherOutputStream.close()
 
-                    return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
-                }
-            } else {
-                return Base64.encodeToString(
-                    toEncrypt.toByteArray(Charset.forName(ENCODING)),
-                    Base64.DEFAULT
-                )
+                return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to encrypt string", e)
@@ -74,40 +65,37 @@ object CryptHelper {
     }
 
     @JvmStatic
-    fun decryptString(context: Context, encrypted: String?): String {
+    fun decryptString(encrypted: String?): String {
         if (TextUtils.isEmpty(encrypted)) {
             return ""
         }
 
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                val privateKeyEntry = getPrivateKey(context)
+            val privateKeyEntry = getPrivateKey()
 
-                if (privateKeyEntry != null) {
-                    val privateKey = privateKeyEntry.privateKey
+            if (privateKeyEntry != null) {
+                val privateKey = privateKeyEntry.privateKey
 
-                    val output = Cipher.getInstance(CYPHER)
-                    output.init(Cipher.DECRYPT_MODE, privateKey)
+                val output = Cipher.getInstance(CYPHER)
+                output.init(Cipher.DECRYPT_MODE, privateKey)
 
-                    val cipherInputStream = CipherInputStream(
-                        ByteArrayInputStream(Base64.decode(encrypted, Base64.DEFAULT)), output
-                    )
+                val cipherInputStream = CipherInputStream(
+                    ByteArrayInputStream(Base64.decode(encrypted, Base64.DEFAULT)),
+                    output
+                )
 
-                    val values: MutableList<Byte> = ArrayList()
-                    var nextByte: Int
-                    while (cipherInputStream.read().also { nextByte = it } != -1) {
-                        values.add(nextByte.toByte())
-                    }
-
-                    val bytes = ByteArray(values.size)
-                    for (i in bytes.indices) {
-                        bytes[i] = values[i]
-                    }
-
-                    return String(bytes, Charset.forName(ENCODING))
+                val values: MutableList<Byte> = ArrayList()
+                var nextByte: Int
+                while (cipherInputStream.read().also { nextByte = it } != -1) {
+                    values.add(nextByte.toByte())
                 }
-            } else {
-                return String(Base64.decode(encrypted, Base64.DEFAULT), Charset.forName(ENCODING))
+
+                val bytes = ByteArray(values.size)
+                for (i in bytes.indices) {
+                    bytes[i] = values[i]
+                }
+
+                return String(bytes, Charset.forName(ENCODING))
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to decrypt string", e)
@@ -116,7 +104,6 @@ object CryptHelper {
         return ""
     }
 
-    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     @Throws(
         KeyStoreException::class,
         NoSuchAlgorithmException::class,
@@ -124,7 +111,7 @@ object CryptHelper {
         IOException::class,
         UnrecoverableEntryException::class
     )
-    private fun getPrivateKey(context: Context): KeyStore.PrivateKeyEntry? {
+    private fun getPrivateKey(): KeyStore.PrivateKeyEntry? {
         var ks = KeyStore.getInstance(KEYSTORE)
 
         // Weird artifact of Java API.  If you don't have an InputStream to load, you still need
@@ -138,7 +125,7 @@ object CryptHelper {
             Log.w(TAG, "Generating new key...")
 
             try {
-                createKeys(context)
+                createKeys()
 
                 // Reload key store
                 ks = KeyStore.getInstance(KEYSTORE)
@@ -173,25 +160,27 @@ object CryptHelper {
         return entry
     }
 
-    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     @Throws(
         NoSuchAlgorithmException::class,
         NoSuchProviderException::class,
         InvalidAlgorithmParameterException::class
     )
-    private fun createKeys(context: Context) {
+    private fun createKeys() {
         // Create a start and end time, for the validity range of the key pair that's about to be
         // generated.
         val start: Calendar = GregorianCalendar()
         val end: Calendar = GregorianCalendar()
         end.add(Calendar.YEAR, 25)
 
-        val spec = KeyPairGeneratorSpec.Builder(context)
-            .setAlias(ALIAS)
-            .setSubject(X500Principal("CN=$ALIAS"))
-            .setSerialNumber(BigInteger.valueOf(1337))
-            .setStartDate(start.time)
-            .setEndDate(end.time)
+        val spec = KeyGenParameterSpec.Builder(
+            ALIAS,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+        )
+            .setCertificateSubject(X500Principal("CN=$ALIAS"))
+            .setCertificateSerialNumber(BigInteger.valueOf(1337))
+            .setCertificateNotBefore(start.time)
+            .setCertificateNotAfter(end.time)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
             .build()
 
         // Initialize a KeyPair generator using the the intended algorithm (in this example, RSA

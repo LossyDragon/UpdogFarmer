@@ -29,7 +29,6 @@ class LoginViewModel : ViewModel() {
 
     val timeout = SingleLiveEvent<Void>()
 
-
     fun init(webHandler: SteamWebHandler?) {
         this.webHandler = webHandler
     }
@@ -57,7 +56,7 @@ class LoginViewModel : ViewModel() {
             override fun onResponse(call: Call<TimeQuery>, response: Response<TimeQuery>) {
                 if (response.isSuccessful) {
                     timeDifference.value =
-                        (response.body()!!.response.serverTime - currentTime).toInt()
+                        (response.body()!!.response!!.serverTime - currentTime).toInt()
                     timeAligned = true
                 }
             }

@@ -13,13 +13,13 @@ import retrofit2.http.QueryMap
 
 interface SteamAPI {
     @GET("IPlayerService/GetOwnedGames/v0001/?include_appinfo=1&format=json")
-    fun getGamesOwned(@QueryMap args: Map<String?, String?>?): Call<GamesOwnedResponse?>?
+    fun getGamesOwned(@QueryMap args: Map<String?, String>): Call<GamesOwnedResponse>
 
     @FormUrlEncoded
     @POST("ISteamUserAuth/AuthenticateUser/v0001/")
-    fun authenticateUser(@FieldMap(encoded = true) args: Map<String?, String?>?): Call<KeyValue?>?
+    fun authenticateUser(@FieldMap(encoded = true) args: Map<String, String>): Call<KeyValue>
 
     @FormUrlEncoded
     @POST("ITwoFactorService/QueryTime/v0001")
-    fun queryServerTime(@Field("steamid") steamId: String?): Call<TimeQuery?>?
+    fun queryServerTime(@Field("steamid") steamId: String): Call<TimeQuery>
 }

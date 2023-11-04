@@ -52,13 +52,8 @@ object LocaleManager {
         val res = ctx.resources
         val config = Configuration(res.configuration)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            config.setLocale(locale)
-            ctx = ctx.createConfigurationContext(config)
-        } else {
-            config.locale = locale
-            res.updateConfiguration(config, res.displayMetrics)
-        }
+        config.setLocale(locale)
+        ctx = ctx.createConfigurationContext(config)
 
         return ctx
     }
@@ -78,6 +73,11 @@ object LocaleManager {
 
     private fun getLocale(res: Resources): Locale {
         val config = res.configuration
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) config.getLocales()[0] else config.locale
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            config.getLocales()[0]
+        } else {
+            @Suppress("DEPRECATION")
+            config.locale
+        }
     }
 }

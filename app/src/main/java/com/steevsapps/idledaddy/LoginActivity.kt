@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -22,7 +23,6 @@ import com.steevsapps.idledaddy.utils.Utils
 import `in`.dragonbra.javasteam.enums.EOSType
 import `in`.dragonbra.javasteam.enums.EResult
 import `in`.dragonbra.javasteam.steam.handlers.steamuser.LogOnDetails
-
 
 class LoginActivity : BaseActivity() {
 
@@ -51,7 +51,13 @@ class LoginActivity : BaseActivity() {
 
                 progress.visibility = View.GONE
 
-                val result: EResult? = intent.getSerializableExtra(SteamService.RESULT) as EResult?
+                val result: EResult? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getSerializableExtra(SteamService.RESULT, EResult::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getSerializableExtra(SteamService.RESULT) as EResult
+                }
+
                 if (result != EResult.OK) {
                     loginButton.setEnabled(true)
                     usernameInput.isErrorEnabled = false
@@ -90,7 +96,7 @@ class LoginActivity : BaseActivity() {
                         Utils.removeSpecialChars(passwordEditText.getText().toString()).trim()
 
                     PrefsManager.writeUsername(username)
-                    PrefsManager.writePassword(this@LoginActivity, password)
+                    PrefsManager.writePassword(password)
 
                     finish()
                 }
@@ -138,7 +144,7 @@ class LoginActivity : BaseActivity() {
         } else {
             // Restore saved username if any
             usernameEditText.setText(PrefsManager.username)
-            passwordEditText.setText(PrefsManager.getPassword(this))
+            passwordEditText.setText(PrefsManager.getPassword())
         }
 
         setupViewModel()
@@ -191,7 +197,7 @@ class LoginActivity : BaseActivity() {
 
     private fun setupViewModel() {
         viewModel = ViewModelProvider(this)[LoginViewModel::class.java].apply {
-            init(SteamWebHandler.getInstance())
+            init(SteamWebHandler.instance)
             getTimeDifference().observe(this@LoginActivity) {
                 timeDifference = it
             }

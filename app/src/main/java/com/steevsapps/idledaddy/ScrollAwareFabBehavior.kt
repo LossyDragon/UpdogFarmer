@@ -18,10 +18,12 @@ class ScrollAwareFabBehavior(
 
     override fun onStartNestedScroll(
         coordinatorLayout: CoordinatorLayout,
-        child: FloatingActionButton, directTargetChild: View,
-        target: View, axes: Int, type: Int
+        child: FloatingActionButton,
+        directTargetChild: View,
+        target: View,
+        axes: Int,
+        type: Int
     ): Boolean = true
-
 
     override fun onNestedScroll(
         coordinatorLayout: CoordinatorLayout,

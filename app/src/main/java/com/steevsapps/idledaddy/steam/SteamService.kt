@@ -1,1257 +1,1477 @@
-package com.steevsapps.idledaddy.steam;
+package com.steevsapps.idledaddy.steam
 
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
-import android.os.Binder;
-import android.os.Build;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Looper;
-import android.os.PowerManager;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.core.app.NotificationCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.media.app.NotificationCompat.MediaStyle;
-import android.util.Log;
-import android.widget.Toast;
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.Service
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
+import android.os.Binder
+import android.os.Build
+import android.os.Handler
+import android.os.IBinder
+import android.os.Looper
+import android.os.PowerManager
+import android.os.PowerManager.WakeLock
+import android.util.Log
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.animation.GlideAnimation
+import com.bumptech.glide.request.target.SimpleTarget
+import com.steevsapps.idledaddy.BuildConfig
+import com.steevsapps.idledaddy.MainActivity
+import com.steevsapps.idledaddy.R
+import com.steevsapps.idledaddy.handlers.PurchaseResponse
+import com.steevsapps.idledaddy.handlers.callbacks.PurchaseResponseCallback
+import com.steevsapps.idledaddy.listeners.AndroidLogListener
+import com.steevsapps.idledaddy.preferences.PrefsManager.clearUser
+import com.steevsapps.idledaddy.preferences.PrefsManager.hoursUntilDrops
+import com.steevsapps.idledaddy.preferences.PrefsManager.loginKey
+import com.steevsapps.idledaddy.preferences.PrefsManager.minimizeData
+import com.steevsapps.idledaddy.preferences.PrefsManager.offline
+import com.steevsapps.idledaddy.preferences.PrefsManager.stayAwake
+import com.steevsapps.idledaddy.preferences.PrefsManager.useCustomLoginId
+import com.steevsapps.idledaddy.preferences.PrefsManager.username
+import com.steevsapps.idledaddy.preferences.PrefsManager.writeLoginKey
+import com.steevsapps.idledaddy.preferences.PrefsManager.writeSentryHash
+import com.steevsapps.idledaddy.steam.SteamWebHandler.Companion.instance
+import com.steevsapps.idledaddy.steam.model.Game
+import com.steevsapps.idledaddy.utils.LocaleManager.setLocale
+import com.steevsapps.idledaddy.utils.Utils.bytesToHex
+import com.steevsapps.idledaddy.utils.Utils.calculateSHA1
+import `in`.dragonbra.javasteam.base.ClientMsgProtobuf
+import `in`.dragonbra.javasteam.enums.EMsg
+import `in`.dragonbra.javasteam.enums.EOSType
+import `in`.dragonbra.javasteam.enums.EPaymentMethod
+import `in`.dragonbra.javasteam.enums.EPersonaState
+import `in`.dragonbra.javasteam.enums.EPurchaseResultDetail
+import `in`.dragonbra.javasteam.enums.EResult
+import `in`.dragonbra.javasteam.protobufs.steamclient.SteammessagesClientserver.CMsgClientGamesPlayed
+import `in`.dragonbra.javasteam.protobufs.steamclient.SteammessagesClientserver2.CMsgClientRegisterKey
+import `in`.dragonbra.javasteam.steam.discovery.FileServerListProvider
+import `in`.dragonbra.javasteam.steam.handlers.steamapps.SteamApps
+import `in`.dragonbra.javasteam.steam.handlers.steamapps.callback.FreeLicenseCallback
+import `in`.dragonbra.javasteam.steam.handlers.steamfriends.SteamFriends
+import `in`.dragonbra.javasteam.steam.handlers.steamfriends.callback.PersonaStatesCallback
+import `in`.dragonbra.javasteam.steam.handlers.steamnotifications.callback.ItemAnnouncementsCallback
+import `in`.dragonbra.javasteam.steam.handlers.steamuser.LogOnDetails
+import `in`.dragonbra.javasteam.steam.handlers.steamuser.MachineAuthDetails
+import `in`.dragonbra.javasteam.steam.handlers.steamuser.OTPDetails
+import `in`.dragonbra.javasteam.steam.handlers.steamuser.SteamUser
+import `in`.dragonbra.javasteam.steam.handlers.steamuser.callback.AccountInfoCallback
+import `in`.dragonbra.javasteam.steam.handlers.steamuser.callback.LoggedOffCallback
+import `in`.dragonbra.javasteam.steam.handlers.steamuser.callback.LoggedOnCallback
+import `in`.dragonbra.javasteam.steam.handlers.steamuser.callback.LoginKeyCallback
+import `in`.dragonbra.javasteam.steam.handlers.steamuser.callback.UpdateMachineAuthCallback
+import `in`.dragonbra.javasteam.steam.handlers.steamuser.callback.WebAPIUserNonceCallback
+import `in`.dragonbra.javasteam.steam.steamclient.SteamClient
+import `in`.dragonbra.javasteam.steam.steamclient.callbackmgr.CallbackManager
+import `in`.dragonbra.javasteam.steam.steamclient.callbacks.ConnectedCallback
+import `in`.dragonbra.javasteam.steam.steamclient.callbacks.DisconnectedCallback
+import `in`.dragonbra.javasteam.steam.steamclient.configuration.ISteamConfigurationBuilder
+import `in`.dragonbra.javasteam.steam.steamclient.configuration.SteamConfiguration
+import `in`.dragonbra.javasteam.types.GameID
+import `in`.dragonbra.javasteam.util.NetHelpers
+import `in`.dragonbra.javasteam.util.log.LogManager
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.nio.ByteBuffer
+import java.security.NoSuchAlgorithmException
+import java.util.Collections
+import java.util.LinkedList
+import java.util.Locale
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
+import java.util.zip.CRC32
+import kotlin.concurrent.Volatile
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.animation.GlideAnimation;
-import com.bumptech.glide.request.target.SimpleTarget;
-import com.steevsapps.idledaddy.BuildConfig;
-import com.steevsapps.idledaddy.MainActivity;
-import com.steevsapps.idledaddy.R;
-import com.steevsapps.idledaddy.handlers.PurchaseResponse;
-import com.steevsapps.idledaddy.handlers.callbacks.PurchaseResponseCallback;
-import com.steevsapps.idledaddy.listeners.AndroidLogListener;
-import com.steevsapps.idledaddy.preferences.PrefsManager;
-import com.steevsapps.idledaddy.steam.model.Game;
-import com.steevsapps.idledaddy.utils.LocaleManager;
-import com.steevsapps.idledaddy.utils.Utils;
+class SteamService : Service() {
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.zip.CRC32;
+    private lateinit var steamClient: SteamClient
+    private lateinit var steamApps: SteamApps
+    private lateinit var steamFriends: SteamFriends
+    private lateinit var steamUser: SteamUser
+    private lateinit var manager: CallbackManager
 
-import in.dragonbra.javasteam.base.ClientMsgProtobuf;
-import in.dragonbra.javasteam.enums.EMsg;
-import in.dragonbra.javasteam.enums.EOSType;
-import in.dragonbra.javasteam.enums.EPaymentMethod;
-import in.dragonbra.javasteam.enums.EPersonaState;
-import in.dragonbra.javasteam.enums.EPurchaseResultDetail;
-import in.dragonbra.javasteam.enums.EResult;
-import in.dragonbra.javasteam.protobufs.steamclient.SteammessagesClientserver;
-import in.dragonbra.javasteam.protobufs.steamclient.SteammessagesClientserver2;
-import in.dragonbra.javasteam.steam.discovery.FileServerListProvider;
-import in.dragonbra.javasteam.steam.handlers.steamapps.SteamApps;
-import in.dragonbra.javasteam.steam.handlers.steamapps.callback.FreeLicenseCallback;
-import in.dragonbra.javasteam.steam.handlers.steamfriends.PersonaState;
-import in.dragonbra.javasteam.steam.handlers.steamfriends.SteamFriends;
-import in.dragonbra.javasteam.steam.handlers.steamfriends.callback.PersonaStatesCallback;
-import in.dragonbra.javasteam.steam.handlers.steamnotifications.callback.ItemAnnouncementsCallback;
-import in.dragonbra.javasteam.steam.handlers.steamuser.LogOnDetails;
-import in.dragonbra.javasteam.steam.handlers.steamuser.MachineAuthDetails;
-import in.dragonbra.javasteam.steam.handlers.steamuser.OTPDetails;
-import in.dragonbra.javasteam.steam.handlers.steamuser.SteamUser;
-import in.dragonbra.javasteam.steam.handlers.steamuser.callback.AccountInfoCallback;
-import in.dragonbra.javasteam.steam.handlers.steamuser.callback.LoggedOffCallback;
-import in.dragonbra.javasteam.steam.handlers.steamuser.callback.LoggedOnCallback;
-import in.dragonbra.javasteam.steam.handlers.steamuser.callback.LoginKeyCallback;
-import in.dragonbra.javasteam.steam.handlers.steamuser.callback.UpdateMachineAuthCallback;
-import in.dragonbra.javasteam.steam.handlers.steamuser.callback.WebAPIUserNonceCallback;
-import in.dragonbra.javasteam.steam.steamclient.SteamClient;
-import in.dragonbra.javasteam.steam.steamclient.callbackmgr.CallbackManager;
-import in.dragonbra.javasteam.steam.steamclient.callbacks.ConnectedCallback;
-import in.dragonbra.javasteam.steam.steamclient.callbacks.DisconnectedCallback;
-import in.dragonbra.javasteam.steam.steamclient.configuration.SteamConfiguration;
-import in.dragonbra.javasteam.types.GameID;
-import in.dragonbra.javasteam.types.KeyValue;
-import in.dragonbra.javasteam.util.NetHelpers;
-import in.dragonbra.javasteam.util.log.LogManager;
+    private val executor = Executors.newCachedThreadPool()
+    private val pendingFreeLicenses = LinkedList<Int>()
+    private val scheduler = Executors.newScheduledThreadPool(8)
+    private val webHandler = instance
+    private var farmHandle: ScheduledFuture<*>? = null
+    private var farmIndex = 0
+    private var gamesToFarm: List<Game>? = null
+    private var isHuawei = false
+    private var keyToRedeem: String? = null
+    private var sentryFolder: File? = null
+    private var waitHandle: ScheduledFuture<*>? = null
+    private var wakeLock: WakeLock? = null
 
-public class SteamService extends Service {
-    private final static String TAG = SteamService.class.getSimpleName();
-    private final static int NOTIF_ID = 6896; // Ongoing notification ID
-    private final static String CHANNEL_ID = "idle_channel"; // Notification channel
-    // Some Huawei phones reportedly kill apps when they hold a WakeLock for a long time.
-    // This can be prevented by using a WakeLock tag from the PowerGenie whitelist.
-    private final static String WAKELOCK_TAG = "LocationManagerService";
-    private final static int CUSTOM_OBFUSCATION_MASK = 0xF00DBAAD;
+    var currentGames: MutableList<Game> = mutableListOf()
+        private set
 
-    // Events
-    public final static String LOGIN_EVENT = "LOGIN_EVENT"; // Emitted on login
-    public final static String RESULT = "RESULT"; // Login result
-    public final static String DISCONNECT_EVENT = "DISCONNECT_EVENT"; // Emitted on disconnect
-    public final static String STOP_EVENT = "STOP_EVENT"; // Emitted when stop clicked
-    public final static String FARM_EVENT = "FARM_EVENT"; // Emitted when farm() is called
-    public final static String GAME_COUNT = "GAME_COUNT"; // Number of games left to farm
-    public final static String CARD_COUNT = "CARD_COUNT"; // Number of card drops remaining
-    public final static String PERSONA_EVENT = "PERSONA_EVENT"; // Emitted when we get PersonaStateCallback
-    public final static String PERSONA_NAME = "PERSONA_NAME"; // Username
-    public final static String AVATAR_HASH = "AVATAR_HASH"; // User avatar hash
-    public final static String NOW_PLAYING_EVENT = "NOW_PLAYING_EVENT"; // Emitted when the game you're idling changes
+    var gameCount = 0
+        private set
 
-    // Actions
-    public final static String SKIP_INTENT = "SKIP_INTENT";
-    public final static String STOP_INTENT = "STOP_INTENT";
-    public final static String PAUSE_INTENT = "PAUSE_INTENT";
-    public final static String RESUME_INTENT = "RESUME_INTENT";
+    var cardCount = 0
+        private set
 
-    private SteamClient steamClient;
-    private CallbackManager manager;
-    private SteamUser steamUser;
-    private SteamFriends steamFriends;
-    private SteamApps steamApps;
-    private SteamWebHandler webHandler = SteamWebHandler.getInstance();
-    private PowerManager.WakeLock wakeLock;
+    var steamId: Long = 0
+        private set
 
-    private int farmIndex = 0;
-    private List<Game> gamesToFarm;
-    private List<Game> currentGames = new ArrayList<>();
-    private int gameCount = 0;
-    private int cardCount = 0;
-    private LogOnDetails logOnDetails = null;
+    var isLoggedIn = false
+        private set
 
-    private volatile boolean running = false; // Service running
-    private volatile boolean connected = false; // Connected to Steam
-    private volatile boolean farming = false; // Currently farming
-    private volatile boolean paused = false; // Game paused
-    private volatile boolean waiting = false; // Waiting for user to stop playing
-    private volatile boolean loginInProgress = true; // Currently logging in, so don't reconnect on disconnects
+    private var logOnDetails: LogOnDetails? = null
 
-    private long steamId;
-    private boolean loggedIn = false;
-    private boolean isHuawei = false;
+    @Volatile
+    private var running = false // Service running
 
-    private final ExecutorService executor = Executors.newCachedThreadPool();
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(8);
-    private ScheduledFuture<?> farmHandle;
-    private ScheduledFuture<?> waitHandle;
+    @Volatile
+    private var connected = false // Connected to Steam
 
-    private String keyToRedeem = null;
-    private final LinkedList<Integer> pendingFreeLicenses = new LinkedList<>();
+    @Volatile
+    var isFarming = false // Currently farming
+        private set
 
-    private File sentryFolder;
+    @Volatile
+    var isPaused = false // Game paused
+        private set
+
+    @Volatile
+    private var waiting = false // Waiting for user to stop playing
+
+    @Volatile
+    private var loginInProgress = true // Currently logging in, so don't reconnect on disconnects
+
+    // This is the object that receives interactions from clients.
+    private val binder: IBinder = LocalBinder()
+
+    private val receiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                SKIP_INTENT -> skipGame()
+                STOP_INTENT -> stopGame()
+                PAUSE_INTENT -> pauseGame()
+                RESUME_INTENT -> resumeGame()
+            }
+        }
+    }
+
+    private val farmTask = Runnable {
+        try {
+            farm()
+        } catch (e: Exception) {
+            Log.i(TAG, "FarmTask failed", e)
+        }
+    }
+
+    /**
+     * Wait for user to NOT be in-game so we can resume idling
+     */
+    private val waitTask = Runnable {
+        try {
+            Log.i(TAG, "Checking if we can resume idling...")
+            val notInGame = webHandler.checkIfNotInGame()
+            if (notInGame == null) {
+                Log.i(TAG, "Invalid cookie data or no internet, reconnecting...")
+                steamClient.disconnect()
+            } else if (notInGame) {
+                Log.i(TAG, "Resuming...")
+                waiting = false
+                steamClient.disconnect()
+                waitHandle?.cancel(false)
+            }
+        } catch (e: Exception) {
+            Log.i(TAG, "WaitTask failed", e)
+        }
+    }
 
     /**
      * Class for clients to access.  Because we know this service always
      * runs in the same process as its clients, we don't need to deal with
      * IPC.
      */
-    public class LocalBinder extends Binder {
-        public SteamService getService() {
-            return SteamService.this;
+    inner class LocalBinder : Binder() {
+        val service: SteamService
+            get() = this@SteamService
+    }
+
+    fun startFarming() {
+        if (!isFarming) {
+            isFarming = true
+            isPaused = false
+
+            executor.execute(farmTask)
         }
     }
 
-    // This is the object that receives interactions from clients.
-    private final IBinder binder = new LocalBinder();
+    fun stopFarming() {
+        if (isFarming) {
+            isFarming = false
+            gamesToFarm = null
+            farmIndex = 0
 
-    private final BroadcastReceiver receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            switch (intent.getAction()) {
-                case SKIP_INTENT:
-                    skipGame();
-                    break;
-                case STOP_INTENT:
-                    stopGame();
-                    break;
-                case PAUSE_INTENT:
-                    pauseGame();
-                    break;
-                case RESUME_INTENT:
-                    resumeGame();
-                    break;
-            }
-        }
-    };
+            currentGames.clear()
 
-    private final Runnable farmTask = new Runnable() {
-        @Override
-        public void run() {
-            try {
-                farm();
-            } catch (Exception e) {
-                Log.i(TAG, "FarmTask failed", e);
-            }
-        }
-    };
-
-    /**
-     * Wait for user to NOT be in-game so we can resume idling
-     */
-    private final Runnable waitTask = new Runnable() {
-        @Override
-        public void run() {
-            try {
-                Log.i(TAG, "Checking if we can resume idling...");
-                final Boolean notInGame = webHandler.checkIfNotInGame();
-                if (notInGame == null) {
-                    Log.i(TAG, "Invalid cookie data or no internet, reconnecting...");
-                    steamClient.disconnect();
-                } else if (notInGame) {
-                    Log.i(TAG, "Resuming...");
-                    waiting = false;
-                    steamClient.disconnect();
-                    waitHandle.cancel(false);
-                }
-            } catch (Exception e) {
-                Log.i(TAG, "WaitTask failed", e);
-            }
-        }
-    };
-
-    public void startFarming() {
-        if (!farming) {
-            farming = true;
-            paused = false;
-            executor.execute(farmTask);
-        }
-    }
-
-    public void stopFarming() {
-        if (farming) {
-            farming = false;
-            gamesToFarm = null;
-            farmIndex = 0;
-            currentGames.clear();
-            unscheduleFarmTask();
+            unscheduleFarmTask()
         }
     }
 
     /**
      * Resume farming/idling
      */
-    private void resumeFarming() {
-        if (paused || waiting) {
-            return;
+    private fun resumeFarming() {
+        if (isPaused || waiting) {
+            return
         }
 
-        if (farming) {
-            Log.i(TAG, "Resume farming");
-            executor.execute(farmTask);
-        } else if (currentGames.size() == 1) {
-            Log.i(TAG, "Resume playing");
-            new Handler(Looper.getMainLooper()).post(() -> idleSingle(currentGames.get(0)));
-        } else if (currentGames.size() > 1) {
-            Log.i(TAG, "Resume playing (multiple)");
-            idleMultiple(currentGames);
+        if (isFarming) {
+            Log.i(TAG, "Resume farming")
+            executor.execute(farmTask)
+        } else if (currentGames.size == 1) {
+            Log.i(TAG, "Resume playing")
+            Handler(Looper.getMainLooper()).post { idleSingle(currentGames[0]) }
+        } else if (currentGames.size > 1) {
+            Log.i(TAG, "Resume playing (multiple)")
+            idleMultiple(currentGames)
         }
     }
 
-    private void farm() {
-        if (paused || waiting) {
-            return;
+    private fun farm() {
+        if (isPaused || waiting) {
+            return
         }
-        Log.i(TAG, "Checking remaining card drops");
-        for (int i=0;i<3;i++) {
-            gamesToFarm = webHandler.getRemainingGames();
-            if (gamesToFarm != null) {
-                Log.i(TAG, "gotem");
-                break;
+
+        Log.i(TAG, "Checking remaining card drops")
+
+        for (i in 0..2) {
+            gamesToFarm = webHandler.remainingGames
+
+            if (gamesToFarm == null) {
+                Log.i(TAG, "gotem")
+                break
             }
+
             if (i + 1 < 3) {
-                Log.i(TAG, "retrying...");
+                Log.i(TAG, "retrying...")
                 try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    return;
+                    Thread.sleep(500)
+                } catch (e: InterruptedException) {
+                    e.printStackTrace()
+                    return
                 }
             }
         }
 
         if (gamesToFarm == null) {
-            Log.i(TAG, "Invalid cookie data or no internet, reconnecting");
-            //steamClient.disconnect();
-            steamUser.requestWebAPIUserNonce();
-            return;
+            Log.i(TAG, "Invalid cookie data or no internet, reconnecting")
+            // steamClient.disconnect();
+            steamUser.requestWebAPIUserNonce()
+            return
         }
 
         // Count the games and cards
-        gameCount = gamesToFarm.size();
-        cardCount = 0;
-        for (Game g : gamesToFarm) {
-            cardCount += g.dropsRemaining;
+        gameCount = gamesToFarm?.size ?: 0
+        cardCount = 0
+
+        gamesToFarm?.forEach { game ->
+            cardCount += game.dropsRemaining
         }
 
         // Send farm event
-        final Intent event = new Intent(FARM_EVENT);
-        event.putExtra(GAME_COUNT, gameCount);
-        event.putExtra(CARD_COUNT, cardCount);
-        LocalBroadcastManager.getInstance(SteamService.this)
-                .sendBroadcast(event);
+        val event = Intent(FARM_EVENT)
+        event.putExtra(GAME_COUNT, gameCount)
+        event.putExtra(CARD_COUNT, cardCount)
 
-        if (gamesToFarm.isEmpty()) {
-            Log.i(TAG, "Finished idling");
-            stopPlaying();
-            updateNotification(getString(R.string.idling_finished));
-            stopFarming();
-            return;
+        LocalBroadcastManager.getInstance(this@SteamService).sendBroadcast(event)
+
+        if (gamesToFarm.isNullOrEmpty()) {
+            Log.i(TAG, "Finished idling")
+            stopPlaying()
+            updateNotification(getString(R.string.idling_finished))
+            stopFarming()
+            return
         }
 
         // Sort by hours played descending
-        Collections.sort(gamesToFarm, Collections.reverseOrder());
-
-        if (farmIndex >= gamesToFarm.size()) {
-            farmIndex = 0;
+        Collections.sort(gamesToFarm!!, Collections.reverseOrder())
+        if (farmIndex >= gamesToFarm!!.size) {
+            farmIndex = 0
         }
-        final Game game = gamesToFarm.get(farmIndex);
 
         // TODO: Steam only updates play time every half hour, so maybe we should keep track of it ourselves
-        if (game.hoursPlayed >= PrefsManager.getHoursUntilDrops() || gamesToFarm.size() == 1 || farmIndex > 0) {
+        val game = gamesToFarm!![farmIndex]
+        if (game.hoursPlayed >= hoursUntilDrops || gamesToFarm!!.size == 1 || farmIndex > 0) {
             // Idle a single game
-            new Handler(Looper.getMainLooper()).post(() -> idleSingle(game));
-            unscheduleFarmTask();
+            Handler(Looper.getMainLooper()).post { idleSingle(game) }
+            unscheduleFarmTask()
         } else {
             // Idle multiple games (max 32) until one has reached 2 hrs
-            idleMultiple(gamesToFarm);
-            scheduleFarmTask();
+            idleMultiple(gamesToFarm!!)
+            scheduleFarmTask()
         }
     }
 
-    public void skipGame() {
-        if (gamesToFarm == null || gamesToFarm.size() < 2) {
-            return;
+    fun skipGame() {
+        if (gamesToFarm!!.size < 2) {
+            return
         }
 
-        farmIndex++;
-        if (farmIndex >= gamesToFarm.size()) {
-            farmIndex = 0;
+        farmIndex++
+
+        if (farmIndex >= gamesToFarm!!.size) {
+            farmIndex = 0
         }
 
-        idleSingle(gamesToFarm.get(farmIndex));
+        idleSingle(gamesToFarm!![farmIndex])
     }
 
-    public void stopGame() {
-        paused = false;
-        stopPlaying();
-        stopFarming();
-        updateNotification(getString(R.string.stopped));
-        LocalBroadcastManager.getInstance(SteamService.this).sendBroadcast(new Intent(STOP_EVENT));
+    fun stopGame() {
+        isPaused = false
+
+        stopPlaying()
+        stopFarming()
+
+        updateNotification(getString(R.string.stopped))
+        LocalBroadcastManager
+            .getInstance(this@SteamService)
+            .sendBroadcast(Intent(STOP_EVENT))
     }
 
-    public void pauseGame() {
-        paused = true;
-        stopPlaying();
-        showPausedNotification();
+    fun pauseGame() {
+        isPaused = true
+
+        stopPlaying()
+        showPausedNotification()
+
         // Tell the activity to update
-        LocalBroadcastManager.getInstance(SteamService.this).sendBroadcast(new Intent(NOW_PLAYING_EVENT));
+        LocalBroadcastManager
+            .getInstance(this@SteamService)
+            .sendBroadcast(Intent(NOW_PLAYING_EVENT))
     }
 
-    public void resumeGame() {
-        if (farming) {
-            Log.i(TAG, "Resume farming");
-            paused = false;
-            executor.execute(farmTask);
-        } else if (currentGames.size() == 1) {
-            Log.i(TAG, "Resume playing");
-            idleSingle(currentGames.get(0));
-        } else if (currentGames.size() > 1) {
-            Log.i(TAG, "Resume playing (multiple)");
-            idleMultiple(currentGames);
+    fun resumeGame() {
+        if (isFarming) {
+            Log.i(TAG, "Resume farming")
+
+            isPaused = false
+
+            executor.execute(farmTask)
+        } else if (currentGames.size == 1) {
+            Log.i(TAG, "Resume playing")
+
+            idleSingle(currentGames[0])
+        } else if (currentGames.size > 1) {
+            Log.i(TAG, "Resume playing (multiple)")
+
+            idleMultiple(currentGames)
         }
     }
 
-    private void scheduleFarmTask() {
-        if (farmHandle == null || farmHandle.isCancelled()) {
-            Log.i(TAG, "Starting farmtask");
-            farmHandle = scheduler.scheduleAtFixedRate(farmTask, 10, 10, TimeUnit.MINUTES);
+    private fun scheduleFarmTask() {
+        if (farmHandle == null || farmHandle!!.isCancelled) {
+            Log.i(TAG, "Starting farmtask")
+
+            farmHandle = scheduler.scheduleAtFixedRate(farmTask, 10, 10, TimeUnit.MINUTES)
         }
     }
 
-    private void unscheduleFarmTask() {
+    private fun unscheduleFarmTask() {
         if (farmHandle != null) {
-            Log.i(TAG, "Stopping farmtask");
-            farmHandle.cancel(true);
+            Log.i(TAG, "Stopping farmtask")
+
+            farmHandle!!.cancel(true)
         }
     }
 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return binder;
+    override fun onBind(intent: Intent): IBinder {
+        return binder
     }
 
+    override fun onCreate() {
+        super.onCreate()
 
-    public static Intent createIntent(Context c) {
-        return new Intent(c, SteamService.class);
-    }
+        Log.i(TAG, "Service created")
 
-    @Override
-    public void onCreate() {
-        Log.i(TAG, "Service created");
-        super.onCreate();
+        sentryFolder = File(filesDir, "sentry")
+        sentryFolder?.mkdirs()
 
-        sentryFolder = new File(getFilesDir(), "sentry");
-        sentryFolder.mkdirs();
+        val config: SteamConfiguration =
+            SteamConfiguration.create { b: ISteamConfigurationBuilder ->
+                b.withServerListProvider(
+                    FileServerListProvider(File(filesDir, "servers.bin"))
+                )
+            }
 
-        final SteamConfiguration config = SteamConfiguration.create(b -> {
-            b.withServerListProvider(new FileServerListProvider(new File(getFilesDir(), "servers.bin")));
-        });
+        steamClient = SteamClient(config)
+        steamClient.addHandler(PurchaseResponse())
 
-        steamClient = new SteamClient(config);
-        steamClient.addHandler(new PurchaseResponse());
-        steamUser = steamClient.getHandler(SteamUser.class);
-        steamFriends = steamClient.getHandler(SteamFriends.class);
-        steamApps = steamClient.getHandler(SteamApps.class);
+        steamUser = steamClient.getHandler(SteamUser::class.java)
+        steamFriends = steamClient.getHandler(SteamFriends::class.java)
+        steamApps = steamClient.getHandler(SteamApps::class.java)
 
         // Subscribe to callbacks
-        manager = new CallbackManager(steamClient);
-        manager.subscribe(ConnectedCallback.class, this::onConnected);
-        manager.subscribe(DisconnectedCallback.class, this::onDisconnected);
-        manager.subscribe(LoggedOffCallback.class, this::onLoggedOff);
-        manager.subscribe(LoggedOnCallback.class, this::onLoggedOn);
-        manager.subscribe(LoginKeyCallback.class, this::onLoginKey);
-        manager.subscribe(UpdateMachineAuthCallback.class, this::onUpdateMachineAuth);
-        manager.subscribe(PersonaStatesCallback.class, this::onPersonaStates);
-        manager.subscribe(FreeLicenseCallback.class, this::onFreeLicense);
-        manager.subscribe(AccountInfoCallback.class, this::onAccountInfo);
-        manager.subscribe(WebAPIUserNonceCallback.class, this::onWebAPIUserNonce);
-        manager.subscribe(ItemAnnouncementsCallback.class, this::onItemAnnouncements);
-        manager.subscribe(PurchaseResponseCallback.class, this::onPurchaseResponse);
+        manager = CallbackManager(steamClient)
+
+        manager.subscribe(
+            ConnectedCallback::class.java
+        ) { callback: ConnectedCallback -> onConnected(callback) }
+
+        manager.subscribe(
+            DisconnectedCallback::class.java
+        ) { callback: DisconnectedCallback -> onDisconnected(callback) }
+
+        manager.subscribe(
+            LoggedOffCallback::class.java
+        ) { callback: LoggedOffCallback -> onLoggedOff(callback) }
+
+        manager.subscribe(
+            LoggedOnCallback::class.java
+        ) { callback: LoggedOnCallback -> onLoggedOn(callback) }
+
+        manager.subscribe(
+            LoginKeyCallback::class.java
+        ) { callback: LoginKeyCallback -> onLoginKey(callback) }
+
+        manager.subscribe(
+            UpdateMachineAuthCallback::class.java
+        ) { callback: UpdateMachineAuthCallback -> onUpdateMachineAuth(callback) }
+
+        manager.subscribe(
+            PersonaStatesCallback::class.java
+        ) { callback: PersonaStatesCallback -> onPersonaStates(callback) }
+
+        manager.subscribe(
+            FreeLicenseCallback::class.java
+        ) { callback: FreeLicenseCallback -> onFreeLicense(callback) }
+
+        manager.subscribe(
+            AccountInfoCallback::class.java
+        ) { callback: AccountInfoCallback -> onAccountInfo(callback) }
+
+        manager.subscribe(
+            WebAPIUserNonceCallback::class.java
+        ) { callback: WebAPIUserNonceCallback -> onWebAPIUserNonce(callback) }
+
+        manager.subscribe(
+            ItemAnnouncementsCallback::class.java
+        ) { callback: ItemAnnouncementsCallback -> onItemAnnouncements(callback) }
+
+        manager.subscribe(
+            PurchaseResponseCallback::class.java
+        ) { callback: PurchaseResponseCallback -> onPurchaseResponse(callback) }
 
         // Detect Huawei devices running Lollipop which have a bug with MediaStyle notifications
-        isHuawei = (android.os.Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP_MR1 ||
-                android.os.Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP) &&
-                Build.MANUFACTURER.toLowerCase(Locale.getDefault()).contains("huawei");
-        if (PrefsManager.stayAwake()) {
-            acquireWakeLock();
+        isHuawei = Build.MANUFACTURER.lowercase(Locale.getDefault()).contains("huawei")
+
+        if (stayAwake()) {
+            acquireWakeLock()
         }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Create notification channel
-            createChannel();
+            createChannel()
         }
+
         if (BuildConfig.DEBUG) {
-            LogManager.addListener(new AndroidLogListener());
+            LogManager.addListener(AndroidLogListener())
         }
-        startForeground(NOTIF_ID, buildNotification(getString(R.string.service_started)));
+
+        startForeground(NOTIFY_ID, buildNotification(getString(R.string.service_started)))
     }
 
-    @Override
-    protected void attachBaseContext(Context base) {
-        super.attachBaseContext(LocaleManager.setLocale(base));
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(setLocale(base))
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         if (!running) {
-            Log.i(TAG, "Command starting");
-            final IntentFilter filter = new IntentFilter();
-            filter.addAction(SKIP_INTENT);
-            filter.addAction(STOP_INTENT);
-            filter.addAction(PAUSE_INTENT);
-            filter.addAction(RESUME_INTENT);
-            registerReceiver(receiver, filter);
-            start();
+            Log.i(TAG, "Command starting")
+            val filter = IntentFilter()
+            filter.addAction(SKIP_INTENT)
+            filter.addAction(STOP_INTENT)
+            filter.addAction(PAUSE_INTENT)
+            filter.addAction(RESUME_INTENT)
+            registerReceiver(receiver, filter)
+            start()
         }
-        return Service.START_NOT_STICKY;
+
+        return START_NOT_STICKY
     }
 
-    @Override
-    public void onDestroy() {
-        Log.i(TAG, "Service destroyed");
-        new Thread(() -> {
-            steamUser.logOff();
-            steamClient.disconnect();
-        }).start();
-        stopForeground(true);
-        running = false;
-        stopFarming();
-        executor.shutdownNow();
-        scheduler.shutdownNow();
-        releaseWakeLock();
-        unregisterReceiver(receiver);
-        super.onDestroy();
+    override fun onDestroy() {
+        Log.i(TAG, "Service destroyed")
+
+        Thread {
+            steamUser.logOff()
+            steamClient.disconnect()
+        }.start()
+
+        stopForeground(true)
+
+        running = false
+
+        stopFarming()
+
+        executor.shutdownNow()
+        scheduler.shutdownNow()
+
+        releaseWakeLock()
+        unregisterReceiver(receiver)
+
+        super.onDestroy()
     }
 
     /**
      * Create notification channel for Android O
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    private void createChannel() {
-        final CharSequence name = getString(R.string.channel_name);
-        final int importance = NotificationManager.IMPORTANCE_LOW;
-        final NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
-        channel.setShowBadge(false);
-        channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-        channel.enableVibration(false);
-        channel.enableLights(false);
-        channel.setBypassDnd(false);
-        final NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        nm.createNotificationChannel(channel);
+    private fun createChannel() {
+        val name: CharSequence = getString(R.string.channel_name)
+
+        val importance = NotificationManager.IMPORTANCE_LOW
+
+        val channel = NotificationChannel(CHANNEL_ID, name, importance)
+        channel.setShowBadge(false)
+        channel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+        channel.enableVibration(false)
+        channel.enableLights(false)
+        channel.setBypassDnd(false)
+
+        val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        nm.createNotificationChannel(channel)
     }
 
-    public boolean isLoggedIn() {
-        return loggedIn;
-    }
-
-    public boolean isFarming() {
-        return farming;
-    }
-
-    public boolean isPaused() {
-        return paused;
-    }
-
-    /**
-     * Get the games we're currently idling
-     */
-    public ArrayList<Game> getCurrentGames() {
-        return  new ArrayList<>(currentGames);
-    }
-
-    public int getGameCount() {
-        return gameCount;
-    }
-
-    public int getCardCount() {
-        return cardCount;
-    }
-
-    public long getSteamId() {
-        return steamId;
-    }
-
-    public void changeStatus(EPersonaState status) {
-        if (isLoggedIn()) {
-            executor.execute(() -> steamFriends.setPersonaState(status));
+    fun changeStatus(status: EPersonaState?) {
+        if (isLoggedIn) {
+            executor.execute { steamFriends.setPersonaState(status) }
         }
     }
 
     /**
      * Acquire WakeLock to keep the CPU from sleeping
      */
-    public void acquireWakeLock() {
+    fun acquireWakeLock() {
         if (wakeLock == null) {
-            Log.i(TAG, "Acquiring WakeLock");
-            final PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG);
-            wakeLock.acquire();
+            Log.i(TAG, "Acquiring WakeLock")
+            val pm = getSystemService(POWER_SERVICE) as PowerManager
+
+            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG)
+            wakeLock?.acquire(60 * 60 * 1000L /*60 minutes*/)
         }
     }
 
     /**
      * Release the WakeLock
      */
-    public void releaseWakeLock() {
+    fun releaseWakeLock() {
         if (wakeLock != null) {
-            Log.i(TAG, "Releasing WakeLock");
-            wakeLock.release();
-            wakeLock = null;
+            Log.i(TAG, "Releasing WakeLock")
+            wakeLock!!.release()
+            wakeLock = null
         }
     }
 
-    private Notification buildNotification(String text) {
-        final Intent notificationIntent = new Intent(this, MainActivity.class);
-        final PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
-                notificationIntent, 0);
-        return new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(getString(R.string.app_name))
-                .setContentText(text)
-                .setContentIntent(pendingIntent)
-                .build();
+    private fun buildNotification(text: String): Notification {
+        val notificationIntent = Intent(this, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            notificationIntent,
+            0
+        )
+        return NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(getString(R.string.app_name))
+            .setContentText(text)
+            .setContentIntent(pendingIntent)
+            .build()
     }
 
     /**
      * Show idling notification
-     * @param game
+     *
+     * @param game The [Game]
      */
-    private void showIdleNotification(Game game) {
-        Log.i(TAG, "Idle notification");
-        final Intent notificationIntent = new Intent(this, MainActivity.class);
-        final PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
-                notificationIntent, 0);
+    private fun showIdleNotification(game: Game) {
+        Log.i(TAG, "Idle notification")
 
-        final NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(getString(R.string.app_name))
-                .setContentText(getString(R.string.now_playing2,
-                        (game.appId == 0) ? getString(R.string.playing_non_steam_game, game.name) : game.name))
-                .setPriority(NotificationCompat.PRIORITY_MAX)
-                .setContentIntent(pendingIntent);
+        val notificationIntent = Intent(this, MainActivity::class.java)
+
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            notificationIntent,
+            0
+        )
+
+        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(getString(R.string.app_name))
+            .setContentText(
+                getString(
+                    R.string.now_playing2,
+                    if (game.appId == 0) {
+                        getString(
+                            R.string.playing_non_steam_game,
+                            game.name
+                        )
+                    } else {
+                        game.name
+                    }
+                )
+            )
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setContentIntent(pendingIntent)
 
         // MediaStyle causes a crash on certain Huawei devices running Lollipop
         // https://stackoverflow.com/questions/34851943/couldnt-expand-remoteviews-mediasessioncompat-and-notificationcompat-mediastyl
         if (!isHuawei) {
-            builder.setStyle(new MediaStyle());
+            builder.setStyle(androidx.media.app.NotificationCompat.MediaStyle())
         }
 
         if (game.dropsRemaining > 0) {
             // Show drops remaining
-            builder.setSubText(getResources().getQuantityString(R.plurals.card_drops_remaining, game.dropsRemaining, game.dropsRemaining));
+            builder.setSubText(
+                resources.getQuantityString(
+                    R.plurals.card_drops_remaining,
+                    game.dropsRemaining,
+                    game.dropsRemaining
+                )
+            )
         }
 
         // Add the stop and pause actions
-        final PendingIntent stopIntent = PendingIntent.getBroadcast(this, 0, new Intent(STOP_INTENT), PendingIntent.FLAG_CANCEL_CURRENT);
-        final PendingIntent pauseIntent = PendingIntent.getBroadcast(this, 0, new Intent(PAUSE_INTENT), PendingIntent.FLAG_CANCEL_CURRENT);
-        builder.addAction(R.drawable.ic_action_stop, getString(R.string.stop), stopIntent);
-        builder.addAction(R.drawable.ic_action_pause, getString(R.string.pause), pauseIntent);
+        val stopIntent = PendingIntent.getBroadcast(
+            this,
+            0,
+            Intent(STOP_INTENT),
+            PendingIntent.FLAG_CANCEL_CURRENT
+        )
 
-        if (farming) {
+        val pauseIntent = PendingIntent.getBroadcast(
+            this,
+            0,
+            Intent(PAUSE_INTENT),
+            PendingIntent.FLAG_CANCEL_CURRENT
+        )
+
+        builder.addAction(R.drawable.ic_action_stop, getString(R.string.stop), stopIntent)
+        builder.addAction(R.drawable.ic_action_pause, getString(R.string.pause), pauseIntent)
+
+        if (isFarming) {
             // Add the skip action
-            final PendingIntent skipIntent = PendingIntent.getBroadcast(this, 0, new Intent(SKIP_INTENT), PendingIntent.FLAG_CANCEL_CURRENT);
-            builder.addAction(R.drawable.ic_action_skip, getString(R.string.skip), skipIntent);
+            val skipIntent = PendingIntent.getBroadcast(
+                this,
+                0,
+                Intent(SKIP_INTENT),
+                PendingIntent.FLAG_CANCEL_CURRENT
+            )
+            builder.addAction(R.drawable.ic_action_skip, getString(R.string.skip), skipIntent)
         }
 
-        final NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        if (!PrefsManager.minimizeData()) {
-            // Load game icon into notification
-            Glide.with(getApplicationContext())
-                    .load(game.iconUrl)
-                    .asBitmap()
-                    .into(new SimpleTarget<Bitmap>() {
-                        @Override
-                        public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                            builder.setLargeIcon(resource);
-                            nm.notify(NOTIF_ID, builder.build());
-                        }
+        val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
-                        @Override
-                        public void onLoadFailed(Exception e, Drawable errorDrawable) {
-                            super.onLoadFailed(e, errorDrawable);
-                            nm.notify(NOTIF_ID, builder.build());
-                        }
-                    });
+        if (!minimizeData()) {
+            // Load game icon into notification
+            Glide.with(applicationContext)
+                .load(game.iconUrl)
+                .asBitmap()
+                .into(object : SimpleTarget<Bitmap>() {
+                    override fun onResourceReady(
+                        resource: Bitmap,
+                        glideAnimation: GlideAnimation<in Bitmap>
+                    ) {
+                        builder.setLargeIcon(resource)
+                        nm.notify(NOTIFY_ID, builder.build())
+                    }
+
+                    override fun onLoadFailed(e: Exception, errorDrawable: Drawable) {
+                        super.onLoadFailed(e, errorDrawable)
+                        nm.notify(NOTIFY_ID, builder.build())
+                    }
+                })
         } else {
-            nm.notify(NOTIF_ID, builder.build());
+            nm.notify(NOTIFY_ID, builder.build())
         }
     }
 
     /**
      * Show "Big Text" style notification with the games we're idling
+     *
      * @param msg the games
      */
-    private void showMultipleNotification(String msg) {
-        final PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, MainActivity.class), 0);
+    private fun showMultipleNotification(msg: String) {
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            Intent(this, MainActivity::class.java),
+            0
+        )
 
         // Add stop and pause actions
-        final PendingIntent stopIntent = PendingIntent.getBroadcast(this, 0, new Intent(STOP_INTENT), PendingIntent.FLAG_CANCEL_CURRENT);
-        final PendingIntent pauseIntent = PendingIntent.getBroadcast(this, 0, new Intent(PAUSE_INTENT), PendingIntent.FLAG_CANCEL_CURRENT);
+        val stopIntent = PendingIntent.getBroadcast(
+            this,
+            0,
+            Intent(STOP_INTENT),
+            PendingIntent.FLAG_CANCEL_CURRENT
+        )
 
-        final Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setStyle(new NotificationCompat.BigTextStyle()
-                        .bigText(msg))
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(getString(R.string.app_name))
-                .setContentText(getString(R.string.idling_multiple))
-                .setPriority(NotificationCompat.PRIORITY_MAX)
-                .setContentIntent(pendingIntent)
-                .addAction(R.drawable.ic_action_stop, getString(R.string.stop), stopIntent)
-                .addAction(R.drawable.ic_action_pause, getString(R.string.pause), pauseIntent)
-                .build();
+        val pauseIntent = PendingIntent.getBroadcast(
+            this,
+            0,
+            Intent(PAUSE_INTENT),
+            PendingIntent.FLAG_CANCEL_CURRENT
+        )
 
-        final NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        nm.notify(NOTIF_ID, notification);
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(msg))
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(getString(R.string.app_name))
+            .setContentText(getString(R.string.idling_multiple))
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setContentIntent(pendingIntent)
+            .addAction(R.drawable.ic_action_stop, getString(R.string.stop), stopIntent)
+            .addAction(R.drawable.ic_action_pause, getString(R.string.pause), pauseIntent)
+            .build()
+
+        val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        nm.notify(NOTIFY_ID, notification)
     }
 
-    private void showPausedNotification() {
-        final PendingIntent pi = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
-        final PendingIntent resumeIntent = PendingIntent.getBroadcast(this, 0, new Intent(RESUME_INTENT), PendingIntent.FLAG_CANCEL_CURRENT);
-        final Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(getString(R.string.app_name))
-                .setContentText(getString(R.string.paused))
-                .setContentIntent(pi)
-                .addAction(R.drawable.ic_action_play, getString(R.string.resume), resumeIntent)
-                .build();
-        final NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        nm.notify(NOTIF_ID, notification);
+    private fun showPausedNotification() {
+        val pi = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), 0)
+
+        val resumeIntent = PendingIntent.getBroadcast(
+            this,
+            0,
+            Intent(RESUME_INTENT),
+            PendingIntent.FLAG_CANCEL_CURRENT
+        )
+
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(getString(R.string.app_name))
+            .setContentText(getString(R.string.paused))
+            .setContentIntent(pi)
+            .addAction(R.drawable.ic_action_play, getString(R.string.resume), resumeIntent)
+            .build()
+
+        val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        nm.notify(NOTIFY_ID, notification)
     }
 
     /**
      * Used to update the notification
+     *
      * @param text the text to display
      */
-    private void updateNotification(String text) {
-        final NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(NOTIF_ID, buildNotification(text));
+    private fun updateNotification(text: String) {
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(NOTIFY_ID, buildNotification(text))
     }
 
-    private void idleSingle(Game game) {
-        Log.i(TAG, "Now playing " + game.name);
-        paused = false;
-        currentGames.clear();
-        currentGames.add(game);
-        playGames(game);
-        showIdleNotification(game);
+    private fun idleSingle(game: Game) {
+        Log.i(TAG, "Now playing " + game.name)
+
+        isPaused = false
+
+        currentGames.clear()
+        currentGames.add(game)
+
+        playGames(game)
+
+        showIdleNotification(game)
     }
 
-    private void idleMultiple(List<Game> games) {
-        Log.i(TAG, "Idling multiple");
-        paused = false;
-        final List<Game> gamesCopy = new ArrayList<>(games);
-        currentGames.clear();
+    private fun idleMultiple(games: List<Game>) {
+        Log.i(TAG, "Idling multiple")
 
-        int size = gamesCopy.size();
+        isPaused = false
+
+        val gamesCopy: List<Game> = ArrayList(games)
+
+        currentGames.clear()
+
+        var size = gamesCopy.size
         if (size > 32) {
-            size = 32;
+            size = 32
         }
 
-        final StringBuilder msg = new StringBuilder();
-        for (int i=0;i<size;i++) {
-            final Game game = gamesCopy.get(i);
-            currentGames.add(game);
+        val msg = StringBuilder()
+        for (i in 0 until size) {
+            val game = gamesCopy[i]
+            currentGames.add(game)
             if (game.appId == 0) {
                 // Non-Steam game
-                msg.append(getString(R.string.playing_non_steam_game, game.name));
+                msg.append(getString(R.string.playing_non_steam_game, game.name))
             } else {
-                msg.append(game.name);
+                msg.append(game.name)
             }
             if (i + 1 < size) {
-                msg.append("\n");
+                msg.append("\n")
             }
         }
 
-        playGames(currentGames.toArray(new Game[0]));
-        showMultipleNotification(msg.toString());
+        playGames(*currentGames.toTypedArray<Game>())
+
+        showMultipleNotification(msg.toString())
     }
 
-    public void addGame(Game game) {
-        stopFarming();
+    fun addGame(game: Game) {
+        stopFarming()
         if (currentGames.isEmpty()) {
-            idleSingle(game);
+            idleSingle(game)
         } else {
-            currentGames.add(game);
-            idleMultiple(currentGames);
+            currentGames.add(game)
+            idleMultiple(currentGames)
         }
     }
 
-    public void addGames(List<Game> games) {
-        stopFarming();
-        if (games.size() == 1) {
-            idleSingle(games.get(0));
-        } else if (games.size() > 1){
-            idleMultiple(games);
+    fun addGames(games: List<Game>) {
+        stopFarming()
+        if (games.size == 1) {
+            idleSingle(games[0])
+        } else if (games.size > 1) {
+            idleMultiple(games)
         } else {
-            stopGame();
+            stopGame()
         }
     }
 
-    public void removeGame(Game game) {
-        stopFarming();
-        currentGames.remove(game);
-        if (currentGames.size() == 1) {
-            idleSingle(currentGames.get(0));
-        } else if (currentGames.size() > 1) {
-            idleMultiple(currentGames);
+    fun removeGame(game: Game) {
+        stopFarming()
+        currentGames.remove(game)
+        if (currentGames.size == 1) {
+            idleSingle(currentGames[0])
+        } else if (currentGames.size > 1) {
+            idleMultiple(currentGames)
         } else {
-            stopGame();
+            stopGame()
         }
     }
 
-    public void start() {
-        running = true;
-        if (!PrefsManager.getLoginKey().isEmpty()) {
+    fun start() {
+        running = true
+
+        if (loginKey.isNotEmpty()) {
             // We can log in using saved credentials
-            executor.execute(() -> steamClient.connect());
+            executor.execute { steamClient.connect() }
         }
+
         // Run the the callback handler
-        executor.execute(() -> {
+        executor.execute {
             while (running) {
                 try {
-                    manager.runWaitCallbacks(1000L);
-                } catch (Exception e) {
-                    Log.i(TAG, "update() failed", e);
+                    manager.runWaitCallbacks(1000L)
+                } catch (e: Exception) {
+                    Log.i(TAG, "update() failed", e)
                 }
             }
-        });
+        }
     }
 
-    public void login(final LogOnDetails details) {
-        Log.i(TAG, "logging in");
-        loginInProgress = true;
-        logOnDetails = details;
-        executor.execute(() -> steamClient.connect());
+    fun login(details: LogOnDetails?) {
+        Log.i(TAG, "logging in")
+
+        loginInProgress = true
+        logOnDetails = details
+
+        executor.execute { steamClient.connect() }
     }
 
-    public void logoff() {
-        Log.i(TAG, "logging off");
-        loginInProgress = true;
-        loggedIn = false;
-        steamId = 0;
-        logOnDetails = null;
-        currentGames.clear();
-        keyToRedeem = null;
-        pendingFreeLicenses.clear();
-        stopFarming();
-        executor.execute(() -> {
-            steamUser.logOff();
-            steamClient.disconnect();
-        });
-        PrefsManager.clearUser();
-        updateNotification(getString(R.string.logged_out));
+    fun logoff() {
+        Log.i(TAG, "logging off")
+
+        loginInProgress = true
+        isLoggedIn = false
+        steamId = 0
+        logOnDetails = null
+        currentGames.clear()
+        keyToRedeem = null
+        pendingFreeLicenses.clear()
+
+        stopFarming()
+
+        executor.execute {
+            steamUser.logOff()
+            steamClient.disconnect()
+        }
+
+        clearUser()
+
+        updateNotification(getString(R.string.logged_out))
     }
 
     /**
      * Redeem Steam key or activate free license
      */
-    public void redeemKey(String key) {
-        if (!loggedIn && !PrefsManager.getLoginKey().isEmpty()) {
-            Log.i(TAG, "Will redeem key at login");
-            keyToRedeem = key;
-            return;
+    fun redeemKey(key: String) {
+        if (!isLoggedIn && loginKey.isNotEmpty()) {
+            Log.i(TAG, "Will redeem key at login")
+            keyToRedeem = key
+            return
         }
-        Log.i(TAG, "Redeeming key...");
-        if (key.matches("\\d+")) {
+        Log.i(TAG, "Redeeming key...")
+        if (key.matches("\\d+".toRegex())) {
             // Request a free license
             try {
-                int freeLicense = Integer.parseInt(key);
-                addFreeLicense(freeLicense);
-            } catch (NumberFormatException e) {
-                showToast(getString(R.string.invalid_key));
+                val freeLicense = key.toInt()
+                addFreeLicense(freeLicense)
+            } catch (e: NumberFormatException) {
+                showToast(getString(R.string.invalid_key))
             }
         } else {
             // Register product key
-            registerProductKey(key);
+            registerProductKey(key)
         }
     }
 
     /**
      * Request a free license
      */
-    private void addFreeLicense(int freeLicense) {
-        pendingFreeLicenses.add(freeLicense);
-        executor.execute(() -> steamApps.requestFreeLicense(freeLicense));
+    private fun addFreeLicense(freeLicense: Int) {
+        pendingFreeLicenses.add(freeLicense)
+        executor.execute { steamApps.requestFreeLicense(freeLicense) }
     }
 
     /**
      * Register a product key
      */
-    private void registerProductKey(String productKey) {
-        final ClientMsgProtobuf<SteammessagesClientserver2.CMsgClientRegisterKey.Builder> registerKey;
-        registerKey = new ClientMsgProtobuf<>(SteammessagesClientserver2.CMsgClientRegisterKey.class, EMsg.ClientRegisterKey);
-        registerKey.getBody().setKey(productKey);
-        executor.execute(() -> steamClient.send(registerKey));
+    private fun registerProductKey(productKey: String) {
+        val registerKey: ClientMsgProtobuf<CMsgClientRegisterKey.Builder> =
+            ClientMsgProtobuf<CMsgClientRegisterKey.Builder>(
+                CMsgClientRegisterKey::class.java,
+                EMsg.ClientRegisterKey
+            )
+
+        registerKey.body.setKey(productKey)
+
+        executor.execute { steamClient.send(registerKey) }
     }
 
     /**
      * Perform log in. Needs to happen as soon as we connect or else we'll get an error
      */
-    private void doLogin() {
-        if (PrefsManager.useCustomLoginId()) {
-            final int localIp = NetHelpers.getIPAddress(steamClient.getLocalIP());
-            logOnDetails.setLoginID(localIp ^ CUSTOM_OBFUSCATION_MASK);
+    private fun doLogin() {
+        if (useCustomLoginId()) {
+            val localIp: Int = NetHelpers.getIPAddress(steamClient.localIP)
+            logOnDetails?.loginID = localIp xor CUSTOM_OBFUSCATION_MASK
         }
-        steamUser.logOn(logOnDetails);
-        logOnDetails = null; // No longer need this
+
+        steamUser.logOn(logOnDetails)
+
+        logOnDetails = null // No longer need this
     }
 
     /**
      * Log in using saved credentials
      */
-    private void attemptRestoreLogin() {
-        final String username = PrefsManager.getUsername();
-        final String loginKey = PrefsManager.getLoginKey();
+    private fun attemptRestoreLogin() {
+        val username = username
+        val loginKey = loginKey
+
         if (username.isEmpty() || loginKey.isEmpty()) {
-            return;
+            return
         }
-        Log.i(TAG, "Restoring login");
-        final LogOnDetails details = new LogOnDetails();
-        details.setUsername(username);
-        details.setLoginKey(loginKey);
-        details.setClientOSType(EOSType.LinuxUnknown);
-        if (PrefsManager.useCustomLoginId()) {
-            final int localIp = NetHelpers.getIPAddress(steamClient.getLocalIP());
-            details.setLoginID(localIp ^ CUSTOM_OBFUSCATION_MASK);
+
+        Log.i(TAG, "Restoring login")
+
+        val details = LogOnDetails()
+        details.username = username
+        details.loginKey = loginKey
+        details.clientOSType = EOSType.LinuxUnknown
+
+        if (useCustomLoginId()) {
+            val localIp: Int = NetHelpers.getIPAddress(steamClient.localIP)
+            details.loginID = localIp xor CUSTOM_OBFUSCATION_MASK
         }
+
         try {
-            final File sentryFile = new File(sentryFolder, username + ".sentry");
-            details.setSentryFileHash(Utils.calculateSHA1(sentryFile));
-        } catch (IOException | NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            val sentryFile = File(sentryFolder, "$username.sentry")
+            details.sentryFileHash = calculateSHA1(sentryFile)
+        } catch (e: IOException) {
+            e.printStackTrace()
+        } catch (e: NoSuchAlgorithmException) {
+            e.printStackTrace()
         }
-        details.setShouldRememberPassword(true);
-        steamUser.logOn(details);
+
+        details.isShouldRememberPassword = true
+
+        steamUser.logOn(details)
     }
 
-    private boolean attemptAuthentication(String nonce) {
-        Log.i(TAG, "Attempting SteamWeb authentication");
-        for (int i=0;i<3;i++) {
+    private fun attemptAuthentication(nonce: String): Boolean {
+        Log.i(TAG, "Attempting SteamWeb authentication")
+
+        for (i in 0..2) {
             if (webHandler.authenticate(steamClient, nonce)) {
-                Log.i(TAG, "Authenticated!");
-                return true;
+                Log.i(TAG, "Authenticated!")
+                return true
             }
 
             if (i + 1 < 3) {
-                Log.i(TAG, "Retrying...");
+                Log.i(TAG, "Retrying...")
                 try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    return false;
+                    Thread.sleep(1000)
+                } catch (e: InterruptedException) {
+                    e.printStackTrace()
+                    return false
                 }
             }
         }
-        return false;
+
+        return false
     }
 
-    private void registerApiKey() {
-        Log.i(TAG, "Registering API key");
-        final int result = webHandler.updateApiKey();
-        Log.i(TAG, "API key result: " + result);
-        switch (result) {
-            case SteamWebHandler.ApiKeyState.REGISTERED:
-                break;
-            case SteamWebHandler.ApiKeyState.ACCESS_DENIED:
-                showToast(getString(R.string.apikey_access_denied));
-                break;
-            case SteamWebHandler.ApiKeyState.UNREGISTERED:
-                // Call updateApiKey once more to actually update it
-                webHandler.updateApiKey();
-                break;
-            case SteamWebHandler.ApiKeyState.ERROR:
-                showToast(getString(R.string.apikey_register_failed));
-                break;
+    private fun registerApiKey() {
+        Log.i(TAG, "Registering API key")
+
+        val result = webHandler.updateApiKey()
+
+        Log.i(TAG, "API key result: $result")
+
+        when (result) {
+            SteamWebHandler.ApiKeyState.REGISTERED -> {}
+            SteamWebHandler.ApiKeyState.ACCESS_DENIED -> showToast(getString(R.string.apikey_access_denied))
+            SteamWebHandler.ApiKeyState.UNREGISTERED -> webHandler.updateApiKey() // Call updateApiKey once more to actually update it
+            SteamWebHandler.ApiKeyState.ERROR -> showToast(getString(R.string.apikey_register_failed))
         }
     }
 
-    private void showToast(final String message) {
-        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show());
+    private fun showToast(message: String) {
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show()
+        }
     }
 
-    private void onConnected(ConnectedCallback callback) {
-        Log.i(TAG, "Connected()");
-        connected = true;
+    @Suppress("UNUSED_PARAMETER")
+    private fun onConnected(callback: ConnectedCallback) {
+        Log.i(TAG, "Connected()")
+        connected = true
+
         if (logOnDetails != null) {
-            doLogin();
+            doLogin()
         } else {
-            attemptRestoreLogin();
+            attemptRestoreLogin()
         }
     }
 
-    private void onDisconnected(DisconnectedCallback callback) {
-        Log.i(TAG, "Disconnected()");
-        connected = false;
-        loggedIn = false;
+    @Suppress("UNUSED_PARAMETER")
+    private fun onDisconnected(callback: DisconnectedCallback) {
+        Log.i(TAG, "Disconnected()")
+
+        connected = false
+        isLoggedIn = false
 
         if (!loginInProgress) {
             // Try to reconnect after a 5 second delay
-            scheduler.schedule(() -> {
-                Log.i(TAG, "Reconnecting");
-                steamClient.connect();
-            }, 5, TimeUnit.SECONDS);
+            scheduler.schedule(
+                /* command = */ {
+                    Log.i(TAG, "Reconnecting")
+                    steamClient.connect()
+                },
+                /* delay = */ 5,
+                /* unit = */ TimeUnit.SECONDS
+            )
         } else {
             // SteamKit may disconnect us while logging on (if already connected),
             // but since it reconnects immediately after we do not have to reconnect here.
-            Log.i(TAG, "NOT reconnecting (logon in progress)");
+            Log.i(TAG, "NOT reconnecting (logon in progress)")
         }
 
         // Tell the activity that we've been disconnected from Steam
-        LocalBroadcastManager.getInstance(SteamService.this).sendBroadcast(new Intent(DISCONNECT_EVENT));
+        LocalBroadcastManager.getInstance(this@SteamService).sendBroadcast(Intent(DISCONNECT_EVENT))
     }
 
-    private void onLoggedOff(LoggedOffCallback callback) {
-        Log.i(TAG, "Logoff result " + callback.getResult().toString());
-        if (callback.getResult() == EResult.LoggedInElsewhere) {
-            updateNotification(getString(R.string.logged_in_elsewhere));
-            unscheduleFarmTask();
+    private fun onLoggedOff(callback: LoggedOffCallback) {
+        Log.i(TAG, "Logoff result " + callback.result.toString())
+        if (callback.result == EResult.LoggedInElsewhere) {
+            updateNotification(getString(R.string.logged_in_elsewhere))
+            unscheduleFarmTask()
+
             if (!waiting) {
-                waiting = true;
-                waitHandle = scheduler.scheduleAtFixedRate(waitTask, 0, 30, TimeUnit.SECONDS);
+                waiting = true
+                waitHandle = scheduler.scheduleAtFixedRate(waitTask, 0, 30, TimeUnit.SECONDS)
             }
         } else {
             // Reconnect
-            steamClient.disconnect();
+            steamClient.disconnect()
         }
     }
 
-    private void onLoggedOn(LoggedOnCallback callback) {
-        final EResult result = callback.getResult();
+    private fun onLoggedOn(callback: LoggedOnCallback) {
+        val result: EResult = callback.result
 
         if (result == EResult.OK) {
             // Successful login
-            Log.i(TAG, "Logged on!");
-            loginInProgress = false;
-            loggedIn = true;
-            steamId = steamClient.getSteamID().convertToUInt64();
-            if (paused) {
-                showPausedNotification();
-            } else if (waiting) {
-                updateNotification(getString(R.string.logged_in_elsewhere));
-            } else {
-                updateNotification(getString(R.string.logged_in));
-            }
-            executor.execute(() -> {
-                final boolean gotAuth = attemptAuthentication(callback.getWebAPIUserNonce());
+            Log.i(TAG, "Logged on!")
 
+            loginInProgress = false
+            isLoggedIn = true
+            steamId = steamClient.steamID.convertToUInt64()
+
+            if (isPaused) {
+                showPausedNotification()
+            } else if (waiting) {
+                updateNotification(getString(R.string.logged_in_elsewhere))
+            } else {
+                updateNotification(getString(R.string.logged_in))
+            }
+
+            executor.execute {
+                val gotAuth = attemptAuthentication(callback.webAPIUserNonce)
                 if (gotAuth) {
-                    resumeFarming();
-                    registerApiKey();
+                    resumeFarming()
+                    registerApiKey()
                 } else {
                     // Request a new WebAPI user authentication nonce
-                    steamUser.requestWebAPIUserNonce();
+                    steamUser.requestWebAPIUserNonce()
                 }
-            });
-            if (keyToRedeem != null) {
-                redeemKey(keyToRedeem);
-                keyToRedeem = null;
             }
-        } else if (result == EResult.InvalidPassword && !PrefsManager.getLoginKey().isEmpty()) {
+
+            if (keyToRedeem != null) {
+                redeemKey(keyToRedeem!!)
+                keyToRedeem = null
+            }
+        } else if (result == EResult.InvalidPassword && loginKey.isNotEmpty()) {
             // Probably no longer valid
-            Log.i(TAG, "Login key expired");
-            PrefsManager.writeLoginKey("");
-            updateNotification(getString(R.string.login_key_expired));
-            keyToRedeem = null;
-            steamClient.disconnect();
+            Log.i(TAG, "Login key expired")
+
+            writeLoginKey("")
+            updateNotification(getString(R.string.login_key_expired))
+
+            keyToRedeem = null
+            steamClient.disconnect()
         } else {
-            Log.i(TAG, "LogOn result: " + result.toString());
-            keyToRedeem = null;
-            steamClient.disconnect();
+            Log.i(TAG, "LogOn result: $result")
+
+            keyToRedeem = null
+            steamClient.disconnect()
         }
 
         // Tell LoginActivity the result
-        final Intent intent = new Intent(LOGIN_EVENT);
-        intent.putExtra(RESULT, result);
-        LocalBroadcastManager.getInstance(SteamService.this).sendBroadcast(intent);
+        val intent = Intent(LOGIN_EVENT)
+        intent.putExtra(RESULT, result)
+
+        LocalBroadcastManager.getInstance(this@SteamService).sendBroadcast(intent)
     }
 
-    private void onLoginKey(LoginKeyCallback callback) {
-        Log.i(TAG, "Saving loginkey");
-        PrefsManager.writeLoginKey(callback.getLoginKey());
-        steamUser.acceptNewLoginKey(callback);
+    private fun onLoginKey(callback: LoginKeyCallback) {
+        Log.i(TAG, "Saving loginkey")
+
+        writeLoginKey(callback.loginKey)
+
+        steamUser.acceptNewLoginKey(callback)
     }
 
-    private void onUpdateMachineAuth(UpdateMachineAuthCallback callback) {
-        final File sentryFile = new File(sentryFolder, PrefsManager.getUsername() + ".sentry");
-        Log.i(TAG, "Saving sentry file to " + sentryFile.getAbsolutePath());
-        try (final FileOutputStream fos = new FileOutputStream(sentryFile)) {
-            final FileChannel channel = fos.getChannel();
-            channel.position(callback.getOffset());
-            channel.write(ByteBuffer.wrap(callback.getData(), 0, callback.getBytesToWrite()));
+    private fun onUpdateMachineAuth(callback: UpdateMachineAuthCallback) {
+        val sentryFile = File(sentryFolder, "$username.sentry")
 
-            final byte[] sha1 = Utils.calculateSHA1(sentryFile);
+        Log.i(TAG, "Saving sentry file to " + sentryFile.absolutePath)
 
-            final OTPDetails otp = new OTPDetails();
-            otp.setIdentifier(callback.getOneTimePassword().getIdentifier());
-            otp.setType(callback.getOneTimePassword().getType());
+        try {
+            FileOutputStream(sentryFile).use { fos ->
+                val channel = fos.channel
+                channel.position(callback.offset.toLong())
+                channel.write(ByteBuffer.wrap(callback.data, 0, callback.bytesToWrite))
 
-            final MachineAuthDetails auth = new MachineAuthDetails();
-            auth.setJobID(callback.getJobID());
-            auth.setFileName(callback.getFileName());
-            auth.setBytesWritten(callback.getBytesToWrite());
-            auth.setFileSize((int) sentryFile.length());
-            auth.setOffset(callback.getOffset());
-            auth.setEResult(EResult.OK);
-            auth.setLastError(0);
-            auth.setSentryFileHash(sha1);
-            auth.setOneTimePassword(otp);
+                val sha1 = calculateSHA1(sentryFile)
 
-            steamUser.sendMachineAuthResponse(auth);
+                val otp = OTPDetails()
+                otp.identifier = callback.oneTimePassword.identifier
+                otp.type = callback.oneTimePassword.type
 
-            PrefsManager.writeSentryHash(Utils.bytesToHex(sha1));
-        } catch (IOException | NoSuchAlgorithmException e) {
-            Log.i(TAG, "Error saving sentry file", e);
+                val auth = MachineAuthDetails()
+                auth.jobID = callback.jobID
+                auth.fileName = callback.fileName
+                auth.bytesWritten = callback.bytesToWrite
+                auth.fileSize = sentryFile.length().toInt()
+                auth.offset = callback.offset
+                auth.eResult = EResult.OK
+                auth.lastError = 0
+                auth.sentryFileHash = sha1
+                auth.oneTimePassword = otp
+
+                steamUser.sendMachineAuthResponse(auth)
+
+                writeSentryHash(bytesToHex(sha1))
+            }
+        } catch (e: IOException) {
+            Log.i(TAG, "Error saving sentry file", e)
+        } catch (e: NoSuchAlgorithmException) {
+            Log.i(TAG, "Error saving sentry file", e)
         }
     }
 
-    private void onPurchaseResponse(PurchaseResponseCallback callback) {
-        if (callback.getResult() == EResult.OK) {
-            final KeyValue kv = callback.getPurchaseReceiptInfo();
-            final EPaymentMethod paymentMethod = EPaymentMethod.from(kv.get("PaymentMethod").asInteger());
+    private fun onPurchaseResponse(callback: PurchaseResponseCallback) {
+        if (callback.result == EResult.OK) {
+            val kv = callback.purchaseReceiptInfo
+            val paymentMethod: EPaymentMethod = EPaymentMethod.from(kv["PaymentMethod"].asInteger())
+
             if (paymentMethod == EPaymentMethod.ActivationCode) {
-                final StringBuilder products = new StringBuilder();
-                final int size = kv.get("LineItemCount").asInteger();
-                Log.i(TAG, "LineItemCount " + size);
-                for (int i=0;i<size;i++) {
-                    final String lineItem = kv.get("lineitems").get(i + "").get("ItemDescription").asString();
-                    Log.i(TAG, "lineItem " + i + " " + lineItem);
-                    products.append(lineItem);
+                val products = StringBuilder()
+                val size = kv["LineItemCount"].asInteger()
+
+                Log.i(TAG, "LineItemCount $size")
+
+                for (i in 0 until size) {
+                    val lineItem = kv["lineitems"][i.toString() + ""]["ItemDescription"].asString()
+
+                    Log.i(TAG, "lineItem $i $lineItem")
+
+                    products.append(lineItem)
+
                     if (i + 1 < size) {
-                        products.append(", ");
+                        products.append(", ")
                     }
                 }
-                showToast(getString(R.string.activated, products.toString()));
+
+                showToast(getString(R.string.activated, products.toString()))
             }
         } else {
-            final EPurchaseResultDetail purchaseResult = callback.getPurchaseResultDetails();
-            final int errorId;
-            if (purchaseResult == EPurchaseResultDetail.AlreadyPurchased) {
-                errorId = R.string.product_already_owned;
-            } else if (purchaseResult == EPurchaseResultDetail.BadActivationCode) {
-                errorId = R.string.invalid_key;
-            } else {
-                errorId = R.string.activation_failed;
+            val errorId: Int = when (callback.purchaseResultDetails) {
+                EPurchaseResultDetail.AlreadyPurchased -> R.string.product_already_owned
+                EPurchaseResultDetail.BadActivationCode -> R.string.invalid_key
+                else -> R.string.activation_failed
             }
-            showToast(getString(errorId));
+
+            showToast(getString(errorId))
         }
     }
 
-    private void onPersonaStates(PersonaStatesCallback callback) {
-        for (PersonaState ps : callback.getPersonaStates()) {
-            if (ps.getFriendID().equals(steamClient.getSteamID())) {
-                final String personaName = ps.getName();
-                final String avatarHash = Utils.bytesToHex(ps.getAvatarHash()).toLowerCase();
-                Log.i(TAG, "Avatar hash " + avatarHash);
-                final Intent event = new Intent(PERSONA_EVENT);
-                event.putExtra(PERSONA_NAME, personaName);
-                event.putExtra(AVATAR_HASH, avatarHash);
-                LocalBroadcastManager.getInstance(SteamService.this).sendBroadcast(event);
-                break;
+    private fun onPersonaStates(callback: PersonaStatesCallback) {
+        for (ps in callback.personaStates) {
+            if (ps.friendID == steamClient.steamID) {
+                val personaName: String = ps.name
+                val avatarHash = bytesToHex(ps.avatarHash).lowercase(Locale.getDefault())
+
+                Log.i(TAG, "Avatar hash $avatarHash")
+
+                val event = Intent(PERSONA_EVENT)
+                event.putExtra(PERSONA_NAME, personaName)
+                event.putExtra(AVATAR_HASH, avatarHash)
+
+                LocalBroadcastManager.getInstance(this@SteamService).sendBroadcast(event)
+
+                break
             }
         }
     }
 
-    private void onFreeLicense(FreeLicenseCallback callback) {
-        final int freeLicense = pendingFreeLicenses.removeFirst();
-        if (!callback.getGrantedApps().isEmpty()) {
-            showToast(getString(R.string.activated, String.valueOf(callback.getGrantedApps().get(0))));
-        } else if (!callback.getGrantedPackages().isEmpty()) {
-            showToast(getString(R.string.activated, String.valueOf(callback.getGrantedPackages().get(0))));
+    private fun onFreeLicense(callback: FreeLicenseCallback) {
+        val freeLicense = pendingFreeLicenses.removeFirst()
+
+        if (callback.grantedApps.isNotEmpty()) {
+            showToast(getString(R.string.activated, callback.grantedApps[0].toString()))
+        } else if (callback.grantedPackages.isNotEmpty()) {
+            showToast(
+                getString(
+                    R.string.activated,
+                    callback.grantedPackages[0].toString()
+                )
+            )
         } else {
             // Try activating it with the web handler
-            executor.execute(() -> {
-                final String msg;
-                if (webHandler.addFreeLicense(freeLicense)) {
-                    msg = getString(R.string.activated, String.valueOf(freeLicense));
+            executor.execute {
+                val msg: String = if (webHandler.addFreeLicense(freeLicense)) {
+                    getString(R.string.activated, freeLicense.toString())
                 } else {
-                    msg = getString(R.string.activation_failed);
+                    getString(R.string.activation_failed)
                 }
-                showToast(msg);
-            });
-        }
-    }
 
-    private void onAccountInfo(AccountInfoCallback callback) {
-        if (!PrefsManager.getOffline()) {
-            steamFriends.setPersonaState(EPersonaState.Online);
-        }
-    }
-
-    private void onWebAPIUserNonce(WebAPIUserNonceCallback callback) {
-        Log.i(TAG, "Got new WebAPI user authentication nonce");
-        executor.execute(() -> {
-            final boolean gotAuth = attemptAuthentication(callback.getNonce());
-
-            if (gotAuth) {
-                resumeFarming();
-            } else {
-                updateNotification(getString(R.string.web_login_failed));
+                showToast(msg)
             }
-        });
+        }
     }
 
-    private void onItemAnnouncements(ItemAnnouncementsCallback callback) {
-        Log.i(TAG, "New item notification " + callback.getCount());
-        if (callback.getCount() > 0 && farming) {
+    @Suppress("UNUSED_PARAMETER")
+    private fun onAccountInfo(callback: AccountInfoCallback) {
+        if (!offline) {
+            steamFriends.setPersonaState(EPersonaState.Online)
+        }
+    }
+
+    private fun onWebAPIUserNonce(callback: WebAPIUserNonceCallback) {
+        Log.i(TAG, "Got new WebAPI user authentication nonce")
+
+        executor.execute {
+            val gotAuth = attemptAuthentication(callback.nonce)
+            if (gotAuth) {
+                resumeFarming()
+            } else {
+                updateNotification(getString(R.string.web_login_failed))
+            }
+        }
+    }
+
+    private fun onItemAnnouncements(callback: ItemAnnouncementsCallback) {
+        Log.i(TAG, "New item notification " + callback.count)
+
+        if (callback.count > 0 && isFarming) {
             // Possible card drop
-            executor.execute(farmTask);
+            executor.execute(farmTask)
         }
     }
 
     /**
      * Idle one or more games
+     *
      * @param games the games to idle
      */
-    private void playGames(Game...games) {
-        final ClientMsgProtobuf<SteammessagesClientserver.CMsgClientGamesPlayed.Builder> gamesPlayed;
-        gamesPlayed = new ClientMsgProtobuf<>(SteammessagesClientserver.CMsgClientGamesPlayed.class, EMsg.ClientGamesPlayed);
-        for (Game game : games) {
+    private fun playGames(vararg games: Game) {
+        val gamesPlayed: ClientMsgProtobuf<CMsgClientGamesPlayed.Builder> =
+            ClientMsgProtobuf<CMsgClientGamesPlayed.Builder>(
+                CMsgClientGamesPlayed::class.java,
+                EMsg.ClientGamesPlayed
+            )
+
+        for (game in games) {
             if (game.appId == 0) {
                 // Non-Steam game
-                final GameID gameId = new GameID(game.appId);
-                gameId.setAppType(GameID.GameType.SHORTCUT);
-                final CRC32 crc = new CRC32();
-                crc.update(game.name.getBytes());
+                val gameId = GameID(game.appId)
+                gameId.appType = GameID.GameType.SHORTCUT
+
+                val crc = CRC32()
+                crc.update(game.name.toByteArray())
+
                 // set the high-bit on the mod-id
                 // reduces crc32 to 31bits, but lets us use the modID as a guaranteed unique
                 // replacement for appID
-                gameId.setModID(crc.getValue() | (0x80000000));
-                gamesPlayed.getBody().addGamesPlayedBuilder()
-                        .setGameId(gameId.convertToUInt64())
-                        .setGameExtraInfo(game.name);
+                gameId.setModID(crc.value or (-0x80000000).toLong())
+                gamesPlayed.body.addGamesPlayedBuilder()
+                    .setGameId(gameId.convertToUInt64())
+                    .setGameExtraInfo(game.name)
             } else {
-                gamesPlayed.getBody().addGamesPlayedBuilder()
-                        .setGameId(game.appId);
+                gamesPlayed.body.addGamesPlayedBuilder()
+                    .setGameId(game.appId.toLong())
             }
         }
-        executor.execute(() -> {
-            steamClient.send(gamesPlayed);
-        });
+
+        executor.execute { steamClient.send(gamesPlayed) }
+
         // Tell the activity
-        LocalBroadcastManager.getInstance(SteamService.this).sendBroadcast(new Intent(NOW_PLAYING_EVENT));
+        LocalBroadcastManager
+            .getInstance(this@SteamService)
+            .sendBroadcast(Intent(NOW_PLAYING_EVENT))
     }
 
-    private void stopPlaying() {
-        if (!paused) {
-            currentGames.clear();
+    private fun stopPlaying() {
+        if (!isPaused) {
+            currentGames.clear()
         }
-        final ClientMsgProtobuf<SteammessagesClientserver.CMsgClientGamesPlayed.Builder> stopGame;
-        stopGame = new ClientMsgProtobuf<>(SteammessagesClientserver.CMsgClientGamesPlayed.class, EMsg.ClientGamesPlayed);
-        stopGame.getBody().addGamesPlayedBuilder().setGameId(0);
-        executor.execute(() -> steamClient.send(stopGame));
+
+        val stopGame: ClientMsgProtobuf<CMsgClientGamesPlayed.Builder> =
+            ClientMsgProtobuf<CMsgClientGamesPlayed.Builder>(
+                CMsgClientGamesPlayed::class.java,
+                EMsg.ClientGamesPlayed
+            )
+
+        stopGame.body.addGamesPlayedBuilder().setGameId(0)
+
+        executor.execute { steamClient.send(stopGame) }
+
         // Tell the activity
-        LocalBroadcastManager.getInstance(SteamService.this).sendBroadcast(new Intent(NOW_PLAYING_EVENT));
+        LocalBroadcastManager
+            .getInstance(this@SteamService)
+            .sendBroadcast(Intent(NOW_PLAYING_EVENT))
     }
 
     /**
      * Register and idle a game for a few seconds to complete the Spring Cleaning daily tasks
      */
-    public void registerAndIdle(String game) {
+    fun registerAndIdle(game: String) {
         try {
-            final int appId = Integer.parseInt(game);
+            val appId = game.toInt()
 
             // Register the game
-            steamApps.requestFreeLicense(appId);
-            Thread.sleep(1000);
+            steamApps.requestFreeLicense(appId)
+
+            Thread.sleep(1000)
 
             // Play it for a few seconds
-            final ClientMsgProtobuf<SteammessagesClientserver.CMsgClientGamesPlayed.Builder> playGame;
-            playGame = new ClientMsgProtobuf<>(SteammessagesClientserver.CMsgClientGamesPlayed.class, EMsg.ClientGamesPlayed);
-            playGame.getBody().addGamesPlayedBuilder().setGameId(appId);
-            steamClient.send(playGame);
-            Thread.sleep(3000);
+            val playGame: ClientMsgProtobuf<CMsgClientGamesPlayed.Builder> =
+                ClientMsgProtobuf<CMsgClientGamesPlayed.Builder>(
+                    CMsgClientGamesPlayed::class.java,
+                    EMsg.ClientGamesPlayed
+                )
+
+            playGame.body.addGamesPlayedBuilder().setGameId(appId.toLong())
+
+            steamClient.send(playGame)
+
+            Thread.sleep(3000)
 
             // Stop playing
-            playGame.getBody().clearGamesPlayed().addGamesPlayedBuilder().setGameId(0);
-            steamClient.send(playGame);
-            Thread.sleep(1000);
-        } catch (NumberFormatException|InterruptedException e) {
-            e.printStackTrace();
+            playGame.body.clearGamesPlayed().addGamesPlayedBuilder().setGameId(0)
+
+            steamClient.send(playGame)
+
+            Thread.sleep(1000)
+        } catch (e: NumberFormatException) {
+            e.printStackTrace()
+        } catch (e: InterruptedException) {
+            e.printStackTrace()
         }
     }
 
     /**
      * Open a cottage door (Winter Sale 2018)
      */
-    public void openCottageDoor() {
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                boolean result = webHandler.openCottageDoor();
-                if (result) {
-                    showToast(getString(R.string.door_success));
-                } else {
-                    showToast(getString(R.string.door_fail));
-                }
+    @Suppress("unused")
+    fun openCottageDoor() {
+        executor.execute {
+            val result = webHandler.openCottageDoor()
+            if (result) {
+                showToast(getString(R.string.door_success))
+            } else {
+                showToast(getString(R.string.door_fail))
             }
-        });
+        }
+    }
+
+    companion object {
+        private val TAG = SteamService::class.java.getSimpleName()
+
+        private const val NOTIFY_ID = 6896 // Ongoing notification ID
+        private const val CHANNEL_ID = "idle_channel" // Notification channel
+
+        // Some Huawei phones reportedly kill apps when they hold a WakeLock for a long time.
+        // This can be prevented by using a WakeLock tag from the PowerGenie whitelist.
+        private val WAKELOCK_TAG = "$TAG:LocationManagerService"
+
+        private const val CUSTOM_OBFUSCATION_MASK = -0xff24553
+
+        // Events
+        const val AVATAR_HASH = "AVATAR_HASH" // User avatar hash
+        const val CARD_COUNT = "CARD_COUNT" // Number of card drops remaining
+        const val DISCONNECT_EVENT = "DISCONNECT_EVENT" // Emitted on disconnect
+        const val FARM_EVENT = "FARM_EVENT" // Emitted when farm() is called
+        const val GAME_COUNT = "GAME_COUNT" // Number of games left to farm
+        const val LOGIN_EVENT = "LOGIN_EVENT" // Emitted on login
+        const val NOW_PLAYING_EVENT =
+            "NOW_PLAYING_EVENT" // Emitted when the game you're idling changes
+        const val PERSONA_EVENT = "PERSONA_EVENT" // Emitted when we get PersonaStateCallback
+        const val PERSONA_NAME = "PERSONA_NAME" // Username
+        const val RESULT = "RESULT" // Login result
+        const val STOP_EVENT = "STOP_EVENT" // Emitted when stop clicked
+
+        // Actions
+        const val PAUSE_INTENT = "PAUSE_INTENT"
+        const val RESUME_INTENT = "RESUME_INTENT"
+        const val SKIP_INTENT = "SKIP_INTENT"
+        const val STOP_INTENT = "STOP_INTENT"
+
+        fun createIntent(c: Context?): Intent = Intent(c, SteamService::class.java)
     }
 }

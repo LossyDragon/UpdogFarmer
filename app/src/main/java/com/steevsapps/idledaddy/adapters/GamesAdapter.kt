@@ -30,7 +30,7 @@ class GamesAdapter(
     private val dataSet: MutableList<Game> = ArrayList()
     private val dataSetCopy: MutableList<Game> = ArrayList()
     private val pendingUpdates: Deque<List<Game>> = ArrayDeque()
-    private var currentGames: ArrayList<Game>? = null
+    private var currentGames: MutableList<Game>? = null
     private var gamePickedListener: GamePickedListener? = null
     private var headerEnabled = false
     private var updateListener: GamesListUpdateListener? = null
@@ -100,8 +100,8 @@ class GamesAdapter(
         } else {
             for (game in dataSetCopy) {
                 if (game.name
-                        .lowercase(Locale.getDefault())
-                        .contains(text.lowercase(Locale.getDefault()))
+                    .lowercase(Locale.getDefault())
+                    .contains(text.lowercase(Locale.getDefault()))
                 ) {
                     newGames.add(game)
                 }
@@ -111,7 +111,7 @@ class GamesAdapter(
         }
     }
 
-    fun setCurrentGames(games: ArrayList<Game>?) {
+    fun setCurrentGames(games: MutableList<Game>) {
         currentGames = games
         notifyDataSetChanged()
     }

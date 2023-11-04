@@ -9,7 +9,7 @@ import kotlin.math.min
  */
 class AndroidLogListener : LogListener {
 
-    override fun onLog(clazz: Class<*>, message: String?, throwable: Throwable) {
+    override fun onLog(clazz: Class<*>, message: String?, throwable: Throwable?) {
         var threadName = Thread.currentThread().name
         threadName = threadName.substring(0, min(10, threadName.length))
         val className = clazz.getName()
@@ -20,7 +20,7 @@ class AndroidLogListener : LogListener {
         }
     }
 
-    override fun onError(clazz: Class<*>, message: String?, throwable: Throwable) {
+    override fun onError(clazz: Class<*>, message: String?, throwable: Throwable?) {
         var threadName = Thread.currentThread().name
         threadName = threadName.substring(0, min(10, threadName.length))
         val className = clazz.getName()

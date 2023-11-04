@@ -1,17 +1,12 @@
 package com.steevsapps.idledaddy.utils
 
 import com.steevsapps.idledaddy.ThrowingTask
-import java.io.BufferedReader
-import java.io.BufferedWriter
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileWriter
 import java.io.IOException
-import java.io.InputStreamReader
 import java.security.InvalidKeyException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
-import java.util.Arrays
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
@@ -67,8 +62,8 @@ object Utils {
     /**
      * Strips non-ASCII characters from String
      */
+    @JvmStatic
     fun removeSpecialChars(s: String): String = s.replace("[^\\u0000-\\u007F]".toRegex(), "")
-
 
     /**
      * Check if API key is valid
@@ -82,8 +77,9 @@ object Utils {
     @JvmStatic
     @Throws(IOException::class, NoSuchAlgorithmException::class)
     fun calculateSHA1(file: File?): ByteArray {
-        if(file == null)
+        if (file == null) {
             return byteArrayOf()
+        }
 
         FileInputStream(file).use { fis ->
             val md = MessageDigest.getInstance(SHA1_ALGORITHM)

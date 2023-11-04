@@ -110,7 +110,6 @@ object PrefsManager {
             return Gson().fromJson(json, type) ?: listOf()
         }
 
-
     fun init(c: Context) {
         prefs = PreferenceManager.getDefaultSharedPreferences(c)
 
@@ -151,8 +150,8 @@ object PrefsManager {
         writePref(USERNAME, username)
     }
 
-    fun writePassword(context: Context, password: String) {
-        writePref(PASSWORD, encryptString(context, password))
+    fun writePassword(password: String) {
+        writePref(PASSWORD, encryptString(password))
     }
 
     @JvmStatic
@@ -207,8 +206,8 @@ object PrefsManager {
         writePref(SORT_VALUE, sortValue)
     }
 
-    fun getPassword(context: Context): String =
-        decryptString(context, prefs.getString(PASSWORD, ""))
+    fun getPassword(): String =
+        decryptString(prefs.getString(PASSWORD, ""))
 
     @JvmStatic
     fun stayAwake(): Boolean = prefs.getBoolean(STAY_AWAKE, false)

@@ -19,7 +19,7 @@ class GamesOwnedResponseDeserializer : JsonDeserializer<GamesOwnedResponse> {
         val element = json.getAsJsonObject()["response"]
         val response = Gson().fromJson(element, GamesOwnedResponse::class.java)
 
-        response.games.forEach { game ->
+        response.games?.forEach { game ->
             game.iconUrl = String.format(Locale.US, IMG_URL, game.appId, game.iconUrl)
             game.hoursPlayed /= 60f
             game.dropsRemaining = 0

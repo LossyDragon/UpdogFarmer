@@ -51,7 +51,8 @@ import java.io.File
 import java.io.IOException
 import java.util.Locale
 
-class MainActivity : BaseActivity(),
+class MainActivity :
+    BaseActivity(),
     DialogListener,
     GamePickedListener,
     OnSharedPreferenceChangeListener {
@@ -338,7 +339,8 @@ class MainActivity : BaseActivity(),
             R.id.games -> {
                 GamesFragment.newInstance(
                     steamService!!.steamId,
-                    steamService!!.currentGames, spinnerNav.selectedItemPosition
+                    ArrayList(steamService!!.currentGames),
+                    spinnerNav.selectedItemPosition
                 )
             }
             R.id.settings -> SettingsFragment.newInstance()
@@ -423,8 +425,8 @@ class MainActivity : BaseActivity(),
         menu.findItem(R.id.auto_discovery).setVisible(loggedIn)
         menu.findItem(R.id.custom_app).setVisible(loggedIn)
         menu.findItem(R.id.import_shared_secret).setVisible(loggedIn)
-        //menu.findItem(R.id.auto_vote).setVisible(loggedIn);
-        //menu.findItem(R.id.spring_cleaning_event).setVisible(loggedIn);
+        // menu.findItem(R.id.auto_vote).setVisible(loggedIn);
+        // menu.findItem(R.id.spring_cleaning_event).setVisible(loggedIn);
         menu.findItem(R.id.search).setVisible(drawerItemId == R.id.games)
 
         return super.onPrepareOptionsMenu(menu)
@@ -640,8 +642,11 @@ class MainActivity : BaseActivity(),
             }
             "offline" -> {
                 // Change status
-                val status = if (PrefsManager.offline)
-                    EPersonaState.Offline else EPersonaState.Online
+                val status = if (PrefsManager.offline) {
+                    EPersonaState.Offline
+                } else {
+                    EPersonaState.Online
+                }
 
                 steamService!!.changeStatus(status)
             }

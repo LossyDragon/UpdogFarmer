@@ -8,7 +8,6 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.utils.Utils.arrayToString
-import java.util.Arrays
 
 class BlacklistAdapter(
     private var data: String?

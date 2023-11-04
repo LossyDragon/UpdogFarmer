@@ -79,7 +79,7 @@ class BlacklistDialog :
     }
 
     private fun addItem() {
-        val text = input.getText().toString().trim { it <= ' ' }
+        val text = input.getText().toString().trim()
         if (text.matches("\\d+".toRegex())) {
             adapter.addItem(text)
             input.setText("")
