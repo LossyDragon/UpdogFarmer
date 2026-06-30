@@ -13,7 +13,6 @@ import com.steevsapps.idledaddy.steam.model.Game;
 import com.steevsapps.idledaddy.steam.model.GamesOwnedResponse;
 import com.steevsapps.idledaddy.steam.model.TimeQuery;
 import com.steevsapps.idledaddy.utils.Utils;
-import com.steevsapps.idledaddy.utils.WebHelpers;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -37,13 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import in.dragonbra.javasteam.steam.steamclient.SteamClient;
-import in.dragonbra.javasteam.types.KeyValue;
-import in.dragonbra.javasteam.types.SteamID;
-import in.dragonbra.javasteam.util.KeyDictionary;
-import in.dragonbra.javasteam.util.crypto.CryptoException;
 import in.dragonbra.javasteam.util.crypto.CryptoHelper;
-import in.dragonbra.javasteam.util.crypto.RSACrypto;
 import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Retrofit;
@@ -73,8 +66,7 @@ public class SteamWebHandler {
     private boolean authenticated;
     private long steamId;
     private String sessionId;
-    private String token;
-    private String tokenSecure;
+    private String accessToken;
     private String steamParental;
     private String apiKey = BuildConfig.SteamApiKey;
 
@@ -106,68 +98,22 @@ public class SteamWebHandler {
     }
 
     /**
-     * Authenticate on the Steam website
+     * Authenticate on the Steam website.
+     * <p>
+     * Steam now issues the website session directly from the JWT access token handed out by
+     * {@code SteamAuthentication}/{@code beginAuthSessionViaCredentials}, instead of the old
+     * RSA-encrypted-nonce dance against {@code ISteamUserAuth/AuthenticateUser} (that endpoint
+     * no longer works). The {@code steamLoginSecure} cookie is simply {@code <steamid>||<accessToken>}.
      *
-     * @param client the Steam client
-     * @param webApiUserNonce the WebAPI User Nonce returned by LoggedOnCallback
+     * @param steamId the logged on user's SteamID
+     * @param accessToken a short-lived JWT access token, see SteamAuthentication#generateAccessTokenForApp
      * @return true if authenticated
      */
-    boolean authenticate(SteamClient client, String webApiUserNonce) {
-        authenticated = false;
-        final SteamID clientSteamId = client.getSteamID();
-        if (clientSteamId == null) {
-            return false;
-        }
-        steamId = clientSteamId.convertToUInt64();
-        sessionId = Utils.bytesToHex(CryptoHelper.generateRandomBlock(4));
-
-        // generate an AES session key
-        final byte[] sessionKey = CryptoHelper.generateRandomBlock(32);
-
-        // rsa encrypt it with the public key for the universe we're on
-        final byte[] publicKey = KeyDictionary.getPublicKey(client.getUniverse());
-        if (publicKey == null) {
-            return false;
-        }
-
-        final RSACrypto rsa = new RSACrypto(publicKey);
-        final byte[] cryptedSessionKey = rsa.encrypt(sessionKey);
-
-        final byte[] loginKey = new byte[20];
-        System.arraycopy(webApiUserNonce.getBytes(), 0, loginKey, 0, webApiUserNonce.length());
-
-        // aes encrypt the loginkey with our session key
-        final byte[] cryptedLoginKey;
-        try {
-            cryptedLoginKey = CryptoHelper.symmetricEncrypt(loginKey, sessionKey);
-        } catch (CryptoException e) {
-            e.printStackTrace();
-            return false;
-        }
-
-        final KeyValue authResult;
-
-        final Map<String,String> args = new HashMap<>();
-        args.put("steamid", String.valueOf(steamId));
-        args.put("sessionkey", WebHelpers.urlEncode(cryptedSessionKey));
-        args.put("encrypted_loginkey", WebHelpers.urlEncode(cryptedLoginKey));
-        args.put("format", "vdf");
-
-        try {
-            authResult = api.authenticateUser(args).execute().body();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-
-        if (authResult == null) {
-            return false;
-        }
-
-        token = authResult.get("token").asString();
-        tokenSecure = authResult.get("tokenSecure").asString();
-
-        authenticated = true;
+    boolean authenticate(long steamId, String accessToken) {
+        this.steamId = steamId;
+        this.accessToken = accessToken;
+        this.sessionId = Utils.bytesToHex(CryptoHelper.generateRandomBlock(4));
+        this.authenticated = true;
 
         final String pin = PrefsManager.getParentalPin().trim();
         if (!pin.isEmpty()) {
@@ -189,12 +135,7 @@ public class SteamWebHandler {
 
         final Map<String, String> cookies = new HashMap<>();
         cookies.put("sessionid", sessionId);
-        cookies.put("steamLogin", token);
-        cookies.put("steamLoginSecure", tokenSecure);
-        final String sentryHash = PrefsManager.getSentryHash().trim();
-        if (!sentryHash.isEmpty()) {
-            cookies.put("steamMachineAuth" + steamId, sentryHash);
-        }
+        cookies.put("steamLoginSecure", steamId + "||" + accessToken);
         if (steamParental != null) {
             cookies.put("steamparental", steamParental);
         }

@@ -1,13 +1,13 @@
 package com.steevsapps.idledaddy;
 
-import androidx.lifecycle.Observer;
+import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModelProviders;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import androidx.annotation.Nullable;
+
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
@@ -23,9 +23,7 @@ import com.steevsapps.idledaddy.steam.SteamService;
 import com.steevsapps.idledaddy.steam.SteamWebHandler;
 import com.steevsapps.idledaddy.utils.Utils;
 
-import in.dragonbra.javasteam.enums.EOSType;
 import in.dragonbra.javasteam.enums.EResult;
-import in.dragonbra.javasteam.steam.handlers.steamuser.LogOnDetails;
 
 import static com.steevsapps.idledaddy.steam.SteamService.LOGIN_EVENT;
 
@@ -143,7 +141,7 @@ public class LoginActivity extends BaseActivity {
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean(LOGIN_IN_PROGRESS, loginInProgress);
         outState.putBoolean(TWO_FACTOR_REQUIRED, twoFactorRequired);
@@ -163,23 +161,25 @@ public class LoginActivity extends BaseActivity {
     }
 
     public void doLogin(View v) {
+        if (twoFactorInput.getVisibility() == View.VISIBLE) {
+            // SteamService is already mid-login and waiting on a Steam Guard code
+            final String code = twoFactorEditText.getText().toString().trim();
+            if (!code.isEmpty()) {
+                loginButton.setEnabled(false);
+                progress.setVisibility(View.VISIBLE);
+                getService().submitTwoFactorCode(code);
+                startTimeout();
+            }
+            return;
+        }
+
         // Steam strips all non-ASCII characters from usernames and passwords
         final String username = Utils.removeSpecialChars(usernameEditText.getText().toString()).trim();
         final String password = Utils.removeSpecialChars(passwordEditText.getText().toString()).trim();
         if (!username.isEmpty() && !password.isEmpty()) {
             loginButton.setEnabled(false);
             progress.setVisibility(View.VISIBLE);
-            final LogOnDetails details = new LogOnDetails();
-            details.setUsername(username);
-            details.setPassword(password);
-            details.setClientOSType(EOSType.LinuxUnknown);
-            if (twoFactorRequired) {
-                details.setTwoFactorCode(twoFactorEditText.getText().toString().trim());
-            } else {
-                details.setAuthCode(twoFactorEditText.getText().toString().trim());
-            }
-            details.setShouldRememberPassword(true);
-            getService().login(details);
+            getService().login(username, password);
             startTimeout();
         }
     }
@@ -187,20 +187,12 @@ public class LoginActivity extends BaseActivity {
     private void setupViewModel() {
         viewModel = ViewModelProviders.of(this).get(LoginViewModel.class);
         viewModel.init(SteamWebHandler.getInstance());
-        viewModel.getTimeDifference().observe(this, new Observer<Integer>() {
-            @Override
-            public void onChanged(@Nullable Integer value) {
-                timeDifference = value;
-            }
-        });
-        viewModel.getTimeout().observe(this, new Observer<Void>() {
-            @Override
-            public void onChanged(@Nullable Void aVoid) {
-                loginInProgress = false;
-                loginButton.setEnabled(true);
-                progress.setVisibility(View.GONE);
-                Snackbar.make(coordinatorLayout, R.string.timeout_error, Snackbar.LENGTH_LONG).show();
-            }
+        viewModel.getTimeDifference().observe(this, value -> timeDifference = value);
+        viewModel.getTimeout().observe(this, aVoid -> {
+            loginInProgress = false;
+            loginButton.setEnabled(true);
+            progress.setVisibility(View.GONE);
+            Snackbar.make(coordinatorLayout, R.string.timeout_error, Snackbar.LENGTH_LONG).show();
         });
     }
 }

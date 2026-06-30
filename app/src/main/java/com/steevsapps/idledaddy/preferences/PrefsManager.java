@@ -19,12 +19,12 @@ import java.util.List;
  * SharedPreferences manager
  */
 public class PrefsManager {
-    private final static int CURRENT_VERSION = 2;
+    private final static int CURRENT_VERSION = 3;
 
     private final static String USERNAME = "username";
     private final static String PASSWORD = "password";
-    private final static String LOGIN_KEY = "login_key";
-    private final static String SENTRY_HASH = "sentry_hash";
+    private final static String REFRESH_TOKEN = "login_key";
+    private final static String GUARD_DATA = "sentry_hash";
     private final static String SHARED_SECRET = "shared_secret";
     private final static String OFFLINE = "offline";
     private final static String STAY_AWAKE = "stay_awake";
@@ -41,6 +41,7 @@ public class PrefsManager {
     private final static String LANGUAGE = "language";
     private final static String VERSION = "version";
     private final static String SORT_VALUE = "sort_value";
+    private final static String CELL_ID = "cell_id";
 
     private static SharedPreferences prefs;
 
@@ -62,6 +63,10 @@ public class PrefsManager {
             // Serialized names have changed
             writeLastSession(new ArrayList<>());
         }
+        if (oldVersion < 3) {
+            writeRefreshToken("");
+            writeGuardData("");
+        }
         writeVersion(CURRENT_VERSION);
     }
 
@@ -72,8 +77,8 @@ public class PrefsManager {
         prefs.edit()
                 .putString(USERNAME, "")
                 .putString(PASSWORD, "")
-                .putString(LOGIN_KEY, "")
-                .putString(SENTRY_HASH, "")
+                .putString(REFRESH_TOKEN, "")
+                .putString(GUARD_DATA, "")
                 .putString(BLACKLIST, "")
                 .putString(LAST_SESSION, "")
                 .putString(PARENTAL_PIN, "")
@@ -95,12 +100,12 @@ public class PrefsManager {
         writePref(PASSWORD, CryptHelper.encryptString(context, password));
     }
 
-    public static void writeLoginKey(String loginKey) {
-        writePref(LOGIN_KEY, loginKey);
+    public static void writeRefreshToken(String refreshToken) {
+        writePref(REFRESH_TOKEN, refreshToken);
     }
 
-    public static void writeSentryHash(String sentryHash) {
-        writePref(SENTRY_HASH, sentryHash);
+    public static void writeGuardData(String guardData) {
+        writePref(GUARD_DATA, guardData);
     }
 
     public static void writeSharedSecret(String sharedSecret) {
@@ -148,12 +153,12 @@ public class PrefsManager {
         return CryptHelper.decryptString(context, prefs.getString(PASSWORD, ""));
     }
 
-    public static String getLoginKey() {
-        return prefs.getString(LOGIN_KEY, "");
+    public static String getRefreshToken() {
+        return prefs.getString(REFRESH_TOKEN, "");
     }
 
-    public static String getSentryHash() {
-        return prefs.getString(SENTRY_HASH, "");
+    public static String getGuardData() {
+        return prefs.getString(GUARD_DATA, "");
     }
 
     public static String getSharedSecret() {
@@ -168,7 +173,9 @@ public class PrefsManager {
         return prefs.getBoolean(STAY_AWAKE, false);
     }
 
-    public static boolean minimizeData() { return prefs.getBoolean(MINIMIZE_DATA, false); }
+    public static boolean minimizeData() {
+        return prefs.getBoolean(MINIMIZE_DATA, false);
+    }
 
     public static String getParentalPin() {
         return prefs.getString(PARENTAL_PIN, "");
@@ -223,6 +230,14 @@ public class PrefsManager {
 
     public static int getSortValue() {
         return prefs.getInt(SORT_VALUE, 0);
+    }
+
+    public static int getCellId() {
+        return prefs.getInt(CELL_ID, -1);
+    }
+
+    public static void writeCellId(Integer cellId) {
+        writePref(CELL_ID, cellId);
     }
 
     private static void writePref(String key, String value) {

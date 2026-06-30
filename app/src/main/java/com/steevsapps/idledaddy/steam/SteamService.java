@@ -17,11 +17,14 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.PowerManager;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.media.app.NotificationCompat.MediaStyle;
+
 import android.util.Log;
 import android.widget.Toast;
 
@@ -39,17 +42,16 @@ import com.steevsapps.idledaddy.steam.model.Game;
 import com.steevsapps.idledaddy.utils.LocaleManager;
 import com.steevsapps.idledaddy.utils.Utils;
 
+import java.io.Closeable;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -66,23 +68,22 @@ import in.dragonbra.javasteam.enums.EPurchaseResultDetail;
 import in.dragonbra.javasteam.enums.EResult;
 import in.dragonbra.javasteam.protobufs.steamclient.SteammessagesClientserver;
 import in.dragonbra.javasteam.protobufs.steamclient.SteammessagesClientserver2;
+import in.dragonbra.javasteam.steam.authentication.AuthPollResult;
+import in.dragonbra.javasteam.steam.authentication.AuthSessionDetails;
+import in.dragonbra.javasteam.steam.authentication.AuthenticationException;
+import in.dragonbra.javasteam.steam.authentication.CredentialsAuthSession;
+import in.dragonbra.javasteam.steam.authentication.IAuthenticator;
 import in.dragonbra.javasteam.steam.discovery.FileServerListProvider;
 import in.dragonbra.javasteam.steam.handlers.steamapps.SteamApps;
 import in.dragonbra.javasteam.steam.handlers.steamapps.callback.FreeLicenseCallback;
-import in.dragonbra.javasteam.steam.handlers.steamfriends.PersonaState;
 import in.dragonbra.javasteam.steam.handlers.steamfriends.SteamFriends;
-import in.dragonbra.javasteam.steam.handlers.steamfriends.callback.PersonaStatesCallback;
+import in.dragonbra.javasteam.steam.handlers.steamfriends.callback.PersonaStateCallback;
 import in.dragonbra.javasteam.steam.handlers.steamnotifications.callback.ItemAnnouncementsCallback;
 import in.dragonbra.javasteam.steam.handlers.steamuser.LogOnDetails;
-import in.dragonbra.javasteam.steam.handlers.steamuser.MachineAuthDetails;
-import in.dragonbra.javasteam.steam.handlers.steamuser.OTPDetails;
 import in.dragonbra.javasteam.steam.handlers.steamuser.SteamUser;
 import in.dragonbra.javasteam.steam.handlers.steamuser.callback.AccountInfoCallback;
 import in.dragonbra.javasteam.steam.handlers.steamuser.callback.LoggedOffCallback;
 import in.dragonbra.javasteam.steam.handlers.steamuser.callback.LoggedOnCallback;
-import in.dragonbra.javasteam.steam.handlers.steamuser.callback.LoginKeyCallback;
-import in.dragonbra.javasteam.steam.handlers.steamuser.callback.UpdateMachineAuthCallback;
-import in.dragonbra.javasteam.steam.handlers.steamuser.callback.WebAPIUserNonceCallback;
 import in.dragonbra.javasteam.steam.steamclient.SteamClient;
 import in.dragonbra.javasteam.steam.steamclient.callbackmgr.CallbackManager;
 import in.dragonbra.javasteam.steam.steamclient.callbacks.ConnectedCallback;
@@ -90,6 +91,7 @@ import in.dragonbra.javasteam.steam.steamclient.callbacks.DisconnectedCallback;
 import in.dragonbra.javasteam.steam.steamclient.configuration.SteamConfiguration;
 import in.dragonbra.javasteam.types.GameID;
 import in.dragonbra.javasteam.types.KeyValue;
+import in.dragonbra.javasteam.types.SteamID;
 import in.dragonbra.javasteam.util.NetHelpers;
 import in.dragonbra.javasteam.util.log.LogManager;
 
@@ -99,7 +101,7 @@ public class SteamService extends Service {
     private final static String CHANNEL_ID = "idle_channel"; // Notification channel
     // Some Huawei phones reportedly kill apps when they hold a WakeLock for a long time.
     // This can be prevented by using a WakeLock tag from the PowerGenie whitelist.
-    private final static String WAKELOCK_TAG = "LocationManagerService";
+    private final static String WAKELOCK_TAG = TAG + ":LocationManagerService";
     private final static int CUSTOM_OBFUSCATION_MASK = 0xF00DBAAD;
 
     // Events
@@ -126,15 +128,19 @@ public class SteamService extends Service {
     private SteamUser steamUser;
     private SteamFriends steamFriends;
     private SteamApps steamApps;
-    private SteamWebHandler webHandler = SteamWebHandler.getInstance();
+    private final SteamWebHandler webHandler = SteamWebHandler.getInstance();
     private PowerManager.WakeLock wakeLock;
+    private final List<Closeable> subscriptions = new ArrayList<>();
 
     private int farmIndex = 0;
     private List<Game> gamesToFarm;
-    private List<Game> currentGames = new ArrayList<>();
+    private final List<Game> currentGames = new ArrayList<>();
     private int gameCount = 0;
     private int cardCount = 0;
-    private LogOnDetails logOnDetails = null;
+
+    private AuthSessionDetails pendingAuthDetails = null;
+    private String currentRefreshToken = null;
+    private volatile CompletableFuture<String> pendingGuardCodeFuture = null;
 
     private volatile boolean running = false; // Service running
     private volatile boolean connected = false; // Connected to Steam
@@ -155,8 +161,6 @@ public class SteamService extends Service {
     private String keyToRedeem = null;
     private final LinkedList<Integer> pendingFreeLicenses = new LinkedList<>();
 
-    private File sentryFolder;
-
     /**
      * Class for clients to access.  Because we know this service always
      * runs in the same process as its clients, we don't need to deal with
@@ -174,7 +178,11 @@ public class SteamService extends Service {
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            switch (intent.getAction()) {
+            var action = intent.getAction();
+            if (action == null) {
+                return;
+            }
+            switch (action) {
                 case SKIP_INTENT:
                     skipGame();
                     break;
@@ -191,14 +199,11 @@ public class SteamService extends Service {
         }
     };
 
-    private final Runnable farmTask = new Runnable() {
-        @Override
-        public void run() {
-            try {
-                farm();
-            } catch (Exception e) {
-                Log.i(TAG, "FarmTask failed", e);
-            }
+    private final Runnable farmTask = () -> {
+        try {
+            farm();
+        } catch (Exception e) {
+            Log.i(TAG, "FarmTask failed", e);
         }
     };
 
@@ -288,8 +293,7 @@ public class SteamService extends Service {
 
         if (gamesToFarm == null) {
             Log.i(TAG, "Invalid cookie data or no internet, reconnecting");
-            //steamClient.disconnect();
-            steamUser.requestWebAPIUserNonce();
+            steamClient.disconnect();
             return;
         }
 
@@ -381,7 +385,7 @@ public class SteamService extends Service {
     private void scheduleFarmTask() {
         if (farmHandle == null || farmHandle.isCancelled()) {
             Log.i(TAG, "Starting farmtask");
-            farmHandle = scheduler.scheduleAtFixedRate(farmTask, 10, 10, TimeUnit.MINUTES);
+            farmHandle = scheduler.scheduleWithFixedDelay(farmTask, 10, 10, TimeUnit.MINUTES);
         }
     }
 
@@ -408,11 +412,13 @@ public class SteamService extends Service {
         Log.i(TAG, "Service created");
         super.onCreate();
 
-        sentryFolder = new File(getFilesDir(), "sentry");
-        sentryFolder.mkdirs();
+        var cellId = PrefsManager.getCellId();
+        var servers = new File(getFilesDir(), "servers.bin");
+        var fileServerListProvider = new FileServerListProvider(servers);
 
         final SteamConfiguration config = SteamConfiguration.create(b -> {
-            b.withServerListProvider(new FileServerListProvider(new File(getFilesDir(), "servers.bin")));
+            b.withServerListProvider(fileServerListProvider);
+            if (cellId >= 0) { b.withCellID(cellId); }
         });
 
         steamClient = new SteamClient(config);
@@ -423,18 +429,15 @@ public class SteamService extends Service {
 
         // Subscribe to callbacks
         manager = new CallbackManager(steamClient);
-        manager.subscribe(ConnectedCallback.class, this::onConnected);
-        manager.subscribe(DisconnectedCallback.class, this::onDisconnected);
-        manager.subscribe(LoggedOffCallback.class, this::onLoggedOff);
-        manager.subscribe(LoggedOnCallback.class, this::onLoggedOn);
-        manager.subscribe(LoginKeyCallback.class, this::onLoginKey);
-        manager.subscribe(UpdateMachineAuthCallback.class, this::onUpdateMachineAuth);
-        manager.subscribe(PersonaStatesCallback.class, this::onPersonaStates);
-        manager.subscribe(FreeLicenseCallback.class, this::onFreeLicense);
-        manager.subscribe(AccountInfoCallback.class, this::onAccountInfo);
-        manager.subscribe(WebAPIUserNonceCallback.class, this::onWebAPIUserNonce);
-        manager.subscribe(ItemAnnouncementsCallback.class, this::onItemAnnouncements);
-        manager.subscribe(PurchaseResponseCallback.class, this::onPurchaseResponse);
+        subscriptions.add(manager.subscribe(ConnectedCallback.class, this::onConnected));
+        subscriptions.add(manager.subscribe(DisconnectedCallback.class, this::onDisconnected));
+        subscriptions.add(manager.subscribe(LoggedOffCallback.class, this::onLoggedOff));
+        subscriptions.add(manager.subscribe(LoggedOnCallback.class, this::onLoggedOn));
+        subscriptions.add(manager.subscribe(PersonaStateCallback.class, this::onPersonaState));
+        subscriptions.add(manager.subscribe(FreeLicenseCallback.class, this::onFreeLicense));
+        subscriptions.add(manager.subscribe(AccountInfoCallback.class, this::onAccountInfo));
+        subscriptions.add(manager.subscribe(ItemAnnouncementsCallback.class, this::onItemAnnouncements));
+        subscriptions.add(manager.subscribe(PurchaseResponseCallback.class, this::onPurchaseResponse));
 
         // Detect Huawei devices running Lollipop which have a bug with MediaStyle notifications
         isHuawei = (android.os.Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP_MR1 ||
@@ -467,7 +470,7 @@ public class SteamService extends Service {
             filter.addAction(STOP_INTENT);
             filter.addAction(PAUSE_INTENT);
             filter.addAction(RESUME_INTENT);
-            registerReceiver(receiver, filter);
+            ContextCompat.registerReceiver(this, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
             start();
         }
         return Service.START_NOT_STICKY;
@@ -487,6 +490,15 @@ public class SteamService extends Service {
         scheduler.shutdownNow();
         releaseWakeLock();
         unregisterReceiver(receiver);
+
+        for (var subscription : subscriptions) {
+            try {
+                subscription.close();
+            } catch (IOException e) {
+                // Ignore
+            }
+        }
+
         super.onDestroy();
     }
 
@@ -523,7 +535,7 @@ public class SteamService extends Service {
      * Get the games we're currently idling
      */
     public ArrayList<Game> getCurrentGames() {
-        return  new ArrayList<>(currentGames);
+        return new ArrayList<>(currentGames);
     }
 
     public int getGameCount() {
@@ -552,7 +564,7 @@ public class SteamService extends Service {
             Log.i(TAG, "Acquiring WakeLock");
             final PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
             wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG);
-            wakeLock.acquire();
+            wakeLock.acquire(60 * 60 * 1000L); // 60 Minutes
         }
     }
 
@@ -570,7 +582,7 @@ public class SteamService extends Service {
     private Notification buildNotification(String text) {
         final Intent notificationIntent = new Intent(this, MainActivity.class);
         final PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
-                notificationIntent, 0);
+                notificationIntent, PendingIntent.FLAG_IMMUTABLE);
         return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(getString(R.string.app_name))
@@ -581,7 +593,8 @@ public class SteamService extends Service {
 
     /**
      * Show idling notification
-     * @param game
+     *
+     * @param game the {@link Game} object
      */
     private void showIdleNotification(Game game) {
         Log.i(TAG, "Idle notification");
@@ -646,6 +659,7 @@ public class SteamService extends Service {
 
     /**
      * Show "Big Text" style notification with the games we're idling
+     *
      * @param msg the games
      */
     private void showMultipleNotification(String msg) {
@@ -688,6 +702,7 @@ public class SteamService extends Service {
 
     /**
      * Used to update the notification
+     *
      * @param text the text to display
      */
     private void updateNotification(String text) {
@@ -748,7 +763,7 @@ public class SteamService extends Service {
         stopFarming();
         if (games.size() == 1) {
             idleSingle(games.get(0));
-        } else if (games.size() > 1){
+        } else if (games.size() > 1) {
             idleMultiple(games);
         } else {
             stopGame();
@@ -769,7 +784,7 @@ public class SteamService extends Service {
 
     public void start() {
         running = true;
-        if (!PrefsManager.getLoginKey().isEmpty()) {
+        if (!PrefsManager.getRefreshToken().isEmpty()) {
             // We can log in using saved credentials
             executor.execute(() -> steamClient.connect());
         }
@@ -785,11 +800,33 @@ public class SteamService extends Service {
         });
     }
 
-    public void login(final LogOnDetails details) {
+    /**
+     * Log in with a fresh username/password. Two-factor codes (if needed) are requested afterward
+     * through {@link GuardCodeAuthenticator} and supplied via {@link #submitTwoFactorCode(String)}.
+     */
+    public void login(String username, String password) {
         Log.i(TAG, "logging in");
         loginInProgress = true;
-        logOnDetails = details;
+
+        final AuthSessionDetails details = new AuthSessionDetails();
+        details.username = username;
+        details.password = password;
+        details.persistentSession = true;
+        details.clientOSType = EOSType.LinuxUnknown;
+        details.authenticator = new GuardCodeAuthenticator();
+
+        pendingAuthDetails = details;
         executor.execute(() -> steamClient.connect());
+    }
+
+    /**
+     * Supply the Steam Guard code requested by {@link GuardCodeAuthenticator} for the in-progress login.
+     */
+    public void submitTwoFactorCode(String code) {
+        final CompletableFuture<String> future = pendingGuardCodeFuture;
+        if (future != null) {
+            future.complete(code);
+        }
     }
 
     public void logoff() {
@@ -797,7 +834,9 @@ public class SteamService extends Service {
         loginInProgress = true;
         loggedIn = false;
         steamId = 0;
-        logOnDetails = null;
+        pendingAuthDetails = null;
+        currentRefreshToken = null;
+        cancelPendingGuardCode();
         currentGames.clear();
         keyToRedeem = null;
         pendingFreeLicenses.clear();
@@ -814,7 +853,7 @@ public class SteamService extends Service {
      * Redeem Steam key or activate free license
      */
     public void redeemKey(String key) {
-        if (!loggedIn && !PrefsManager.getLoginKey().isEmpty()) {
+        if (!loggedIn && !PrefsManager.getRefreshToken().isEmpty()) {
             Log.i(TAG, "Will redeem key at login");
             keyToRedeem = key;
             return;
@@ -853,51 +892,80 @@ public class SteamService extends Service {
     }
 
     /**
-     * Perform log in. Needs to happen as soon as we connect or else we'll get an error
+     * Begin a fresh credentials-based auth session (username/password + 2FA), then log on with the
+     * resulting refresh token once it completes. Runs on a background thread since both
+     * {@code beginAuthSessionViaCredentials} and {@code pollingWaitForResult} block until Steam
+     * responds (possibly waiting on {@link #submitTwoFactorCode(String)}).
+     * Needs to happen as soon as we connect or else we'll get an error.
      */
-    private void doLogin() {
-        if (PrefsManager.useCustomLoginId()) {
-            final int localIp = NetHelpers.getIPAddress(steamClient.getLocalIP());
-            logOnDetails.setLoginID(localIp ^ CUSTOM_OBFUSCATION_MASK);
-        }
-        steamUser.logOn(logOnDetails);
-        logOnDetails = null; // No longer need this
+    private void doCredentialsLogin(AuthSessionDetails details) {
+        executor.execute(() -> {
+            try {
+                final CredentialsAuthSession authSession = steamClient.getAuthentication()
+                        .beginAuthSessionViaCredentials(details)
+                        .get();
+                final AuthPollResult pollResult = authSession.pollingWaitForResult().get();
+
+                PrefsManager.writeGuardData(pollResult.getNewGuardData() != null ? pollResult.getNewGuardData() : "");
+                performLogOn(pollResult.getAccountName(), pollResult.getRefreshToken());
+            } catch (Exception e) {
+                Log.i(TAG, "Credentials login failed", e);
+                cancelPendingGuardCode();
+                keyToRedeem = null;
+                steamClient.disconnect();
+                sendLoginResult(resolveFailureResult(e));
+            }
+        });
     }
 
     /**
-     * Log in using saved credentials
+     * Log on to the Steam3 network using a refresh token, used both for a freshly completed
+     * credentials login and for restoring a saved session.
      */
-    private void attemptRestoreLogin() {
-        final String username = PrefsManager.getUsername();
-        final String loginKey = PrefsManager.getLoginKey();
-        if (username.isEmpty() || loginKey.isEmpty()) {
-            return;
-        }
-        Log.i(TAG, "Restoring login");
+    private void performLogOn(String username, String refreshToken) {
+        currentRefreshToken = refreshToken;
+
         final LogOnDetails details = new LogOnDetails();
         details.setUsername(username);
-        details.setLoginKey(loginKey);
+        details.setAccessToken(refreshToken);
         details.setClientOSType(EOSType.LinuxUnknown);
+        details.setShouldRememberPassword(true);
         if (PrefsManager.useCustomLoginId()) {
             final int localIp = NetHelpers.getIPAddress(steamClient.getLocalIP());
             details.setLoginID(localIp ^ CUSTOM_OBFUSCATION_MASK);
         }
-        try {
-            final File sentryFile = new File(sentryFolder, username + ".sentry");
-            details.setSentryFileHash(Utils.calculateSHA1(sentryFile));
-        } catch (IOException | NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        details.setShouldRememberPassword(true);
         steamUser.logOn(details);
     }
 
-    private boolean attemptAuthentication(String nonce) {
+    /**
+     * Log in using a saved refresh token
+     */
+    private void attemptRestoreLogin() {
+        final String username = PrefsManager.getUsername();
+        final String refreshToken = PrefsManager.getRefreshToken();
+        if (username.isEmpty() || refreshToken.isEmpty()) {
+            return;
+        }
+        Log.i(TAG, "Restoring login");
+        performLogOn(username, refreshToken);
+    }
+
+    /**
+     * Mint a fresh web access token from our refresh token and use it to authenticate on the Steam website.
+     */
+    private boolean attemptWebAuthentication(SteamID clientSteamId, String refreshToken) {
         Log.i(TAG, "Attempting SteamWeb authentication");
-        for (int i=0;i<3;i++) {
-            if (webHandler.authenticate(steamClient, nonce)) {
-                Log.i(TAG, "Authenticated!");
-                return true;
+        for (int i = 0; i < 3; i++) {
+            try {
+                final var tokens = steamClient.getAuthentication()
+                        .generateAccessTokenForApp(clientSteamId, refreshToken, true)
+                        .get();
+                if (webHandler.authenticate(clientSteamId.convertToUInt64(), tokens.getAccessToken())) {
+                    Log.i(TAG, "Authenticated!");
+                    return true;
+                }
+            } catch (Exception e) {
+                Log.i(TAG, "Failed to generate a web access token", e);
             }
 
             if (i + 1 < 3) {
@@ -905,12 +973,72 @@ public class SteamService extends Service {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    Thread.currentThread().interrupt();
                     return false;
                 }
             }
         }
         return false;
+    }
+
+    /**
+     * Authenticator bridging JavaSteam's poll-based Steam Guard prompts to LoginActivity's UI: each
+     * callback parks a future in {@link #pendingGuardCodeFuture} and tells LoginActivity (via
+     * LOGIN_EVENT, reusing the EResults it already branches on) to show the code field. The actual
+     * code arrives later through {@link #submitTwoFactorCode(String)}.
+     */
+    private final class GuardCodeAuthenticator implements IAuthenticator {
+        @Override
+        public CompletableFuture<String> getDeviceCode(boolean previousCodeWasIncorrect) {
+            return requestGuardCode(previousCodeWasIncorrect
+                    ? EResult.TwoFactorCodeMismatch
+                    : EResult.AccountLoginDeniedNeedTwoFactor);
+        }
+
+        @Override
+        public CompletableFuture<String> getEmailCode(String email, boolean previousCodeWasIncorrect) {
+            return requestGuardCode(previousCodeWasIncorrect
+                    ? EResult.InvalidLoginAuthCode
+                    : EResult.AccountLogonDenied);
+        }
+
+        @Override
+        public CompletableFuture<Boolean> acceptDeviceConfirmation() {
+            // No UI for the Steam Mobile App confirmation prompt; fall back to code entry instead.
+            return CompletableFuture.completedFuture(false);
+        }
+    }
+
+    private CompletableFuture<String> requestGuardCode(EResult signal) {
+        final CompletableFuture<String> future = new CompletableFuture<>();
+        pendingGuardCodeFuture = future;
+        sendLoginResult(signal);
+        return future;
+    }
+
+    private void cancelPendingGuardCode() {
+        final CompletableFuture<String> future = pendingGuardCodeFuture;
+        pendingGuardCodeFuture = null;
+        if (future != null) {
+            future.cancel(false);
+        }
+    }
+
+    private void sendLoginResult(EResult result) {
+        final Intent intent = new Intent(LOGIN_EVENT);
+        intent.putExtra(RESULT, result);
+        LocalBroadcastManager.getInstance(SteamService.this).sendBroadcast(intent);
+    }
+
+    private EResult resolveFailureResult(Exception e) {
+        final Throwable cause = e instanceof ExecutionException && e.getCause() != null ? e.getCause() : e;
+        if (cause instanceof AuthenticationException) {
+            final EResult result = ((AuthenticationException) cause).getResult();
+            if (result != null) {
+                return result;
+            }
+        }
+        return EResult.Fail;
     }
 
     private void registerApiKey() {
@@ -940,8 +1068,9 @@ public class SteamService extends Service {
     private void onConnected(ConnectedCallback callback) {
         Log.i(TAG, "Connected()");
         connected = true;
-        if (logOnDetails != null) {
-            doLogin();
+        if (pendingAuthDetails != null) {
+            doCredentialsLogin(pendingAuthDetails);
+            pendingAuthDetails = null;
         } else {
             attemptRestoreLogin();
         }
@@ -991,7 +1120,8 @@ public class SteamService extends Service {
             Log.i(TAG, "Logged on!");
             loginInProgress = false;
             loggedIn = true;
-            steamId = steamClient.getSteamID().convertToUInt64();
+            final SteamID clientSteamId = steamClient.getSteamID();
+            steamId = clientSteamId.convertToUInt64();
             if (paused) {
                 showPausedNotification();
             } else if (waiting) {
@@ -999,25 +1129,25 @@ public class SteamService extends Service {
             } else {
                 updateNotification(getString(R.string.logged_in));
             }
+            final String refreshToken = currentRefreshToken;
             executor.execute(() -> {
-                final boolean gotAuth = attemptAuthentication(callback.getWebAPIUserNonce());
+                final boolean gotAuth = attemptWebAuthentication(clientSteamId, refreshToken);
 
                 if (gotAuth) {
                     resumeFarming();
                     registerApiKey();
                 } else {
-                    // Request a new WebAPI user authentication nonce
-                    steamUser.requestWebAPIUserNonce();
+                    updateNotification(getString(R.string.web_login_failed));
                 }
             });
             if (keyToRedeem != null) {
                 redeemKey(keyToRedeem);
                 keyToRedeem = null;
             }
-        } else if (result == EResult.InvalidPassword && !PrefsManager.getLoginKey().isEmpty()) {
-            // Probably no longer valid
-            Log.i(TAG, "Login key expired");
-            PrefsManager.writeLoginKey("");
+        } else if (result == EResult.InvalidPassword && !PrefsManager.getRefreshToken().isEmpty()) {
+            // Refresh token no longer valid
+            Log.i(TAG, "Refresh token expired");
+            PrefsManager.writeRefreshToken("");
             updateNotification(getString(R.string.login_key_expired));
             keyToRedeem = null;
             steamClient.disconnect();
@@ -1027,49 +1157,12 @@ public class SteamService extends Service {
             steamClient.disconnect();
         }
 
+        PrefsManager.writeCellId(callback.getCellID());
+
         // Tell LoginActivity the result
         final Intent intent = new Intent(LOGIN_EVENT);
         intent.putExtra(RESULT, result);
         LocalBroadcastManager.getInstance(SteamService.this).sendBroadcast(intent);
-    }
-
-    private void onLoginKey(LoginKeyCallback callback) {
-        Log.i(TAG, "Saving loginkey");
-        PrefsManager.writeLoginKey(callback.getLoginKey());
-        steamUser.acceptNewLoginKey(callback);
-    }
-
-    private void onUpdateMachineAuth(UpdateMachineAuthCallback callback) {
-        final File sentryFile = new File(sentryFolder, PrefsManager.getUsername() + ".sentry");
-        Log.i(TAG, "Saving sentry file to " + sentryFile.getAbsolutePath());
-        try (final FileOutputStream fos = new FileOutputStream(sentryFile)) {
-            final FileChannel channel = fos.getChannel();
-            channel.position(callback.getOffset());
-            channel.write(ByteBuffer.wrap(callback.getData(), 0, callback.getBytesToWrite()));
-
-            final byte[] sha1 = Utils.calculateSHA1(sentryFile);
-
-            final OTPDetails otp = new OTPDetails();
-            otp.setIdentifier(callback.getOneTimePassword().getIdentifier());
-            otp.setType(callback.getOneTimePassword().getType());
-
-            final MachineAuthDetails auth = new MachineAuthDetails();
-            auth.setJobID(callback.getJobID());
-            auth.setFileName(callback.getFileName());
-            auth.setBytesWritten(callback.getBytesToWrite());
-            auth.setFileSize((int) sentryFile.length());
-            auth.setOffset(callback.getOffset());
-            auth.seteResult(EResult.OK);
-            auth.setLastError(0);
-            auth.setSentryFileHash(sha1);
-            auth.setOneTimePassword(otp);
-
-            steamUser.sendMachineAuthResponse(auth);
-
-            PrefsManager.writeSentryHash(Utils.bytesToHex(sha1));
-        } catch (IOException | NoSuchAlgorithmException e) {
-            Log.i(TAG, "Error saving sentry file", e);
-        }
     }
 
     private void onPurchaseResponse(PurchaseResponseCallback callback) {
@@ -1080,7 +1173,7 @@ public class SteamService extends Service {
                 final StringBuilder products = new StringBuilder();
                 final int size = kv.get("LineItemCount").asInteger();
                 Log.i(TAG, "LineItemCount " + size);
-                for (int i=0;i<size;i++) {
+                for (int i = 0; i < size; i++) {
                     final String lineItem = kv.get("lineitems").get(i + "").get("ItemDescription").asString();
                     Log.i(TAG, "lineItem " + i + " " + lineItem);
                     products.append(lineItem);
@@ -1104,18 +1197,15 @@ public class SteamService extends Service {
         }
     }
 
-    private void onPersonaStates(PersonaStatesCallback callback) {
-        for (PersonaState ps : callback.getPersonaStates()) {
-            if (ps.getFriendID().equals(steamClient.getSteamID())) {
-                final String personaName = ps.getName();
-                final String avatarHash = Utils.bytesToHex(ps.getAvatarHash()).toLowerCase();
-                Log.i(TAG, "Avatar hash " + avatarHash);
-                final Intent event = new Intent(PERSONA_EVENT);
-                event.putExtra(PERSONA_NAME, personaName);
-                event.putExtra(AVATAR_HASH, avatarHash);
-                LocalBroadcastManager.getInstance(SteamService.this).sendBroadcast(event);
-                break;
-            }
+    private void onPersonaState(PersonaStateCallback callback) {
+        if (callback.getFriendId().equals(steamClient.getSteamID())) {
+            final String personaName = callback.getName();
+            final String avatarHash = Utils.bytesToHex(callback.getAvatarHash()).toLowerCase();
+            Log.i(TAG, "Avatar hash " + avatarHash);
+            final Intent event = new Intent(PERSONA_EVENT);
+            event.putExtra(PERSONA_NAME, personaName);
+            event.putExtra(AVATAR_HASH, avatarHash);
+            LocalBroadcastManager.getInstance(SteamService.this).sendBroadcast(event);
         }
     }
 
@@ -1145,19 +1235,6 @@ public class SteamService extends Service {
         }
     }
 
-    private void onWebAPIUserNonce(WebAPIUserNonceCallback callback) {
-        Log.i(TAG, "Got new WebAPI user authentication nonce");
-        executor.execute(() -> {
-            final boolean gotAuth = attemptAuthentication(callback.getNonce());
-
-            if (gotAuth) {
-                resumeFarming();
-            } else {
-                updateNotification(getString(R.string.web_login_failed));
-            }
-        });
-    }
-
     private void onItemAnnouncements(ItemAnnouncementsCallback callback) {
         Log.i(TAG, "New item notification " + callback.getCount());
         if (callback.getCount() > 0 && farming) {
@@ -1168,9 +1245,10 @@ public class SteamService extends Service {
 
     /**
      * Idle one or more games
+     *
      * @param games the games to idle
      */
-    private void playGames(Game...games) {
+    private void playGames(Game... games) {
         final ClientMsgProtobuf<SteammessagesClientserver.CMsgClientGamesPlayed.Builder> gamesPlayed;
         gamesPlayed = new ClientMsgProtobuf<>(SteammessagesClientserver.CMsgClientGamesPlayed.class, EMsg.ClientGamesPlayed);
         for (Game game : games) {
@@ -1233,7 +1311,7 @@ public class SteamService extends Service {
             playGame.getBody().clearGamesPlayed().addGamesPlayedBuilder().setGameId(0);
             steamClient.send(playGame);
             Thread.sleep(1000);
-        } catch (NumberFormatException|InterruptedException e) {
+        } catch (NumberFormatException | InterruptedException e) {
             e.printStackTrace();
         }
     }
