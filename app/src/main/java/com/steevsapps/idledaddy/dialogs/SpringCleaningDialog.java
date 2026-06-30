@@ -50,10 +50,8 @@ public class SpringCleaningDialog extends DialogFragment implements View.OnClick
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.btn_daily_tasks:
-                viewModel.completeTasks();
-                break;
+        if (v.getId() == R.id.btn_daily_tasks) {
+            viewModel.completeTasks();
         }
     }
 

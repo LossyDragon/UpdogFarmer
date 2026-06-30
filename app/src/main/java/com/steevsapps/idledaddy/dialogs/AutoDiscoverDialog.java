@@ -61,10 +61,8 @@ public class AutoDiscoverDialog extends DialogFragment implements View.OnClickLi
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.btn_auto_discover:
-                viewModel.autodiscover();
-                break;
+        if (v.getId() == R.id.btn_auto_discover) {
+            viewModel.autodiscover();
         }
     }
 }

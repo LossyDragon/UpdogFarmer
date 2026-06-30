@@ -1,23 +1,20 @@
 package com.steevsapps.idledaddy.handlers;
 
+import androidx.annotation.NonNull;
+
 import com.steevsapps.idledaddy.handlers.callbacks.PurchaseResponseCallback;
 
 import in.dragonbra.javasteam.base.ClientMsgProtobuf;
 import in.dragonbra.javasteam.base.IPacketMsg;
-import in.dragonbra.javasteam.handlers.ClientMsgHandler;
+import in.dragonbra.javasteam.enums.EMsg;
 import in.dragonbra.javasteam.protobufs.steamclient.SteammessagesClientserver2;
+import in.dragonbra.javasteam.steam.handlers.ClientMsgHandler;
 
 public class PurchaseResponse extends ClientMsgHandler {
     @Override
-    public void handleMsg(IPacketMsg packetMsg) {
-        if (packetMsg == null) {
-            throw new IllegalArgumentException("packetMsg is null");
-        }
-
-        switch (packetMsg.getMsgType()) {
-            case ClientPurchaseResponse:
-                handlePurchaseResponse(packetMsg);
-                break;
+    public void handleMsg(@NonNull IPacketMsg packetMsg) {
+        if (packetMsg.getMsgType() == EMsg.ClientPurchaseResponse) {
+            handlePurchaseResponse(packetMsg);
         }
     }
 

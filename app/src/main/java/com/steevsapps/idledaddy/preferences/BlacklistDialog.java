@@ -76,10 +76,8 @@ public class BlacklistDialog extends PreferenceDialogFragmentCompat implements V
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.add:
-                addItem();
-                break;
+        if (view.getId() == R.id.add) {
+            addItem();
         }
     }
 

@@ -35,10 +35,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.android.billingclient.api.Purchase;
 import com.bumptech.glide.Glide;
 import com.google.ads.consent.ConsentStatus;
-import com.google.ads.mediation.admob.AdMobAdapter;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.MobileAds;
 import com.google.android.material.navigation.NavigationView;
 import com.steevsapps.idledaddy.billing.BillingManager;
 import com.steevsapps.idledaddy.billing.BillingUpdatesListener;
@@ -49,7 +45,6 @@ import com.steevsapps.idledaddy.dialogs.AutoDiscoverDialog;
 import com.steevsapps.idledaddy.dialogs.CustomAppDialog;
 import com.steevsapps.idledaddy.dialogs.GameOptionsDialog;
 import com.steevsapps.idledaddy.dialogs.RedeemDialog;
-import com.steevsapps.idledaddy.dialogs.SharedSecretDialog;
 import com.steevsapps.idledaddy.fragments.GamesFragment;
 import com.steevsapps.idledaddy.fragments.HomeFragment;
 import com.steevsapps.idledaddy.fragments.SettingsFragment;
@@ -90,7 +85,7 @@ public class MainActivity extends BaseActivity implements BillingUpdatesListener
     private Spinner spinnerNav;
     private SearchView searchView;
     private ViewStub adInflater;
-    private AdView adView;
+    // private AdView adView;
 
     private BillingManager billingManager;
     private ConsentManager consentManager;
@@ -236,24 +231,20 @@ public class MainActivity extends BaseActivity implements BillingUpdatesListener
         drawerView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.logout:
-                        // No page for this
-                        doLogout();
-                        break;
-                    case R.id.about:
-                        // Same here
-                        AboutDialog.newInstance().show(getSupportFragmentManager(), AboutDialog.TAG);
-                        closeDrawer();
-                        break;
-                    case R.id.remove_ads:
-                        billingManager.launchPurchaseFlow();
-                        closeDrawer();
-                        break;
-                    default:
-                        // Go to page
-                        selectItem(item.getItemId(), true);
-                        break;
+                int itemId = item.getItemId();
+                if (itemId == R.id.logout) {
+                    // No page for this
+                    doLogout();
+                } else if (itemId == R.id.about) {
+                    // Same here
+                    AboutDialog.newInstance().show(getSupportFragmentManager(), AboutDialog.TAG);
+                    closeDrawer();
+                } else if (itemId == R.id.remove_ads) {
+                    billingManager.launchPurchaseFlow();
+                    closeDrawer();
+                } else {
+                    // Go to page
+                    selectItem(item.getItemId(), true);
                 }
                 return true;
             }
@@ -344,20 +335,15 @@ public class MainActivity extends BaseActivity implements BillingUpdatesListener
         }
 
         Fragment fragment;
-        switch (id) {
-            case R.id.home:
-                fragment = HomeFragment.newInstance(loggedIn, farming);
-                break;
-            case R.id.games:
-                fragment = GamesFragment.newInstance(steamService.getSteamId(),
-                        steamService.getCurrentGames(), spinnerNav.getSelectedItemPosition());
-                break;
-            case R.id.settings:
-                fragment = SettingsFragment.newInstance();
-                break;
-            default:
-                fragment = new Fragment();
-                break;
+        if (id == R.id.home) {
+            fragment = HomeFragment.newInstance(loggedIn, farming);
+        } else if (id == R.id.games) {
+            fragment = GamesFragment.newInstance(steamService.getSteamId(),
+                    steamService.getCurrentGames(), spinnerNav.getSelectedItemPosition());
+        } else if (id == R.id.settings) {
+            fragment = SettingsFragment.newInstance();
+        } else {
+            fragment = new Fragment();
         }
         final FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.content_frame, fragment);
@@ -471,26 +457,26 @@ public class MainActivity extends BaseActivity implements BillingUpdatesListener
         if (drawerToggle != null && drawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
-        switch (item.getItemId()) {
-            case R.id.logcat:
-                sendLogcat();
-                return true;
-            case R.id.auto_discovery:
-                AutoDiscoverDialog.newInstance().show(getSupportFragmentManager(), AutoDiscoverDialog.TAG);
-                return true;
-            case R.id.custom_app:
-                CustomAppDialog.newInstance().show(getSupportFragmentManager(), CustomAppDialog.TAG);
-                return true;
-            case R.id.import_shared_secret:
-                SharedSecretDialog.newInstance(steamService.getSteamId()).show(getSupportFragmentManager(), SharedSecretDialog.TAG);
-                return true;
-            //case R.id.spring_cleaning_event:
-            //    SpringCleaningDialog.newInstance().show(getSupportFragmentManager(), SpringCleaningDialog.TAG);
-            //    return true;
-            //case R.id.auto_vote:
-            //    steamService.autoVote();
-            //    return true;
-        }
+        int itemId = item.getItemId();
+        if (itemId == R.id.logcat) {
+            sendLogcat();
+            return true;
+        } else if (itemId == R.id.auto_discovery) {
+            AutoDiscoverDialog.newInstance().show(getSupportFragmentManager(), AutoDiscoverDialog.TAG);
+            return true;
+        } else if (itemId == R.id.custom_app) {
+            CustomAppDialog.newInstance().show(getSupportFragmentManager(), CustomAppDialog.TAG);
+            return true;
+        } // else if (itemId == R.id.import_shared_secret) {
+        //     SharedSecretDialog.newInstance(steamService.getSteamId()).show(getSupportFragmentManager(), SharedSecretDialog.TAG);
+        //     return true;
+        // } else if (itemId == R.id.spring_cleaning_event) {
+        //     SpringCleaningDialog.newInstance().show(getSupportFragmentManager(), SpringCleaningDialog.TAG);
+        //     return true;
+        // } else if (itemId == R.id.auto_vote) {
+        //     steamService.autoVote();
+        //     return true;
+        // }
         return false;
     }
 
@@ -498,56 +484,49 @@ public class MainActivity extends BaseActivity implements BillingUpdatesListener
      * Send Logcat output via email
      */
     private void sendLogcat() {
-        final File cacheDir = getExternalCacheDir();
-        if (cacheDir == null) {
-            Log.i(TAG, "Unable to save Logcat. Shared storage is unavailable!");
-            return;
-        }
-        final File file = new File(cacheDir, "idledaddy-logcat.txt");
-        try {
-            Utils.saveLogcat(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-        final Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.setType("*/*");
-        intent.putExtra(Intent.EXTRA_EMAIL, new String[]{"steevsapps@gmail.com"});
-        intent.putExtra(Intent.EXTRA_SUBJECT, "Idle Daddy Logcat");
-        intent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(this,
-                getApplicationContext().getPackageName() + ".provider", file));
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        startActivity(intent);
+        // final File cacheDir = getExternalCacheDir();
+        // if (cacheDir == null) {
+        //     Log.i(TAG, "Unable to save Logcat. Shared storage is unavailable!");
+        //     return;
+        // }
+        // final File file = new File(cacheDir, "idledaddy-logcat.txt");
+        // try {
+        //     Utils.saveLogcat(file);
+        // } catch (IOException e) {
+        //     e.printStackTrace();
+        //     return;
+        // }
+        // final Intent intent = new Intent(Intent.ACTION_SEND);
+        // intent.setType("*/*");
+        // intent.putExtra(Intent.EXTRA_EMAIL, new String[]{"steevsapps@gmail.com"});
+        // intent.putExtra(Intent.EXTRA_SUBJECT, "Idle Daddy Logcat");
+        // intent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(this,
+        //         getApplicationContext().getPackageName() + ".provider", file));
+        // intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        // startActivity(intent);
     }
 
     public void clickHandler(View v) {
-        switch (v.getId()) {
-            case R.id.start_idling:
-                v.setEnabled(false);
-                steamService.startFarming();
-                break;
-            case R.id.stop_idling:
-                stopSteam();
-                break;
-            case R.id.status:
-                startActivity(LoginActivity.createIntent(this));
-                break;
-            case R.id.redeem:
-                RedeemDialog.newInstance().show(getSupportFragmentManager(), "redeem");
-                break;
-            case R.id.stop_button:
-                steamService.stopGame();
-                break;
-            case R.id.pause_resume_button:
-                if (steamService.isPaused()) {
-                    steamService.resumeGame();
-                } else {
-                    steamService.pauseGame();
-                }
-                break;
-            case R.id.next_button:
-                steamService.skipGame();
-                break;
+        int id = v.getId();
+        if (id == R.id.start_idling) {
+            v.setEnabled(false);
+            steamService.startFarming();
+        } else if (id == R.id.stop_idling) {
+            stopSteam();
+        } else if (id == R.id.status) {
+            startActivity(LoginActivity.createIntent(this));
+        } else if (id == R.id.redeem) {
+            RedeemDialog.newInstance().show(getSupportFragmentManager(), "redeem");
+        } else if (id == R.id.stop_button) {
+            steamService.stopGame();
+        } else if (id == R.id.pause_resume_button) {
+            if (steamService.isPaused()) {
+                steamService.resumeGame();
+            } else {
+                steamService.pauseGame();
+            }
+        } else if (id == R.id.next_button) {
+            steamService.skipGame();
         }
     }
 
@@ -709,20 +688,20 @@ public class MainActivity extends BaseActivity implements BillingUpdatesListener
      * Inflate adView and load the ad request
      */
     private void loadAds(Bundle args) {
-        if (adView == null) {
-            adView = (AdView) adInflater.inflate();
-        }
-        MobileAds.initialize(this, BuildConfig.AdmobAppId);
-        final AdRequest adRequest = new AdRequest.Builder()
-                .addNetworkExtrasBundle(AdMobAdapter.class, args)
-                .build();
-        adView.loadAd(adRequest);
+        // if (adView == null) {
+        //     adView = (AdView) adInflater.inflate();
+        // }
+        // MobileAds.initialize(this, BuildConfig.AdmobAppId);
+        // final AdRequest adRequest = new AdRequest.Builder()
+        //         .addNetworkExtrasBundle(AdMobAdapter.class, args)
+        //         .build();
+        // adView.loadAd(adRequest);
     }
 
     /**
      * Remove the adView
      */
     private void removeAds() {
-        mainContainer.removeView(adView);
+        // mainContainer.removeView(adView);
     }
 }
