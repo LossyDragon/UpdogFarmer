@@ -6,7 +6,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import com.google.android.material.snackbar.Snackbar;
@@ -15,8 +18,14 @@ import com.google.android.material.textfield.TextInputLayout;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 import com.steevsapps.idledaddy.preferences.PrefsManager;
 import com.steevsapps.idledaddy.steam.SteamGuard;
 import com.steevsapps.idledaddy.steam.SteamService;
@@ -26,21 +35,25 @@ import com.steevsapps.idledaddy.utils.Utils;
 import in.dragonbra.javasteam.enums.EResult;
 
 import static com.steevsapps.idledaddy.steam.SteamService.LOGIN_EVENT;
+import static com.steevsapps.idledaddy.steam.SteamService.QR_CHALLENGE_EVENT;
 
 public class LoginActivity extends BaseActivity {
     private final static String TAG = LoginActivity.class.getSimpleName();
 
     private final static String LOGIN_IN_PROGRESS = "LOGIN_IN_PROGRESS";
     private final static String TWO_FACTOR_REQUIRED = "TWO_FACTOR_REQUIRED";
+    private final static String QR_LOGIN_ACTIVE = "QR_LOGIN_ACTIVE";
 
     private boolean loginInProgress;
     private boolean twoFactorRequired;
+    private boolean qrLoginActive;
     private Integer timeDifference = null;
 
     private LoginViewModel viewModel;
 
     // Views
     private CoordinatorLayout coordinatorLayout;
+    private LinearLayout passwordContainer;
     private TextInputLayout usernameInput;
     private TextInputEditText usernameEditText;
     private TextInputLayout passwordInput;
@@ -49,12 +62,22 @@ public class LoginActivity extends BaseActivity {
     private TextInputEditText twoFactorEditText;
     private Button loginButton;
     private ProgressBar progress;
+    private LinearLayout qrContainer;
+    private ImageView qrImage;
 
     // Used to receive messages from SteamService
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (SteamService.LOGIN_EVENT.equals(intent.getAction())) {
+            final String action = intent.getAction();
+            if (QR_CHALLENGE_EVENT.equals(action)) {
+                final String url = intent.getStringExtra(SteamService.QR_URL);
+                if (url != null) {
+                    qrImage.setImageBitmap(generateQrBitmap(url));
+                }
+                return;
+            }
+            if (SteamService.LOGIN_EVENT.equals(action)) {
                 stopTimeout();
                 progress.setVisibility(View.GONE);
                 final EResult result = (EResult) intent.getSerializableExtra(SteamService.RESULT);
@@ -64,7 +87,10 @@ public class LoginActivity extends BaseActivity {
                     passwordInput.setErrorEnabled(false);
                     twoFactorInput.setErrorEnabled(false);
 
-                    if (result == EResult.InvalidPassword) {
+                    if (qrLoginActive) {
+                        // QR sessions just expire/fail outright; there's no field to attach an error to
+                        Snackbar.make(coordinatorLayout, R.string.qr_login_failed, Snackbar.LENGTH_LONG).show();
+                    } else if (result == EResult.InvalidPassword) {
                         passwordInput.setError(getString(R.string.invalid_password));
                     } else if (result == EResult.AccountLoginDeniedNeedTwoFactor || result == EResult.AccountLogonDenied || result == EResult.AccountLogonDeniedNoMail || result == EResult.AccountLogonDeniedVerifiedEmailRequired) {
                         twoFactorRequired = result == EResult.AccountLoginDeniedNeedTwoFactor;
@@ -79,11 +105,12 @@ public class LoginActivity extends BaseActivity {
                         twoFactorInput.setError(getString(R.string.invalid_code));
                     }
                 } else {
-                    // Save username
-                    final String username = Utils.removeSpecialChars(usernameEditText.getText().toString()).trim();
-                    final String password = Utils.removeSpecialChars(passwordEditText.getText().toString().trim());
-                    PrefsManager.writeUsername(username);
-                    PrefsManager.writePassword(LoginActivity.this, password);
+                    // Save password for autofill next time (SteamService persists the username itself,
+                    // since the QR flow never has one typed into usernameEditText)
+                    if (!qrLoginActive) {
+                        final String password = Utils.removeSpecialChars(passwordEditText.getText().toString().trim());
+                        PrefsManager.writePassword(LoginActivity.this, password);
+                    }
                     finish();
                 }
             }
@@ -116,6 +143,7 @@ public class LoginActivity extends BaseActivity {
         setContentView(R.layout.activity_login);
 
         coordinatorLayout = findViewById(R.id.coordinator);
+        passwordContainer = findViewById(R.id.password_container);
         usernameInput = findViewById(R.id.username_input);
         usernameEditText = findViewById(R.id.username_edittext);
         passwordInput = findViewById(R.id.password_input);
@@ -124,13 +152,17 @@ public class LoginActivity extends BaseActivity {
         twoFactorEditText = findViewById(R.id.two_factor_edittext);
         loginButton = findViewById(R.id.login);
         progress = findViewById(R.id.progress);
+        qrContainer = findViewById(R.id.qr_container);
+        qrImage = findViewById(R.id.qr_image);
 
         if (savedInstanceState != null) {
             loginInProgress = savedInstanceState.getBoolean(LOGIN_IN_PROGRESS);
             twoFactorRequired = savedInstanceState.getBoolean(TWO_FACTOR_REQUIRED);
+            qrLoginActive = savedInstanceState.getBoolean(QR_LOGIN_ACTIVE);
             loginButton.setEnabled(!loginInProgress);
             twoFactorInput.setVisibility(twoFactorRequired ? View.VISIBLE : View.GONE);
-            progress.setVisibility(loginInProgress ? View.VISIBLE : View.GONE);
+            progress.setVisibility(loginInProgress && !qrLoginActive ? View.VISIBLE : View.GONE);
+            updateLoginMode();
         } else {
             // Restore saved username if any
             usernameEditText.setText(PrefsManager.getUsername());
@@ -145,6 +177,7 @@ public class LoginActivity extends BaseActivity {
         super.onSaveInstanceState(outState);
         outState.putBoolean(LOGIN_IN_PROGRESS, loginInProgress);
         outState.putBoolean(TWO_FACTOR_REQUIRED, twoFactorRequired);
+        outState.putBoolean(QR_LOGIN_ACTIVE, qrLoginActive);
     }
 
     @Override
@@ -157,6 +190,7 @@ public class LoginActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
         final IntentFilter filter = new IntentFilter(LOGIN_EVENT);
+        filter.addAction(QR_CHALLENGE_EVENT);
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, filter);
     }
 
@@ -181,6 +215,46 @@ public class LoginActivity extends BaseActivity {
             progress.setVisibility(View.VISIBLE);
             getService().login(username, password);
             startTimeout();
+        }
+    }
+
+    /**
+     * Toggle between the password form and the QR code sign-in view
+     */
+    public void toggleQrLogin(View v) {
+        qrLoginActive = !qrLoginActive;
+        updateLoginMode();
+        if (qrLoginActive) {
+            qrImage.setImageBitmap(null);
+            getService().loginWithQr();
+            startTimeout();
+        } else {
+            stopTimeout();
+        }
+    }
+
+    private void updateLoginMode() {
+        passwordContainer.setVisibility(qrLoginActive ? View.GONE : View.VISIBLE);
+        qrContainer.setVisibility(qrLoginActive ? View.VISIBLE : View.GONE);
+    }
+
+    /**
+     * Render a QR code bitmap for the given content (the Steam QR login challenge URL)
+     */
+    private Bitmap generateQrBitmap(String content) {
+        try {
+            final int size = 512;
+            final BitMatrix matrix = new QRCodeWriter().encode(content, BarcodeFormat.QR_CODE, size, size);
+            final Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565);
+            for (int x = 0; x < size; x++) {
+                for (int y = 0; y < size; y++) {
+                    bitmap.setPixel(x, y, matrix.get(x, y) ? Color.BLACK : Color.WHITE);
+                }
+            }
+            return bitmap;
+        } catch (WriterException e) {
+            Log.e(TAG, "Failed to generate QR code", e);
+            return null;
         }
     }
 

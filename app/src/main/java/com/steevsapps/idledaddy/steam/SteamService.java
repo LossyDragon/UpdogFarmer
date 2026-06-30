@@ -73,6 +73,7 @@ import in.dragonbra.javasteam.steam.authentication.AuthSessionDetails;
 import in.dragonbra.javasteam.steam.authentication.AuthenticationException;
 import in.dragonbra.javasteam.steam.authentication.CredentialsAuthSession;
 import in.dragonbra.javasteam.steam.authentication.IAuthenticator;
+import in.dragonbra.javasteam.steam.authentication.QrAuthSession;
 import in.dragonbra.javasteam.steam.discovery.FileServerListProvider;
 import in.dragonbra.javasteam.steam.handlers.steamapps.SteamApps;
 import in.dragonbra.javasteam.steam.handlers.steamapps.callback.FreeLicenseCallback;
@@ -116,6 +117,8 @@ public class SteamService extends Service {
     public final static String PERSONA_NAME = "PERSONA_NAME"; // Username
     public final static String AVATAR_HASH = "AVATAR_HASH"; // User avatar hash
     public final static String NOW_PLAYING_EVENT = "NOW_PLAYING_EVENT"; // Emitted when the game you're idling changes
+    public final static String QR_CHALLENGE_EVENT = "QR_CHALLENGE_EVENT"; // Emitted when the QR login URL is available/refreshed
+    public final static String QR_URL = "QR_URL"; // The QR login challenge URL
 
     // Actions
     public final static String SKIP_INTENT = "SKIP_INTENT";
@@ -139,6 +142,7 @@ public class SteamService extends Service {
     private int cardCount = 0;
 
     private AuthSessionDetails pendingAuthDetails = null;
+    private volatile boolean pendingQrLogin = false;
     private String currentRefreshToken = null;
     private volatile CompletableFuture<String> pendingGuardCodeFuture = null;
 
@@ -820,6 +824,24 @@ public class SteamService extends Service {
     }
 
     /**
+     * Log in by scanning a QR code with the Steam Mobile App. No password/2FA code is needed;
+     * the QR auth session broadcasts QR_CHALLENGE_EVENT with the URL to render as soon as it begins,
+     * then blocks until the user approves the prompt on their phone.
+     */
+    public void loginWithQr() {
+        Log.i(TAG, "logging in via QR");
+        loginInProgress = true;
+        if (connected) {
+            // Already connected (e.g. left over from a prior login attempt) - connect() won't fire
+            // another ConnectedCallback, so start the QR session directly or we'd never show a code.
+            doQrLogin();
+        } else {
+            pendingQrLogin = true;
+            executor.execute(() -> steamClient.connect());
+        }
+    }
+
+    /**
      * Supply the Steam Guard code requested by {@link GuardCodeAuthenticator} for the in-progress login.
      */
     public void submitTwoFactorCode(String code) {
@@ -835,6 +857,7 @@ public class SteamService extends Service {
         loggedIn = false;
         steamId = 0;
         pendingAuthDetails = null;
+        pendingQrLogin = false;
         currentRefreshToken = null;
         cancelPendingGuardCode();
         currentGames.clear();
@@ -919,11 +942,49 @@ public class SteamService extends Service {
     }
 
     /**
+     * Begin a fresh QR auth session and log on with the resulting refresh token once the user
+     * approves the prompt in the Steam Mobile App. Runs on a background thread since both
+     * {@code beginAuthSessionViaQR} and {@code pollingWaitForResult} block until Steam responds.
+     */
+    private void doQrLogin() {
+        executor.execute(() -> {
+            try {
+                final AuthSessionDetails details = new AuthSessionDetails();
+                details.clientOSType = EOSType.LinuxUnknown;
+
+                final QrAuthSession authSession = steamClient.getAuthentication()
+                        .beginAuthSessionViaQR(details)
+                        .get();
+                authSession.setChallengeUrlChanged(session -> sendQrChallengeUrl(session.getChallengeUrl()));
+                sendQrChallengeUrl(authSession.getChallengeUrl());
+
+                final AuthPollResult pollResult = authSession.pollingWaitForResult().get();
+
+                PrefsManager.writeGuardData(pollResult.getNewGuardData() != null ? pollResult.getNewGuardData() : "");
+                performLogOn(pollResult.getAccountName(), pollResult.getRefreshToken());
+            } catch (Exception e) {
+                Log.i(TAG, "QR login failed", e);
+                keyToRedeem = null;
+                steamClient.disconnect();
+                sendLoginResult(resolveFailureResult(e));
+            }
+        });
+    }
+
+    private void sendQrChallengeUrl(String url) {
+        final Intent intent = new Intent(QR_CHALLENGE_EVENT);
+        intent.putExtra(QR_URL, url);
+        LocalBroadcastManager.getInstance(SteamService.this).sendBroadcast(intent);
+    }
+
+    /**
      * Log on to the Steam3 network using a refresh token, used both for a freshly completed
      * credentials login and for restoring a saved session.
      */
     private void performLogOn(String username, String refreshToken) {
         currentRefreshToken = refreshToken;
+        // Always keep this current: the QR login flow never types a username for LoginActivity to save
+        PrefsManager.writeUsername(username);
 
         final LogOnDetails details = new LogOnDetails();
         details.setUsername(username);
@@ -1068,7 +1129,10 @@ public class SteamService extends Service {
     private void onConnected(ConnectedCallback callback) {
         Log.i(TAG, "Connected()");
         connected = true;
-        if (pendingAuthDetails != null) {
+        if (pendingQrLogin) {
+            pendingQrLogin = false;
+            doQrLogin();
+        } else if (pendingAuthDetails != null) {
             doCredentialsLogin(pendingAuthDetails);
             pendingAuthDetails = null;
         } else {
