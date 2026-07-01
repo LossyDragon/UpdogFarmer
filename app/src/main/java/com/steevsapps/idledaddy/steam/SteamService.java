@@ -104,6 +104,7 @@ public class SteamService extends Service {
     // This can be prevented by using a WakeLock tag from the PowerGenie whitelist.
     private final static String WAKELOCK_TAG = TAG + ":LocationManagerService";
     private final static int CUSTOM_OBFUSCATION_MASK = 0xF00DBAAD;
+    private final static String FRIENDLY_NAME = "Idle Daddy-Fork, " + BuildConfig.VERSION_NAME;
 
     // Events
     public final static String LOGIN_EVENT = "LOGIN_EVENT"; // Emitted on login
@@ -279,7 +280,7 @@ public class SteamService extends Service {
             return;
         }
         Log.i(TAG, "Checking remaining card drops");
-        for (int i=0;i<3;i++) {
+        for (int i = 0; i < 3; i++) {
             gamesToFarm = webHandler.getRemainingGames();
             if (gamesToFarm != null) {
                 Log.i(TAG, "gotem");
@@ -423,7 +424,9 @@ public class SteamService extends Service {
 
         final SteamConfiguration config = SteamConfiguration.create(b -> {
             b.withServerListProvider(fileServerListProvider);
-            if (cellId >= 0) { b.withCellID(cellId); }
+            if (cellId >= 0) {
+                b.withCellID(cellId);
+            }
         });
 
         steamClient = new SteamClient(config);
@@ -739,7 +742,7 @@ public class SteamService extends Service {
         }
 
         final StringBuilder msg = new StringBuilder();
-        for (int i=0;i<size;i++) {
+        for (int i = 0; i < size; i++) {
             final Game game = gamesCopy.get(i);
             currentGames.add(game);
             if (game.appId == 0) {
@@ -820,7 +823,8 @@ public class SteamService extends Service {
         details.username = username;
         details.password = password;
         details.persistentSession = true;
-        details.clientOSType = EOSType.LinuxUnknown;
+        details.clientOSType = EOSType.AndroidUnknown;
+        details.deviceFriendlyName = FRIENDLY_NAME;
         details.authenticator = new GuardCodeAuthenticator();
 
         pendingAuthDetails = details;
@@ -954,7 +958,9 @@ public class SteamService extends Service {
         executor.execute(() -> {
             try {
                 final AuthSessionDetails details = new AuthSessionDetails();
-                details.clientOSType = EOSType.LinuxUnknown;
+                details.clientOSType = EOSType.AndroidUnknown;
+                details.deviceFriendlyName = FRIENDLY_NAME;
+                details.persistentSession = true;
 
                 final QrAuthSession authSession = steamClient.getAuthentication()
                         .beginAuthSessionViaQR(details)
@@ -993,7 +999,8 @@ public class SteamService extends Service {
         final LogOnDetails details = new LogOnDetails();
         details.setUsername(username);
         details.setAccessToken(refreshToken);
-        details.setClientOSType(EOSType.LinuxUnknown);
+        details.setClientOSType(EOSType.AndroidUnknown);
+        details.setMachineName(FRIENDLY_NAME);
         details.setShouldRememberPassword(true);
         if (PrefsManager.useCustomLoginId()) {
             final int localIp = NetHelpers.getIPAddress(steamClient.getLocalIP());
