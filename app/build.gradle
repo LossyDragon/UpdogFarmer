@@ -9,7 +9,7 @@ android {
         minSdkVersion 27
         targetSdkVersion 36
         multiDexEnabled true
-        versionCode 91
+        versionCode 92
         versionName "2.0.50"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

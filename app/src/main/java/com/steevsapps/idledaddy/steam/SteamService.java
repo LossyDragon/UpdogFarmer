@@ -119,6 +119,7 @@ public class SteamService extends Service {
     public final static String NOW_PLAYING_EVENT = "NOW_PLAYING_EVENT"; // Emitted when the game you're idling changes
     public final static String QR_CHALLENGE_EVENT = "QR_CHALLENGE_EVENT"; // Emitted when the QR login URL is available/refreshed
     public final static String QR_URL = "QR_URL"; // The QR login challenge URL
+    public final static String DEVICE_CONFIRMATION_EVENT = "DEVICE_CONFIRMATION_EVENT"; // Emitted when awaiting Steam Mobile App approval
 
     // Actions
     public final static String SKIP_INTENT = "SKIP_INTENT";
@@ -1065,8 +1066,9 @@ public class SteamService extends Service {
 
         @Override
         public CompletableFuture<Boolean> acceptDeviceConfirmation() {
-            // No UI for the Steam Mobile App confirmation prompt; fall back to code entry instead.
-            return CompletableFuture.completedFuture(false);
+            LocalBroadcastManager.getInstance(SteamService.this)
+                    .sendBroadcast(new Intent(DEVICE_CONFIRMATION_EVENT));
+            return CompletableFuture.completedFuture(true);
         }
     }
 

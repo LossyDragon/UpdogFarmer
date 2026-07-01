@@ -34,6 +34,7 @@ import com.steevsapps.idledaddy.utils.Utils;
 
 import in.dragonbra.javasteam.enums.EResult;
 
+import static com.steevsapps.idledaddy.steam.SteamService.DEVICE_CONFIRMATION_EVENT;
 import static com.steevsapps.idledaddy.steam.SteamService.LOGIN_EVENT;
 import static com.steevsapps.idledaddy.steam.SteamService.QR_CHALLENGE_EVENT;
 
@@ -75,6 +76,10 @@ public class LoginActivity extends BaseActivity {
                 if (url != null) {
                     qrImage.setImageBitmap(generateQrBitmap(url));
                 }
+                return;
+            }
+            if (DEVICE_CONFIRMATION_EVENT.equals(action)) {
+                Snackbar.make(coordinatorLayout, R.string.device_confirmation_prompt, Snackbar.LENGTH_INDEFINITE).show();
                 return;
             }
             if (SteamService.LOGIN_EVENT.equals(action)) {
@@ -191,6 +196,7 @@ public class LoginActivity extends BaseActivity {
         super.onResume();
         final IntentFilter filter = new IntentFilter(LOGIN_EVENT);
         filter.addAction(QR_CHALLENGE_EVENT);
+        filter.addAction(DEVICE_CONFIRMATION_EVENT);
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, filter);
     }
 
