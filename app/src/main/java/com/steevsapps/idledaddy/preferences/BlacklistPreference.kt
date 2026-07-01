@@ -1,47 +1,40 @@
-package com.steevsapps.idledaddy.preferences;
+package com.steevsapps.idledaddy.preferences
 
-import android.content.Context;
-import android.content.res.TypedArray;
-import androidx.preference.DialogPreference;
-import android.util.AttributeSet;
+import android.content.Context
+import android.content.res.TypedArray
+import android.util.AttributeSet
+import androidx.preference.DialogPreference
+import com.steevsapps.idledaddy.R
 
-import com.steevsapps.idledaddy.R;
+class BlacklistPreference(
+    context: Context,
+    attrs: AttributeSet
+) : DialogPreference(context, attrs) {
+    var value: String = ""
+        private set
 
-public class BlacklistPreference extends DialogPreference {
-    private String currentValue;
-
-    public BlacklistPreference(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        setDialogLayoutResource(R.layout.blacklist_dialog);
-        setPositiveButtonText(android.R.string.ok);
-        setNegativeButtonText(android.R.string.cancel);
-        setDialogIcon(null);
+    init {
+        dialogLayoutResource = R.layout.blacklist_dialog
+        setPositiveButtonText(android.R.string.ok)
+        setNegativeButtonText(android.R.string.cancel)
+        dialogIcon = null
     }
 
-    void persistStringValue(String value) {
-        currentValue = value;
-        persistString(currentValue);
+    fun persistStringValue(value: String) {
+        this.value = value
+        persistString(this.value)
     }
 
-    String getValue() {
-        return currentValue;
-    }
+    override fun onGetDefaultValue(a: TypedArray, index: Int): Any? = a.getString(index)
 
-    @Override
-    protected Object onGetDefaultValue(TypedArray a, int index) {
-        return a.getString(index);
-    }
-
-    @Override
-    protected void onSetInitialValue(boolean restorePersistedValue, Object defaultValue) {
-        if (restorePersistedValue) {
+    override fun onSetInitialValue(defaultValue: Any?) {
+        if (defaultValue == null) {
             // Restore persisted value
-            currentValue = getPersistedString("");
+            this.value = getPersistedString("")
         } else {
             // Set default value
-            currentValue = defaultValue.toString();
-            persistString(currentValue);
+            this.value = defaultValue.toString()
+            persistString(this.value)
         }
     }
-
 }

@@ -2,7 +2,7 @@ package com.steevsapps.idledaddy.dialogs;
 
 import android.app.Dialog;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -56,7 +56,7 @@ public class SpringCleaningDialog extends DialogFragment implements View.OnClick
     }
 
     private void setupViewModel() {
-        viewModel = ViewModelProviders.of(this).get(SpringCleaningViewModel.class);
+        viewModel = new ViewModelProvider(this).get(SpringCleaningViewModel.class);
         viewModel.init(SteamWebHandler.getInstance(), ((BaseActivity) getActivity()).getService());
         viewModel.getStatus().observe(this, new Observer<String>() {
             @Override

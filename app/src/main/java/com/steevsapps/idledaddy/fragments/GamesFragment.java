@@ -1,7 +1,7 @@
 package com.steevsapps.idledaddy.fragments;
 
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -73,7 +73,7 @@ public class GamesFragment extends Fragment
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         steamId = getArguments().getLong(STEAM_ID);
-        viewModel = ViewModelProviders.of(this).get(GamesViewModel.class);
+        viewModel = new ViewModelProvider(this).get(GamesViewModel.class);
         viewModel.init(SteamWebHandler.getInstance(), steamId);
         if (savedInstanceState != null) {
             currentGames = savedInstanceState.getParcelableArrayList(CURRENT_GAMES);

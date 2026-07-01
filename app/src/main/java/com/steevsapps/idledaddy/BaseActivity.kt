@@ -1,97 +1,92 @@
-package com.steevsapps.idledaddy;
+package com.steevsapps.idledaddy
 
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.os.IBinder;
-import androidx.core.content.ContextCompat;
-import androidx.appcompat.app.AppCompatActivity;
-import android.util.Log;
-
-import com.steevsapps.idledaddy.steam.SteamService;
-import com.steevsapps.idledaddy.utils.LocaleManager;
+import android.content.ComponentName
+import android.content.Context
+import android.content.ServiceConnection
+import android.os.IBinder
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import com.steevsapps.idledaddy.steam.SteamService
+import com.steevsapps.idledaddy.steam.SteamService.LocalBinder
+import com.steevsapps.idledaddy.utils.LocaleManager
 
 /**
  * Base activity that's bound to the Steam Service
  */
-public abstract class BaseActivity extends AppCompatActivity {
-    private final static String TAG = BaseActivity.class.getSimpleName();
-
-    private boolean serviceBound = false;
-    private SteamService service;
-    private final ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            service = ((SteamService.LocalBinder) iBinder).getService();
-            BaseActivity.this.onServiceConnected();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            service = null;
-            serviceBound = false;
-        }
-    };
-
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(LocaleManager.setLocale(newBase));
-    }
+abstract class BaseActivity : AppCompatActivity() {
+    private var serviceBound = false
 
     /**
      * Get the Steam Service
      */
-    public SteamService getService() {
-        return service;
+    var service: SteamService? = null
+        private set
+
+    private val connection: ServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(componentName: ComponentName?, iBinder: IBinder) {
+            service = (iBinder as LocalBinder).service
+            this@BaseActivity.onServiceConnected()
+        }
+
+        override fun onServiceDisconnected(componentName: ComponentName?) {
+            service = null
+            serviceBound = false
+        }
+    }
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleManager.setLocale(newBase))
     }
 
     /**
      * Executed when the Activity is connected to the Service
      */
-    protected void onServiceConnected() {
+    protected open fun onServiceConnected() {
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        doUnbind();
+    override fun onStop() {
+        super.onStop()
+        doUnbind()
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        doBind();
+    override fun onStart() {
+        super.onStart()
+        doBind()
     }
 
     /**
      * Bind Activity to the service
      */
-    private void doBind() {
-        Log.i(TAG, "Binding service...");
-        final Intent serviceIntent = SteamService.createIntent(this);
-        ContextCompat.startForegroundService(this, serviceIntent);
-        bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE);
-        serviceBound = true;
+    private fun doBind() {
+        Log.i(TAG, "Binding service...")
+        val serviceIntent = SteamService.createIntent(this)
+        ContextCompat.startForegroundService(this, serviceIntent)
+        bindService(serviceIntent, connection, BIND_AUTO_CREATE)
+        serviceBound = true
     }
 
     /**
      * Unbind Activity from the service
      */
-    private void doUnbind() {
+    private fun doUnbind() {
         if (serviceBound) {
-            Log.i(TAG, "Unbinding service...");
-            unbindService(connection);
-            serviceBound = false;
+            Log.i(TAG, "Unbinding service...")
+            unbindService(connection)
+            serviceBound = false
         }
     }
 
     /**
      * Stop Steam Service and finish Activity
      */
-    protected void stopSteam() {
-        doUnbind();
-        stopService(SteamService.createIntent(this));
-        finish();
+    protected fun stopSteam() {
+        doUnbind()
+        stopService(SteamService.createIntent(this))
+        finish()
+    }
+
+    companion object {
+        private val TAG: String = BaseActivity::class.java.simpleName
     }
 }

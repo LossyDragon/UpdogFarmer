@@ -12,6 +12,7 @@ gsonVersion = "2.14.0"
 javasteamVersion = "1.8.1-SNAPSHOT"
 jsoupVersion = "1.22.2"
 junit = "4.13.2"
+kotlin = "2.4.0"
 legacySupportV4Version = "1.0.0"
 lifecycleExtensionsVersion = "2.2.0"
 materialVersion = "1.14.0"
@@ -38,6 +39,7 @@ gson = { module = "com.google.code.gson:gson", version.ref = "gsonVersion" }
 javasteam = { module = "in.dragonbra:javasteam", version.ref = "javasteamVersion" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoupVersion" }
 junit = { module = "junit:junit", version.ref = "junit" }
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 legacy-support-v4 = { module = "androidx.legacy:legacy-support-v4", version.ref = "legacySupportV4Version" }
 lifecycle-extensions = { module = "androidx.lifecycle:lifecycle-extensions", version.ref = "lifecycleExtensionsVersion" }
 material = { module = "com.google.android.material:material", version.ref = "materialVersion" }

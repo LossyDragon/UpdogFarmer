@@ -1,78 +1,71 @@
-package com.steevsapps.idledaddy;
+package com.steevsapps.idledaddy
 
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
-import android.os.Handler;
-import android.util.Log;
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import com.steevsapps.idledaddy.steam.SteamWebHandler
+import com.steevsapps.idledaddy.steam.model.TimeQuery
+import com.steevsapps.idledaddy.utils.Utils
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
-import com.steevsapps.idledaddy.steam.SteamWebHandler;
-import com.steevsapps.idledaddy.steam.model.TimeQuery;
-import com.steevsapps.idledaddy.utils.Utils;
+class LoginViewModel : ViewModel() {
+    private lateinit var webHandler: SteamWebHandler
+    private val timeoutHandler = Handler(Looper.getMainLooper())
+    private val timeDifference = MutableLiveData<Int?>()
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
-public class LoginViewModel extends ViewModel {
-    private final static String TAG = LoginViewModel.class.getSimpleName();
-    private final static int TIMEOUT_MILLIS = 30000;
-
-    private SteamWebHandler webHandler;
-    private final Handler timeoutHandler = new Handler();
-    private final MutableLiveData<Integer> timeDifference = new MutableLiveData<>();
-
-    private final SingleLiveEvent<Void> timeoutEvent = new SingleLiveEvent<>();
-    private final Runnable timeoutRunnable = new Runnable() {
-        @Override
-        public void run() {
-            // Trigger event to show a timeout error
-            timeoutEvent.call();
-        }
-    };
-
-    private boolean timeAligned = false;
-
-    void init(SteamWebHandler webHandler) {
-        this.webHandler = webHandler;
+    val timeout: SingleLiveEvent<Void?> = SingleLiveEvent()
+    private val timeoutRunnable: Runnable = Runnable {
+        // Trigger event to show a timeout error
+        timeout.call()
     }
 
-    LiveData<Integer> getTimeDifference() {
+    private var timeAligned = false
+
+    fun init(webHandler: SteamWebHandler) {
+        this.webHandler = webHandler
+    }
+
+    fun getTimeDifference(): LiveData<Int?> {
         if (!timeAligned) {
-            alignTime();
+            alignTime()
         }
-        return timeDifference;
+        return timeDifference
     }
 
-    SingleLiveEvent<Void> getTimeout() {
-        return timeoutEvent;
+    fun startTimeout() {
+        Log.i(TAG, "Starting login timeout")
+        timeoutHandler.postDelayed(timeoutRunnable, TIMEOUT_MILLIS.toLong())
     }
 
-    public void startTimeout() {
-        Log.i(TAG, "Starting login timeout");
-        timeoutHandler.postDelayed(timeoutRunnable, TIMEOUT_MILLIS);
+    fun stopTimeout() {
+        Log.i(TAG, "Stopping login timeout")
+        timeoutHandler.removeCallbacks(timeoutRunnable)
     }
 
-    public void stopTimeout() {
-        Log.i(TAG, "Stopping login timeout");
-        timeoutHandler.removeCallbacks(timeoutRunnable);
-    }
-
-    private void alignTime() {
-        final long currentTime = Utils.getCurrentUnixTime();
-        webHandler.queryServerTime().enqueue(new Callback<TimeQuery>() {
-            @Override
-            public void onResponse(Call<TimeQuery> call, Response<TimeQuery> response) {
-                if (response.isSuccessful()) {
-                    timeDifference.setValue((int) (response.body().getResponse().getServerTime() - currentTime));
-                    timeAligned = true;
+    private fun alignTime() {
+        val currentTime = Utils.getCurrentUnixTime()
+        webHandler.queryServerTime().enqueue(object : Callback<TimeQuery?> {
+            override fun onResponse(call: Call<TimeQuery?>, response: Response<TimeQuery?>) {
+                val body = response.body()
+                if (response.isSuccessful && body != null) {
+                    timeDifference.value = (body.response.serverTime - currentTime).toInt()
+                    timeAligned = true
                 }
             }
 
-            @Override
-            public void onFailure(Call<TimeQuery> call, Throwable t) {
-                Log.e(TAG, "Failed to get server time", t);
+            override fun onFailure(call: Call<TimeQuery?>, t: Throwable) {
+                Log.e(TAG, "Failed to get server time", t)
             }
-        });
+        })
+    }
+
+    companion object {
+        private val TAG: String = LoginViewModel::class.java.getSimpleName()
+        private const val TIMEOUT_MILLIS = 30000
     }
 }

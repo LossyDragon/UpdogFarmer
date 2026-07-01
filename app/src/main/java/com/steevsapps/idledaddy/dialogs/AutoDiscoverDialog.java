@@ -3,7 +3,7 @@ package com.steevsapps.idledaddy.dialogs;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -47,7 +47,7 @@ public class AutoDiscoverDialog extends DialogFragment implements View.OnClickLi
     }
 
     private void setupViewModel() {
-        viewModel = ViewModelProviders.of(this).get(AutoDiscoverViewModel.class);
+        viewModel = new ViewModelProvider(this).get(AutoDiscoverViewModel.class);
         viewModel.init(SteamWebHandler.getInstance());
         viewModel.getStatus().observe(this, new Observer<String>() {
             @Override

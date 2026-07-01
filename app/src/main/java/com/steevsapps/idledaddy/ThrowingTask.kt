@@ -1,5 +1,6 @@
-package com.steevsapps.idledaddy;
+package com.steevsapps.idledaddy
 
-public interface ThrowingTask {
-    void run() throws Exception;
+fun interface ThrowingTask {
+    @Throws(Exception::class)
+    fun run()
 }

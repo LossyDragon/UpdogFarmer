@@ -1,44 +1,62 @@
-package com.steevsapps.idledaddy;
+package com.steevsapps.idledaddy
 
-import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import android.util.AttributeSet;
-import android.view.View;
+import android.content.Context
+import android.util.AttributeSet
+import android.view.View
+import androidx.coordinatorlayout.widget.CoordinatorLayout
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.floatingactionbutton.FloatingActionButton.OnVisibilityChangedListener
+import androidx.core.view.isVisible
 
 /**
  * Hide/show FAB on nested scroll
  */
-public class ScrollAwareFabBehavior extends FloatingActionButton.Behavior {
+class ScrollAwareFabBehavior(
+    context: Context,
+    attrs: AttributeSet
+) : FloatingActionButton.Behavior() {
+    override fun onStartNestedScroll(
+        coordinatorLayout: CoordinatorLayout,
+        child: FloatingActionButton,
+        directTargetChild: View,
+        target: View,
+        axes: Int,
+        type: Int
+    ): Boolean = true
 
-    public ScrollAwareFabBehavior(Context context, AttributeSet attrs) {
-        super();
-    }
 
-    @Override
-    public boolean onStartNestedScroll(@NonNull CoordinatorLayout coordinatorLayout,
-                                       @NonNull FloatingActionButton child, @NonNull View directTargetChild,
-                                       @NonNull View target, int axes, int type) {
-        return true;
-    }
+    override fun onNestedScroll(
+        coordinatorLayout: CoordinatorLayout,
+        child: FloatingActionButton,
+        target: View,
+        dxConsumed: Int,
+        dyConsumed: Int,
+        dxUnconsumed: Int,
+        dyUnconsumed: Int,
+        type: Int,
+        consumed: IntArray
+    ) {
+        super.onNestedScroll(
+            coordinatorLayout,
+            child,
+            target,
+            dxConsumed,
+            dyConsumed,
+            dxUnconsumed,
+            dyUnconsumed,
+            type,
+            consumed
+        )
 
-    @Override
-    public void onNestedScroll(@NonNull CoordinatorLayout coordinatorLayout, @NonNull FloatingActionButton child,
-                               @NonNull View target, int dxConsumed, int dyConsumed, int dxUnconsumed,
-                               int dyUnconsumed, int type) {
-        super.onNestedScroll(coordinatorLayout, child, target, dxConsumed, dyConsumed, dxUnconsumed, dyUnconsumed, type);
-
-        if (dyConsumed > 0 && child.getVisibility() == View.VISIBLE) {
-            child.hide(new FloatingActionButton.OnVisibilityChangedListener() {
-                @Override
-                public void onHidden(FloatingActionButton fab) {
+        if (dyConsumed > 0 && child.isVisible) {
+            child.hide(object : OnVisibilityChangedListener() {
+                override fun onHidden(fab: FloatingActionButton) {
                     // GONE causes it to stop dispatching events...
-                    fab.setVisibility(View.INVISIBLE);
+                    fab.visibility = View.INVISIBLE
                 }
-            });
-        } else if (dyConsumed < 0 && child.getVisibility() != View.VISIBLE) {
-            child.show();
+            })
+        } else if (dyConsumed < 0 && child.visibility != View.VISIBLE) {
+            child.show()
         }
     }
 }

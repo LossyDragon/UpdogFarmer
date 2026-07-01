@@ -1,48 +1,46 @@
-package com.steevsapps.idledaddy.preferences;
+package com.steevsapps.idledaddy.preferences
 
-import android.content.Context;
-import android.content.res.TypedArray;
-import androidx.preference.DialogPreference;
-import android.util.AttributeSet;
+import android.content.Context
+import android.content.res.TypedArray
+import android.util.AttributeSet
+import androidx.preference.DialogPreference
+import com.steevsapps.idledaddy.R
 
-import com.steevsapps.idledaddy.R;
+class NumPickerPreference(
+    context: Context,
+    attrs: AttributeSet
+) : DialogPreference(context, attrs) {
+    var value: Int = 0
+        private set
 
-public class NumPickerPreference extends DialogPreference {
-    private final static int DEFAULT_VALUE = 3;
-    private int currentValue;
-
-    public NumPickerPreference(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        setDialogLayoutResource(R.layout.numpicker_dialog);
-        setPositiveButtonText(null);
-        setNegativeButtonText(android.R.string.cancel);
-        setDialogIcon(null);
+    init {
+        dialogLayoutResource = R.layout.numpicker_dialog
+        positiveButtonText = null
+        setNegativeButtonText(android.R.string.cancel)
+        dialogIcon = null
     }
 
-    void persistValue(int value) {
-        currentValue = value;
-        persistInt(value);
+    fun persistValue(value: Int) {
+        this.value = value
+        persistInt(value)
     }
 
-    int getValue() {
-        return currentValue;
+    override fun onGetDefaultValue(a: TypedArray, index: Int): Any {
+        return a.getInteger(index, DEFAULT_VALUE)
     }
 
-    @Override
-    protected Object onGetDefaultValue(TypedArray a, int index) {
-        return a.getInteger(index, DEFAULT_VALUE);
-    }
-
-    @Override
-    protected void onSetInitialValue(boolean restorePersistedValue, Object defaultValue) {
-        if (restorePersistedValue) {
-            // Restore persisted value.
-            // NOTE: local variable defaultValue is always null here
-            currentValue = getPersistedInt(DEFAULT_VALUE);
+    override fun onSetInitialValue(defaultValue: Any?) {
+        if (defaultValue == null) {
+            // Restore persisted value
+            this.value = getPersistedInt(DEFAULT_VALUE)
         } else {
             // Set default value
-            currentValue = (int) defaultValue;
-            persistInt(currentValue);
+            this.value = defaultValue as Int
+            persistInt(this.value)
         }
+    }
+
+    companion object {
+        private const val DEFAULT_VALUE = 3
     }
 }
