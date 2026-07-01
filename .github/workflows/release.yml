@@ -117,7 +117,7 @@ jobs:
 
       - name: Build release APK
         env:
-          ORG_GRADLE_PROJECT_steamApiKey: ${{ secrets.STEAM_API_KEY }}
+          ORG_GRADLE_PROJECT_steamApiKey: '"${{ secrets.STEAM_API_KEY }}"'
         run: |
           ./gradlew :app:assembleRelease --build-cache --stacktrace \
             -Pandroid.injected.signing.store.file="${{ runner.temp }}/release.jks" \
