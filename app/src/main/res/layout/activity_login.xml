@@ -11,12 +11,12 @@
         android:layout_height="match_parent">
 
         <LinearLayout
-            android:animateLayoutChanges="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:animateLayoutChanges="true"
+            android:orientation="vertical"
             android:padding="@dimen/activity_horizontal_margin"
-            tools:context="com.steevsapps.idledaddy.LoginActivity"
-            android:orientation="vertical">
+            tools:context="com.steevsapps.idledaddy.LoginActivity">
 
             <TextView
                 android:layout_width="match_parent"
@@ -40,8 +40,8 @@
                         android:id="@+id/username_edittext"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="textEmailAddress"
-                        android:hint="@string/username" />
+                        android:hint="@string/username"
+                        android:inputType="textEmailAddress" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -54,8 +54,8 @@
                         android:id="@+id/password_edittext"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="textPassword"
-                        android:hint="@string/password" />
+                        android:hint="@string/password"
+                        android:inputType="textPassword" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -69,31 +69,31 @@
                         android:id="@+id/two_factor_edittext"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:hint="@string/steamguard"
                         android:inputType="textCapCharacters"
-                        android:maxLength="5"
-                        android:hint="@string/steamguard" />
+                        android:maxLength="5" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="4dp">
+                    android:layout_marginTop="4dp"
+                    android:orientation="horizontal">
 
                     <Button
                         android:id="@+id/login"
-                        android:textSize="@dimen/text_size_default"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:onClick="doLogin"
-                        android:text="@string/login" />
+                        android:text="@string/login"
+                        android:textSize="@dimen/text_size_default" />
 
                     <ProgressBar
                         android:id="@+id/progress"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:visibility="gone"/>
+                        android:visibility="gone" />
 
                 </LinearLayout>
 
@@ -112,8 +112,8 @@
                 android:id="@+id/qr_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:gravity="center_horizontal"
+                android:orientation="vertical"
                 android:visibility="gone">
 
                 <ImageView

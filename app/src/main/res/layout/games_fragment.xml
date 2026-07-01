@@ -7,12 +7,12 @@
     <TextView
         android:id="@+id/empty_view"
         style="@style/AppTheme.TextStyle"
-        android:text="@string/no_games_found"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="8dp"
         android:gravity="center"
-        android:visibility="gone"
-        android:layout_margin="8dp" />
+        android:text="@string/no_games_found"
+        android:visibility="gone" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/refresh_layout"
@@ -23,9 +23,9 @@
             android:id="@+id/games_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:splitMotionEvents="false"
+            android:clipToPadding="false"
             android:padding="8dp"
-            android:clipToPadding="false" />
+            android:splitMotionEvents="false" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
@@ -34,12 +34,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:src="@drawable/ic_add_white_24dp"
+        android:contentDescription="@string/redeem"
         android:elevation="4dp"
+        android:onClick="clickHandler"
+        android:src="@drawable/ic_add_white_24dp"
+        android:visibility="gone"
         app:layout_anchor="@id/games_list"
         app:layout_anchorGravity="bottom|right|end"
-        app:layout_behavior=".ScrollAwareFabBehavior"
-        android:onClick="clickHandler"
-        android:visibility="gone" />
+        app:layout_behavior="com.steevsapps.idledaddy.ScrollAwareFabBehavior" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

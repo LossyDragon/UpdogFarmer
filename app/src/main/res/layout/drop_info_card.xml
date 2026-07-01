@@ -1,35 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
-    android:id="@+id/drop_info"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drop_info"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:visibility="gone"
     android:elevation="4dp"
+    android:visibility="gone"
     card_view:cardCornerRadius="4dp"
     card_view:cardUseCompatPadding="true">
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:paddingTop="16dp"
         android:paddingBottom="16dp">
 
         <TextView
             android:id="@+id/game_count"
-            android:gravity="center"
+            style="@style/AppTheme.TextStyle.Secondary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            style="@style/AppTheme.TextStyle.Secondary" />
+            android:gravity="center" />
 
         <TextView
             android:id="@+id/card_count"
-            android:gravity="center"
+            style="@style/AppTheme.TextStyle.Secondary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            style="@style/AppTheme.TextStyle.Secondary" />
+            android:gravity="center" />
 
     </LinearLayout>
 

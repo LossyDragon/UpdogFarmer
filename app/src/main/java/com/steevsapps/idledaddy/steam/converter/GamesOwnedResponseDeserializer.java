@@ -11,6 +11,7 @@ import com.steevsapps.idledaddy.steam.model.GamesOwnedResponse;
 import java.lang.reflect.Type;
 import java.util.Locale;
 
+// TODO Game Banner broken, img_logo_url no longer exists.
 public class GamesOwnedResponseDeserializer implements JsonDeserializer<GamesOwnedResponse> {
     private final static String IMG_URL = "http://media.steampowered.com/steamcommunity/public/images/apps/%d/%s.jpg";
 

@@ -171,4 +171,13 @@
     <string name="door_open">Open Cottage Door (Winter Sale 2018)</string>
     <string name="door_success">Door opened!</string>
     <string name="door_fail">Unable to open any doors. Try again tomorrow</string>
+    <string name="desc_game_icon">Game Icon</string>
+    <string name="desc_stop_button">Stop Button</string>
+    <string name="pause_button">Pause Button</string>
+    <string name="next_button">Next Button</string>
+    <string name="desc_shared_secret">Enter your Shared Secret</string>
+    <string name="desc_drawer_toggle">Expand Nav Menu</string>
+    <string name="desc_drawer_avatar">Logged in avatar</string>
+    <string name="desc_custom_app">Custom App</string>
+    <string name="desc_blacklist_remove">Remove Blacklisted Item</string>
 </resources>
