@@ -2,7 +2,7 @@ name: Build Signed Release APK
 
 on:
   push:
-    branches: [ master ]
+    branches: [ 2026 ]
     paths:
       - 'app/build.gradle'
   workflow_dispatch:
@@ -91,7 +91,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+          cache-read-only: ${{ github.ref != 'refs/heads/2026' }}
 
       - name: Cache Android SDK build-cache
         uses: actions/cache@v4
