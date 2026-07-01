@@ -1,4 +1,55 @@
 [versions]
+appcompatVersion = "1.7.1"
+cardviewVersion = "1.0.0"
+browserVersion = "1.10.0"
+constraintlayoutVersion = "2.2.1"
+core = "1.19.0"
+coreVersion = "3.5.4"
+desugar_jdk_libsVersion = "2.1.5"
+glideVersion = "5.0.7"
+gradle = "9.2.1"
+gsonVersion = "2.14.0"
+javasteamVersion = "1.8.1-SNAPSHOT"
+jsoupVersion = "1.22.2"
+junit = "4.13.2"
+legacySupportV4Version = "1.0.0"
+lifecycleExtensionsVersion = "2.2.0"
+materialVersion = "1.14.0"
+mediaVersion = "1.8.0"
+preferenceVersion = "1.2.1"
+protobufJavaVersion = "4.35.1"
+provVersion = "1.58.0.0"
+retrofitVersion = "3.0.0"
+
 [libraries]
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
+androidx-browser = { module = "androidx.browser:browser", version.ref = "browserVersion" }
+androidx-cardview = { module = "androidx.cardview:cardview", version.ref = "cardviewVersion" }
+androidx-core = { module = "androidx.core:core", version.ref = "core" }
+androidx-legacy-preference-v14 = { module = "androidx.legacy:legacy-preference-v14", version.ref = "legacySupportV4Version" }
+androidx-media = { module = "androidx.media:media", version.ref = "mediaVersion" }
+androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayoutVersion" }
+androidx-preference = { module = "androidx.preference:preference", version.ref = "preferenceVersion" }
+converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofitVersion" }
+desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libsVersion" }
+glide = { module = "com.github.bumptech.glide:glide", version.ref = "glideVersion" }
+gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gsonVersion" }
+javasteam = { module = "in.dragonbra:javasteam", version.ref = "javasteamVersion" }
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoupVersion" }
+junit = { module = "junit:junit", version.ref = "junit" }
+legacy-support-v4 = { module = "androidx.legacy:legacy-support-v4", version.ref = "legacySupportV4Version" }
+lifecycle-extensions = { module = "androidx.lifecycle:lifecycle-extensions", version.ref = "lifecycleExtensionsVersion" }
+material = { module = "com.google.android.material:material", version.ref = "materialVersion" }
+protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobufJavaVersion" }
+prov = { module = "com.madgag.spongycastle:prov", version.ref = "provVersion" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofitVersion" }
+zxing-core = { module = "com.google.zxing:core", version.ref = "coreVersion" }
+
 [bundles]
+javasteam = ["protobuf-java", "javasteam", "prov"]
+androidx-ui = ["androidx-appcompat", "androidx-core", "androidx-browser", "androidx-cardview", "androidx-constraintlayout", "androidx-preference", "androidx-media", "material"]
+legacy = ["legacy-support-v4", "androidx-legacy-preference-v14"]
+network = ["retrofit", "converter-gson", "gson"]
+
 [plugins]
