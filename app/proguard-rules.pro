@@ -61,6 +61,14 @@
 -dontwarn org.spongycastle.x509.util.LDAPStoreHelper
 # End Spongy Castle
 
+# JavaSteam — uses reflection, protobuf, and a callback system that all break under R8.
+-keep class in.dragonbra.javasteam.** { *; }
+-dontwarn in.dragonbra.javasteam.**
+
+# Protobuf — JavaSteam's wire protocol depends on field names surviving obfuscation.
+-keep class com.google.protobuf.** { *; }
+-dontwarn com.google.protobuf.**
+
 -dontwarn okhttp3.**
 -dontwarn okio.**
 -dontwarn javax.annotation.**
