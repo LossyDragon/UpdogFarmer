@@ -29,8 +29,8 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.animation.GlideAnimation;
-import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.steevsapps.idledaddy.BuildConfig;
 import com.steevsapps.idledaddy.MainActivity;
 import com.steevsapps.idledaddy.R;
@@ -642,19 +642,22 @@ public class SteamService extends Service {
         if (!PrefsManager.minimizeData()) {
             // Load game icon into notification
             Glide.with(getApplicationContext())
-                    .load(game.iconUrl)
                     .asBitmap()
-                    .into(new SimpleTarget<Bitmap>() {
+                    .load(game.iconUrl)
+                    .into(new CustomTarget<Bitmap>() {
                         @Override
-                        public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                        public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
                             builder.setLargeIcon(resource);
                             nm.notify(NOTIF_ID, builder.build());
                         }
 
                         @Override
-                        public void onLoadFailed(Exception e, Drawable errorDrawable) {
-                            super.onLoadFailed(e, errorDrawable);
+                        public void onLoadFailed(Drawable errorDrawable) {
                             nm.notify(NOTIF_ID, builder.build());
+                        }
+
+                        @Override
+                        public void onLoadCleared(Drawable placeholder) {
                         }
                     });
         } else {
