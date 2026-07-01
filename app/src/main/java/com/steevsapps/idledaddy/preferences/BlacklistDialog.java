@@ -64,7 +64,6 @@ public class BlacklistDialog extends PreferenceDialogFragmentCompat implements V
         recyclerView.setLayoutManager(layoutManager);
         adapter = new BlacklistAdapter(currentValue);
         recyclerView.setAdapter(adapter);
-        recyclerView.setHasFixedSize(true);
     }
 
     @Override
