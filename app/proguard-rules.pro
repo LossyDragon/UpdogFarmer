@@ -70,11 +70,22 @@
 -dontwarn android.test.**
 -dontwarn org.junit.**
 
+# Retrofit
+-dontwarn retrofit2.**
+-keep class retrofit2.** { *; }
 # Retain generic type information for use by reflection by converters and adapters.
 -keepattributes Signature
-# Retain service method parameters.
--keepclassmembernames,allowobfuscation interface * {
+# Retain checked exceptions.
+-keepattributes Exceptions
+# Keep the SteamAPI interface and its annotated methods intact — Retrofit creates a
+# dynamic proxy from this at runtime; obfuscating it causes ClassCastException.
+-keep interface com.steevsapps.idledaddy.steam.SteamAPI { *; }
+-keepclassmembernames interface * {
     @retrofit2.http.* <methods>;
 }
+# Keep Gson model classes used as Retrofit response bodies.
+-keep class com.steevsapps.idledaddy.steam.model.** { *; }
+# Keep custom Retrofit converter so VdfConverterFactory survives R8.
+-keep class com.steevsapps.idledaddy.steam.converter.** { *; }
 # Ignore annotation used for build tooling.
 -dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
