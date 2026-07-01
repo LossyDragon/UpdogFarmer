@@ -13,6 +13,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
@@ -24,6 +25,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -172,6 +177,7 @@ public class MainActivity extends BaseActivity implements DialogListener,
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
         final Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -212,6 +218,20 @@ public class MainActivity extends BaseActivity implements DialogListener,
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setHomeButtonEnabled(true);
         }
+        final FrameLayout contentFrame = findViewById(R.id.content_frame);
+        final View insetRoot = drawerLayout != null ? drawerLayout : mainContainer;
+        ViewCompat.setOnApplyWindowInsetsListener(insetRoot, (v, insetsCompat) -> {
+            Insets bars = insetsCompat.getInsets(
+                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+            toolbar.setPaddingRelative(
+                    toolbar.getPaddingStart(), bars.top,
+                    toolbar.getPaddingEnd(), toolbar.getPaddingBottom());
+            contentFrame.setPaddingRelative(
+                    contentFrame.getPaddingStart(), contentFrame.getPaddingTop(),
+                    contentFrame.getPaddingEnd(), bars.bottom);
+            return insetsCompat;
+        });
+
         drawerView = findViewById(R.id.left_drawer);
         // Disable shadow
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
