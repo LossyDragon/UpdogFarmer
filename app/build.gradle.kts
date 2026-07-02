@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.compose.compiler)
 }
 
 kotlin {
@@ -33,6 +34,7 @@ android {
 
     buildFeatures {
         buildConfig = true
+        compose = true
     }
 
     buildTypes {
@@ -71,6 +73,14 @@ dependencies {
     implementation(libs.jsoup)
     implementation(libs.lifecycle.extensions)
     implementation(libs.zxing.core)
+
+    val composeBom = platform("androidx.compose:compose-bom:2026.06.00")
+    implementation(composeBom)
+    implementation("androidx.compose.material:material")
+    implementation("androidx.compose.material:material-icons-core")
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation("androidx.compose.ui:ui-tooling")
 
     testImplementation(libs.junit)
 }
