@@ -9,7 +9,6 @@ import com.steevsapps.idledaddy.steam.model.GamesOwnedResponse
 import java.lang.reflect.Type
 import java.util.Locale
 
-// TODO Game Banner broken, img_logo_url no longer exists.
 class GamesOwnedResponseDeserializer : JsonDeserializer<GamesOwnedResponse?> {
     @Throws(JsonParseException::class)
     override fun deserialize(
@@ -21,7 +20,7 @@ class GamesOwnedResponseDeserializer : JsonDeserializer<GamesOwnedResponse?> {
         val response = Gson().fromJson(element, GamesOwnedResponse::class.java)
 
         for (game in response.games) {
-            game.iconUrl = String.format(Locale.US, IMG_URL, game.appId, game.iconUrl)
+            game.iconUrl = String.format(Locale.US, IMG_URL, game.appId)
             game.hoursPlayed /= 60f
             game.dropsRemaining = 0
         }
@@ -31,6 +30,6 @@ class GamesOwnedResponseDeserializer : JsonDeserializer<GamesOwnedResponse?> {
 
     companion object {
         private const val IMG_URL =
-            "http://media.steampowered.com/steamcommunity/public/images/apps/%d/%s.jpg"
+            "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/%d/header.jpg"
     }
 }
