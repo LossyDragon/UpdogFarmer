@@ -350,16 +350,16 @@ class SteamService : Service() {
     }
 
     fun resumeGame() {
-        if (isFarming) {
-            Log.i(TAG, "Resume farming")
-            isPaused = false
-            executor.execute(farmTask)
-        } else if (currentGames.size == 1) {
+        if (currentGames.size == 1) {
             Log.i(TAG, "Resume playing")
             idleSingle(currentGames[0])
         } else if (currentGames.size > 1) {
             Log.i(TAG, "Resume playing (multiple)")
             idleMultiple(currentGames)
+        } else if (isFarming) {
+            Log.i(TAG, "Resume farming")
+            isPaused = false
+            executor.execute(farmTask)
         }
     }
 
