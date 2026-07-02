@@ -4,7 +4,7 @@ on:
   push:
     branches: [ 2026 ]
     paths:
-      - 'app/build.gradle'
+      - 'app/build.gradle.kts'
   workflow_dispatch:
 
 permissions:

@@ -38,7 +38,7 @@ class SteamWebHandler private constructor() {
     private var sessionId: String? = null
     private var accessToken: String? = null
     private var steamParental: String? = null
-    private var apiKey = BuildConfig.SteamApiKey
+    private var apiKey = BuildConfig.STEAM_API_KEY
 
     private val api: SteamAPI
 
@@ -325,7 +325,7 @@ class SteamWebHandler private constructor() {
             val title = titleNode.text().trim { it <= ' ' }
             if (title.lowercase(Locale.getDefault()).contains("access denied")) {
                 // Limited account, use the built-in API key
-                apiKey = BuildConfig.SteamApiKey
+                apiKey = BuildConfig.STEAM_API_KEY
                 writeApiKey(apiKey)
                 return ApiKeyState.ACCESS_DENIED
             }
