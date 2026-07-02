@@ -1,5 +1,5 @@
-package com.steevsapps.idledaddy.listeners;
+package com.steevsapps.idledaddy.listeners
 
-public interface GamesListUpdateListener {
-    void onGamesListUpdated();
+fun interface GamesListUpdateListener {
+    fun onGamesListUpdated()
 }

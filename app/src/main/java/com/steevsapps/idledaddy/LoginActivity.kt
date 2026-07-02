@@ -14,6 +14,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.content.IntentCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -24,9 +25,7 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.WriterException
 import com.google.zxing.qrcode.QRCodeWriter
 import com.steevsapps.idledaddy.preferences.PrefsManager
-import com.steevsapps.idledaddy.steam.SteamGuard
 import com.steevsapps.idledaddy.steam.SteamService
-import com.steevsapps.idledaddy.steam.SteamWebHandler
 import com.steevsapps.idledaddy.utils.Utils
 import androidx.core.graphics.set
 import androidx.core.graphics.createBitmap
@@ -37,7 +36,6 @@ class LoginActivity : BaseActivity() {
     private var loginInProgress = false
     private var twoFactorRequired = false
     private var qrLoginActive = false
-    private var timeDifference: Int? = null
 
     private lateinit var viewModel: LoginViewModel
 
@@ -82,7 +80,7 @@ class LoginActivity : BaseActivity() {
     private fun onLoginEvent(intent: Intent) {
         stopTimeout()
         progress.isVisible = false
-        val result = intent.getSerializableExtra(SteamService.RESULT) as EResult?
+        val result = IntentCompat.getSerializableExtra(intent, SteamService.RESULT, EResult::class.java)
         if (result != EResult.OK) {
             loginButton.isEnabled = true
             usernameInput.isErrorEnabled = false
@@ -105,14 +103,6 @@ class LoginActivity : BaseActivity() {
                         result == EResult.AccountLogonDeniedNoMail ||
                         result == EResult.AccountLogonDeniedVerifiedEmailRequired -> {
                     twoFactorRequired = result == EResult.AccountLoginDeniedNeedTwoFactor
-                    if (twoFactorRequired && timeDifference != null) {
-                        // Fill in the SteamGuard code
-                        twoFactorEditText.setText(
-                            SteamGuard.generateSteamGuardCodeForTime(
-                                Utils.getCurrentUnixTime() + timeDifference!!
-                            )
-                        )
-                    }
                     twoFactorInput.isVisible = true
                     twoFactorInput.error = getString(R.string.steamguard_required)
                     twoFactorEditText.requestFocus()
@@ -127,7 +117,7 @@ class LoginActivity : BaseActivity() {
             // since the QR flow never has one typed into usernameEditText)
             if (!qrLoginActive) {
                 val password = Utils.removeSpecialChars(passwordEditText.text.toString().trim())
-                PrefsManager.writePassword(this@LoginActivity, password)
+                PrefsManager.writePassword(password)
             }
             finish()
         }
@@ -177,7 +167,7 @@ class LoginActivity : BaseActivity() {
         } else {
             // Restore saved username if any
             usernameEditText.setText(PrefsManager.getUsername())
-            passwordEditText.setText(PrefsManager.getPassword(this))
+            passwordEditText.setText(PrefsManager.getPassword())
         }
 
         setupViewModel()
@@ -203,6 +193,7 @@ class LoginActivity : BaseActivity() {
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, filter)
     }
 
+    @Suppress("unused")
     fun doLogin(v: View?) {
         if (twoFactorInput.isVisible) {
             // SteamService is already mid-login and waiting on a Steam Guard code
@@ -230,6 +221,7 @@ class LoginActivity : BaseActivity() {
     /**
      * Toggle between the password form and the QR code sign-in view
      */
+    @Suppress("unused")
     fun toggleQrLogin(v: View?) {
         qrLoginActive = !qrLoginActive
         updateLoginMode()
@@ -269,9 +261,6 @@ class LoginActivity : BaseActivity() {
 
     private fun setupViewModel() {
         viewModel = ViewModelProvider(this)[LoginViewModel::class.java]
-        viewModel.init(SteamWebHandler.getInstance())
-        viewModel.getTimeDifference()
-            .observe(this, Observer { value: Int? -> timeDifference = value })
         viewModel.timeout.observe(this, Observer {
             loginInProgress = false
             loginButton.isEnabled = true
@@ -287,9 +276,6 @@ class LoginActivity : BaseActivity() {
         private const val TWO_FACTOR_REQUIRED = "TWO_FACTOR_REQUIRED"
         private const val QR_LOGIN_ACTIVE = "QR_LOGIN_ACTIVE"
 
-        @JvmStatic
-        fun createIntent(c: Context?): Intent {
-            return Intent(c, LoginActivity::class.java)
-        }
+        fun createIntent(c: Context?): Intent = Intent(c, LoginActivity::class.java)
     }
 }

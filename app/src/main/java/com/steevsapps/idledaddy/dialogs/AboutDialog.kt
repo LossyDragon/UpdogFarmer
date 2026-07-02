@@ -1,55 +1,40 @@
-package com.steevsapps.idledaddy.dialogs;
+package com.steevsapps.idledaddy.dialogs
 
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.graphics.Color;
-import android.os.Build;
-import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.fragment.app.DialogFragment;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.webkit.WebView;
+import android.app.AlertDialog
+import android.app.Dialog
+import android.graphics.Color
+import android.os.Bundle
+import android.webkit.WebView
+import androidx.fragment.app.DialogFragment
+import com.steevsapps.idledaddy.R
+import java.io.IOException
+import java.util.Locale
 
-import com.steevsapps.idledaddy.R;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-
-public class AboutDialog extends DialogFragment {
-    public final static String TAG = AboutDialog.class.getSimpleName();
-
-    public static AboutDialog newInstance() {
-        return new AboutDialog();
-    }
-
-    @NonNull
-    @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
-        final WebView webView = (WebView) LayoutInflater.from(getActivity()).inflate(R.layout.about_dialog, null);
-        final String lang = Locale.getDefault().getLanguage();
-        String uri = "file:///android_asset/about.html";
+class AboutDialog : DialogFragment() {
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val webView = layoutInflater.inflate(R.layout.about_dialog, null) as WebView
+        val lang = Locale.getDefault().language
+        var uri = "file:///android_asset/about.html"
         try {
             // Load language-specific version of the about page if available.
-            final List<String> assets = Arrays.asList(getResources().getAssets().list(""));
-            if (assets.contains(String.format("about-%s.html", lang))) {
-                uri = String.format("file:///android_asset/about-%s.html", lang);
+            val localizedFile = "about-$lang.html"
+            if (resources.assets.list("")?.contains(localizedFile) == true) {
+                uri = "file:///android_asset/$localizedFile"
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (e: IOException) {
+            e.printStackTrace()
         }
-        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT) {
-            // Getting Chromium crashes on certain KitKat devices. Might be caused by hardware acceleration
-            webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-        }
-        webView.loadUrl(uri);
-        webView.setBackgroundColor(Color.TRANSPARENT);
-        return new AlertDialog.Builder(getActivity())
-                .setTitle(R.string.about)
-                .setView(webView)
-                .setPositiveButton(R.string.ok, null)
-                .create();
+        webView.loadUrl(uri)
+        webView.setBackgroundColor(Color.TRANSPARENT)
+        return AlertDialog.Builder(activity)
+            .setTitle(R.string.about)
+            .setView(webView)
+            .setPositiveButton(R.string.ok, null)
+            .create()
+    }
+
+    companion object {
+        val TAG: String = AboutDialog::class.java.getSimpleName()
+        fun newInstance(): AboutDialog = AboutDialog()
     }
 }

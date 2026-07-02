@@ -1,21 +1,11 @@
-package com.steevsapps.idledaddy.steam.model;
+package com.steevsapps.idledaddy.steam.model
 
-import com.google.gson.annotations.SerializedName;
+import com.google.gson.annotations.SerializedName
 
-import java.util.List;
-
-public class GamesOwnedResponse {
+class GamesOwnedResponse {
     @SerializedName("game_count")
-    private int count;
+    val count: Int = 0
 
     @SerializedName("games")
-    private List<Game> games;
-
-    public int getCount() {
-        return count;
-    }
-
-    public List<Game> getGames() {
-        return games;
-    }
+    val games: List<Game> = listOf()
 }

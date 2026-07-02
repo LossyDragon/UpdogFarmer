@@ -1,25 +1,28 @@
-package com.steevsapps.idledaddy.fragments;
+package com.steevsapps.idledaddy.fragments
 
-import android.content.Context;
-import androidx.recyclerview.widget.GridLayoutManager;
-import android.util.AttributeSet;
+import android.content.Context
+import android.util.AttributeSet
+import androidx.recyclerview.widget.GridLayoutManager
 
-public class GridLayoutManagerWrapper extends GridLayoutManager {
-    public GridLayoutManagerWrapper(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
-    }
+class GridLayoutManagerWrapper : GridLayoutManager {
 
-    public GridLayoutManagerWrapper(Context context, int spanCount) {
-        super(context, spanCount);
-    }
+    constructor(context: Context, spanCount: Int) : super(context, spanCount)
 
-    public GridLayoutManagerWrapper(Context context, int spanCount, int orientation, boolean reverseLayout) {
-        super(context, spanCount, orientation, reverseLayout);
-    }
+    constructor(
+        context: Context,
+        attrs: AttributeSet,
+        defStyleAttr: Int,
+        defStyleRes: Int
+    ) : super(context, attrs, defStyleAttr, defStyleRes)
 
-    @Override
-    public boolean supportsPredictiveItemAnimations() {
-        // Prevents a crash for some reason
-        return false;
-    }
+
+    constructor(
+        context: Context,
+        spanCount: Int,
+        orientation: Int,
+        reverseLayout: Boolean
+    ) : super(context, spanCount, orientation, reverseLayout)
+
+    // Prevents a crash for some reason
+    override fun supportsPredictiveItemAnimations(): Boolean = false
 }

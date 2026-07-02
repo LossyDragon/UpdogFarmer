@@ -1,96 +1,84 @@
-package com.steevsapps.idledaddy.steam.model;
+package com.steevsapps.idledaddy.steam.model
 
-import android.os.Parcel;
-import android.os.Parcelable;
-import androidx.annotation.NonNull;
+import android.os.Parcel
+import android.os.Parcelable
+import android.os.Parcelable.Creator
+import com.google.gson.annotations.SerializedName
 
-import com.google.gson.annotations.SerializedName;
-
-public class Game implements Comparable<Game>, Parcelable {
-    private final static String IMG_URL = "http://media.steampowered.com/steamcommunity/public/images/apps/%d/%s.jpg";
-
+class Game : Comparable<Game>, Parcelable {
     @SerializedName("appid")
-    public int appId;
+    var appId: Int
+
     @SerializedName("name")
-    public String name;
+    var name: String = ""
+
     @SerializedName("img_logo_url")
-    public String iconUrl;
+    var iconUrl: String = ""
+
     @SerializedName("playtime_forever")
-    public float hoursPlayed;
+    var hoursPlayed: Float
+
     @SerializedName("drops_remaining")
-    public int dropsRemaining;
+    var dropsRemaining: Int
 
-    public Game(int appId, String name, float hoursPlayed, int dropsRemaining) {
-        this.appId = appId;
-        this.name = name;
-        this.iconUrl = "http://cdn.akamai.steamstatic.com/steam/apps/" + appId + "/header_292x136.jpg";
-        this.hoursPlayed = hoursPlayed;
-        this.dropsRemaining = dropsRemaining;
+    constructor(appId: Int, name: String, hoursPlayed: Float, dropsRemaining: Int) {
+        this.appId = appId
+        this.name = name
+        this.iconUrl = "http://cdn.akamai.steamstatic.com/steam/apps/$appId/header_292x136.jpg"
+        this.hoursPlayed = hoursPlayed
+        this.dropsRemaining = dropsRemaining
     }
 
-    private Game(Parcel parcel) {
-        appId = parcel.readInt();
-        name = parcel.readString();
-        iconUrl = parcel.readString();
-        hoursPlayed = parcel.readFloat();
-        dropsRemaining = parcel.readInt();
+    private constructor(parcel: Parcel) {
+        appId = parcel.readInt()
+        name = parcel.readString().orEmpty()
+        iconUrl = parcel.readString().orEmpty()
+        hoursPlayed = parcel.readFloat()
+        dropsRemaining = parcel.readInt()
     }
 
-    @Override
-    public int compareTo(@NonNull Game game) {
-        if (hoursPlayed == game.hoursPlayed) {
-            return 0;
+    override fun compareTo(other: Game): Int {
+        if (hoursPlayed == other.hoursPlayed) {
+            return 0
         }
-        return hoursPlayed < game.hoursPlayed ? -1 : 1;
+        return if (hoursPlayed < other.hoursPlayed) -1 else 1
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
+    override fun equals(other: Any?): Boolean {
+        if (other === this) {
+            return true
         }
-        if (obj == null) {
-            return false;
+        if (other !is Game) {
+            return false
         }
-        if (obj.getClass() != getClass()) {
-            return false;
-        }
-        final Game otherGame = (Game) obj;
-        return otherGame.appId == appId;
+        return other.appId == appId
     }
 
-    @Override
-    public int hashCode() {
+    override fun hashCode(): Int {
         // Start with a non-zero constant. Prime is preferred
-        int result = 17;
+        var result = 17
         // Include a hash for each field
-        result = 31 * result + appId;
-        return result;
+        result = 31 * result + appId
+        return result
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
+    override fun describeContents(): Int {
+        return 0
     }
 
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeInt(appId);
-        parcel.writeString(name);
-        parcel.writeString(iconUrl);
-        parcel.writeFloat(hoursPlayed);
-        parcel.writeInt(dropsRemaining);
+    override fun writeToParcel(parcel: Parcel, i: Int) {
+        parcel.writeInt(appId)
+        parcel.writeString(name)
+        parcel.writeString(iconUrl)
+        parcel.writeFloat(hoursPlayed)
+        parcel.writeInt(dropsRemaining)
     }
 
-    public final static Parcelable.Creator<Game> CREATOR = new Parcelable.Creator<Game>() {
-        @Override
-        public Game createFromParcel(Parcel parcel) {
-            return new Game(parcel);
+    companion object {
+        @JvmField
+        val CREATOR: Creator<Game?> = object : Creator<Game?> {
+            override fun createFromParcel(parcel: Parcel): Game = Game(parcel)
+            override fun newArray(i: Int): Array<Game?> = arrayOfNulls(i)
         }
-
-        @Override
-        public Game[] newArray(int i) {
-            return new Game[i];
-        }
-    };
+    }
 }

@@ -1,89 +1,78 @@
-package com.steevsapps.idledaddy.dialogs;
+package com.steevsapps.idledaddy.dialogs
 
-import android.annotation.SuppressLint;
-import android.app.Application;
-import androidx.lifecycle.AndroidViewModel;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import android.os.AsyncTask;
-import androidx.annotation.NonNull;
+import android.annotation.SuppressLint
+import android.app.Application
+import android.os.AsyncTask
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import com.steevsapps.idledaddy.R
+import com.steevsapps.idledaddy.steam.SteamWebHandler
+import com.steevsapps.idledaddy.utils.Utils
+import java.util.ArrayDeque
 
-import com.steevsapps.idledaddy.R;
-import com.steevsapps.idledaddy.steam.SteamWebHandler;
-import com.steevsapps.idledaddy.utils.Utils;
+@Suppress("DEPRECATION")
+class AutoDiscoverViewModel(application: Application) : AndroidViewModel(application) {
+    private lateinit var webHandler: SteamWebHandler
+    private val discoveryQueue = ArrayDeque<String>()
 
-import org.json.JSONArray;
+    var isFinished: Boolean = true
+        private set
 
-import java.util.ArrayDeque;
+    val statusMessage: LiveData<String>
+        field = MutableLiveData<String>()
 
-public class AutoDiscoverViewModel extends AndroidViewModel {
-
-    private final MutableLiveData<String> statusText = new MutableLiveData<>();
-    private SteamWebHandler webHandler;
-    private boolean finished = true;
-
-    private final ArrayDeque<String> discoveryQueue = new ArrayDeque<>();
-
-    public AutoDiscoverViewModel(@NonNull Application application) {
-        super(application);
-    }
-
-    public boolean isFinished() {
-        return finished;
-    }
-
-    void init(SteamWebHandler webHandler) {
-        this.webHandler = webHandler;
-    }
-
-    LiveData<String> getStatus() {
-        return statusText;
+    fun init(webHandler: SteamWebHandler) {
+        this.webHandler = webHandler
     }
 
     @SuppressLint("StaticFieldLeak")
-    public void autodiscover() {
-        finished = false;
-        new AsyncTask<Void,String,Boolean>() {
-            @Override
-            protected Boolean doInBackground(Void... voids) {
+    fun autodiscover() {
+        isFinished = false
+        val app = getApplication<Application>()
+        object : AsyncTask<Void, String, Boolean>() {
+            @Deprecated("Deprecated in Java")
+            override fun doInBackground(vararg voids: Void?): Boolean {
                 try {
                     if (discoveryQueue.isEmpty()) {
                         // Generate new discovery queue
-                        publishProgress(getApplication().getString(R.string.generating_discovery));
+                        publishProgress(app.getString(R.string.generating_discovery))
 
-                        Utils.runWithRetries(3, () -> {
-                            final JSONArray newQueue = webHandler.generateNewDiscoveryQueue();
-                            for (int i=0, count=newQueue.length();i<count;i++) {
-                                discoveryQueue.add(newQueue.getString(i));
+                        Utils.runWithRetries(3) {
+                            val newQueue = webHandler.generateNewDiscoveryQueue()
+                            for (i in 0 until newQueue.length()) {
+                                discoveryQueue.add(newQueue.getString(i))
                             }
-                        });
+                        }
                     }
 
-                    for (int i=0, count=discoveryQueue.size();i<count;i++) {
-                        final String appId = discoveryQueue.getFirst();
-                        publishProgress(getApplication().getString(R.string.discovering, appId, i + 1, count));
-                        Utils.runWithRetries(3, () -> {
-                            webHandler.clearFromQueue(appId);
-                            discoveryQueue.pop();
-                        });
+                    val count = discoveryQueue.size
+                    for (i in 0 until count) {
+                        val appId = discoveryQueue.first
+                        publishProgress(app.getString(R.string.discovering, appId, i + 1, count))
+                        Utils.runWithRetries(3) {
+                            webHandler.clearFromQueue(appId)
+                            discoveryQueue.pop()
+                        }
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return false;
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
 
-            @Override
-            protected void onProgressUpdate(String... values) {
-                statusText.setValue(values[0]);
+            @Deprecated("Deprecated in Java")
+            override fun onProgressUpdate(vararg values: String?) {
+                statusMessage.value = values[0]
             }
 
-            @Override
-            protected void onPostExecute(Boolean result) {
-                finished = true;
-                statusText.setValue(getApplication().getString(result ? R.string.discovery_finished : R.string.discovery_error));
+            @Deprecated("Deprecated in Java")
+            override fun onPostExecute(result: Boolean) {
+                isFinished = true
+                val result = if (result) R.string.discovery_finished else R.string.discovery_error
+                statusMessage.value = app.getString(result)
             }
-        }.execute();
+        }.execute()
     }
 }

@@ -17,7 +17,7 @@ android {
         applicationId "com.steevsapps.idledaddy"
         minSdkVersion 27 // Android 8
         targetSdkVersion 36 // Android 16
-        versionCode 95
+        versionCode 96
         versionName "2.0.50"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -50,7 +50,7 @@ ext {
     supportLibraryVersion = "27.1.1"
 }
 
-configurations.all {
+configurations.configureEach {
     // Don't cache changing modules at all.
     resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }

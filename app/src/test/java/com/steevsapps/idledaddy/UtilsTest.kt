@@ -1,17 +1,15 @@
-package com.steevsapps.idledaddy;
+package com.steevsapps.idledaddy
 
-import com.steevsapps.idledaddy.utils.Utils;
+import com.steevsapps.idledaddy.utils.Utils.removeSpecialChars
+import org.junit.Assert
+import org.junit.Test
 
-import org.junit.Test;
-
-import static org.junit.Assert.*;
-
-public class UtilsTest {
+class UtilsTest {
     /**
      * Test the removeSpecialChars method
      */
     @Test
-    public void removeSpecialChars_works() {
-        assertEquals("daddy123", Utils.removeSpecialChars("daಥd益dಥy123"));
+    fun removeSpecialChars_works() {
+        Assert.assertEquals("daddy123", removeSpecialChars("daಥd益dಥy123"))
     }
 }

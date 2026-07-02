@@ -44,7 +44,6 @@ class NumPickerDialog : PreferenceDialogFragmentCompat(), OnValueChangeListener 
     companion object {
         private const val VALUE = "VALUE"
 
-        @JvmStatic
         fun newInstance(preference: Preference): NumPickerDialog {
             val fragment = NumPickerDialog()
             Bundle().apply {

@@ -324,7 +324,8 @@ class MainActivity : BaseActivity(), DialogListener, GamePickedListener,
             R.id.home -> HomeFragment.newInstance(loggedIn, farming)
             R.id.games -> GamesFragment.newInstance(
                 service!!.steamId,
-                service!!.currentGames, spinnerNav.selectedItemPosition
+                ArrayList(service!!.currentGames),
+                spinnerNav.selectedItemPosition
             )
 
             R.id.settings -> SettingsFragment.newInstance()
@@ -471,7 +472,7 @@ class MainActivity : BaseActivity(), DialogListener, GamePickedListener,
                 setTitle("")
                 showSpinnerNav()
                 drawerView.menu.findItem(R.id.games).isChecked = true
-                fragment.update(service!!.currentGames)
+                fragment.update(ArrayList(service!!.currentGames))
             }
 
             is SettingsFragment -> {
@@ -528,15 +529,15 @@ class MainActivity : BaseActivity(), DialogListener, GamePickedListener,
         }
     }
 
-    override fun onGamePicked(game: Game?) {
+    override fun onGamePicked(game: Game) {
         service!!.addGame(game)
     }
 
-    override fun onGamesPicked(games: MutableList<Game?>) {
+    override fun onGamesPicked(games: MutableList<Game>) {
         service!!.addGames(games)
     }
 
-    override fun onGameRemoved(game: Game?) {
+    override fun onGameRemoved(game: Game) {
         service!!.removeGame(game)
     }
 

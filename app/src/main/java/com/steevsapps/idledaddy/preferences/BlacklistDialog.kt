@@ -23,7 +23,7 @@ class BlacklistDialog : PreferenceDialogFragmentCompat(), View.OnClickListener,
     private var layoutManager: RecyclerView.LayoutManager? = null
     private var adapter: BlacklistAdapter? = null
     private var preference: BlacklistPreference? = null
-    private var currentValue: String? = null
+    private var currentValue: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,7 +31,7 @@ class BlacklistDialog : PreferenceDialogFragmentCompat(), View.OnClickListener,
         currentValue = if (savedInstanceState == null) {
             preference!!.value
         } else {
-            savedInstanceState.getString(VALUE)
+            savedInstanceState.getString(VALUE) ?: ""
         }
     }
 
@@ -82,7 +82,6 @@ class BlacklistDialog : PreferenceDialogFragmentCompat(), View.OnClickListener,
     companion object {
         private const val VALUE = "VALUE" // Key to hold current value
 
-        @JvmStatic
         fun newInstance(preference: Preference): BlacklistDialog {
             val fragment = BlacklistDialog()
             Bundle(1).apply {

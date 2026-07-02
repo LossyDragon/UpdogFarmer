@@ -1,76 +1,49 @@
-package com.steevsapps.idledaddy.adapters;
+package com.steevsapps.idledaddy.adapters
 
-import androidx.recyclerview.widget.RecyclerView;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+import com.steevsapps.idledaddy.R
 
-import com.steevsapps.idledaddy.R;
-import com.steevsapps.idledaddy.utils.Utils;
+class BlacklistAdapter(data: String) : RecyclerView.Adapter<BlacklistAdapter.ViewHolder>() {
+    private val dataSet: MutableList<String> = data.trim().split(",")
+        .filterTo(mutableListOf()) { it.isNotEmpty() }
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+    val value: String
+        get() = dataSet.joinToString(",")
 
-public class BlacklistAdapter extends RecyclerView.Adapter<BlacklistAdapter.ViewHolder> {
-    private List<String> dataSet = new ArrayList<>();
-
-    public BlacklistAdapter(String data) {
-        data = data.trim();
-        if (!data.isEmpty()) {
-            dataSet.addAll(Arrays.asList(data.split(",")));
+    fun addItem(item: String) {
+        if (item !in dataSet) {
+            dataSet.add(0, item)
+            notifyItemInserted(0)
         }
     }
 
-    public String getValue() {
-        return Utils.arrayToString(dataSet);
+    private fun removeItem(position: Int) {
+        dataSet.removeAt(position)
+        notifyItemRemoved(position)
     }
 
-    public void addItem(String item) {
-        if (!dataSet.contains(item)) {
-            dataSet.add(0, item);
-            notifyItemInserted(0);
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.blacklist_dialog_item, parent, false)
+        return ViewHolder(view).also { vh ->
+            vh.removeButton.setOnClickListener { removeItem(vh.bindingAdapterPosition) }
         }
     }
 
-    private void removeItem(int position) {
-        dataSet.remove(position);
-        notifyItemRemoved(position);
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.appId.text = dataSet[position]
     }
 
-    @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.blacklist_dialog_item, parent, false);
-        final ViewHolder vh = new ViewHolder(view);
-        vh.removeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                removeItem(vh.getAdapterPosition());
-            }
-        });
-        return vh;
-    }
+    override fun getItemCount(): Int = dataSet.size
 
-    @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
-        final String appId = dataSet.get(position);
-        holder.appId.setText(appId);
-    }
-
-    @Override
-    public int getItemCount() {
-        return dataSet.size();
-    }
-
-    static class ViewHolder extends RecyclerView.ViewHolder {
-        private TextView appId;
-        private ImageView removeButton;
-        private ViewHolder(View itemView) {
-            super(itemView);
-            appId = itemView.findViewById(R.id.appid);
-            removeButton = itemView.findViewById(R.id.remove_button);
-        }
+    class ViewHolder(itemView: View) :
+        RecyclerView.ViewHolder(itemView) {
+        val appId: TextView = itemView.findViewById(R.id.appid)
+        val removeButton: ImageView = itemView.findViewById(R.id.remove_button)
     }
 }
