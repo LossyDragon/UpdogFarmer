@@ -25,6 +25,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 return
             }
         }
+        @Suppress("DEPRECATION")
+        fragment.setTargetFragment(this, 0)
         fragment.show(parentFragmentManager, DIALOG_TAG)
     }
 
