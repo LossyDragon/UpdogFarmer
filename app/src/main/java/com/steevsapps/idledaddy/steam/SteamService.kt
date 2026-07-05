@@ -31,6 +31,7 @@ import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.listeners.AndroidLogListener
 import com.steevsapps.idledaddy.preferences.PrefsManager.clearUser
 import com.steevsapps.idledaddy.preferences.PrefsManager.getCellId
+import com.steevsapps.idledaddy.preferences.PrefsManager.getGuardData
 import com.steevsapps.idledaddy.preferences.PrefsManager.getHoursUntilDrops
 import com.steevsapps.idledaddy.preferences.PrefsManager.getOffline
 import com.steevsapps.idledaddy.preferences.PrefsManager.getRefreshToken
@@ -799,6 +800,7 @@ class SteamService : Service() {
         val details = AuthSessionDetails().apply {
             this.username = username
             this.password = password
+            guardData = getGuardData().takeIf { it.isNotEmpty() }
             persistentSession = true
             clientOSType = EOSType.AndroidUnknown
             deviceFriendlyName = FRIENDLY_NAME
@@ -914,7 +916,7 @@ class SteamService : Service() {
                     .get()
                 val pollResult: AuthPollResult = authSession.pollingWaitForResult().get()
 
-                writeGuardData(pollResult.newGuardData ?: "")
+                pollResult.newGuardData?.let { writeGuardData(it) }
                 performLogOn(pollResult.accountName, pollResult.refreshToken)
             } catch (e: Exception) {
                 Log.i(TAG, "Credentials login failed", e)
@@ -950,7 +952,6 @@ class SteamService : Service() {
 
                 val pollResult: AuthPollResult = authSession.pollingWaitForResult().get()
 
-                writeGuardData(pollResult.newGuardData ?: "")
                 performLogOn(pollResult.accountName, pollResult.refreshToken)
             } catch (e: Exception) {
                 Log.i(TAG, "QR login failed", e)
