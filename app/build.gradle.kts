@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.compose.compiler)
 }
 
 kotlin {
@@ -20,10 +21,10 @@ android {
     defaultConfig {
         applicationId = "com.steevsapps.idledaddy"
         minSdk = 26 // Android 8
-        targetSdk = 36 // Android 162
+        targetSdk = 36 // Android 16
 
         versionCode = 100
-        versionName = "2.0.50"
+        versionName = "3.0.0"
 
         val apiKey = providers.gradleProperty("steamApiKey").get()
         buildConfigField("String", "STEAM_API_KEY", apiKey)
@@ -33,6 +34,7 @@ android {
 
     buildFeatures {
         buildConfig = true
+        compose = true
     }
 
     buildTypes {
@@ -71,6 +73,19 @@ dependencies {
     implementation(libs.jsoup)
     implementation(libs.lifecycle.extensions)
     implementation(libs.zxing.core)
+
+    val composeBom = platform("androidx.compose:compose-bom:2026.06.00")
+    implementation(composeBom)
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-core")
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.compose.material3.adaptive:adaptive")
+    implementation("androidx.activity:activity-compose:1.13.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
+
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation("me.zhanghai.compose.preference:preference:2.2.0")
 
     testImplementation(libs.junit)
 }

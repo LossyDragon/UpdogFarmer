@@ -8,12 +8,13 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.utils.CryptHelper
+import kotlin.math.roundToInt
 
 /**
  * SharedPreferences manager
  */
 object PrefsManager {
-    private const val CURRENT_VERSION = 3
+    private const val CURRENT_VERSION = 4
 
     private const val USERNAME = "username"
     private const val PASSWORD = "password"
@@ -64,6 +65,12 @@ object PrefsManager {
         if (oldVersion < 3) {
             writeRefreshToken("")
             writeGuardData("")
+        }
+        if (oldVersion < 4) {
+            // hours_until_drops is now stored as Float (Compose slider); convert old Int values
+            (prefs.all[HOURS_UNTIL_DROPS] as? Int)?.let {
+                prefs.edit { putFloat(HOURS_UNTIL_DROPS, it.toFloat()) }
+            }
         }
         writeVersion(CURRENT_VERSION)
     }
@@ -188,7 +195,7 @@ object PrefsManager {
     @JvmStatic
     fun getParentalPin(): String = prefs.getString(PARENTAL_PIN, "")!!
 
-    fun getHoursUntilDrops(): Int = prefs.getInt(HOURS_UNTIL_DROPS, 3)
+    fun getHoursUntilDrops(): Int = prefs.getFloat(HOURS_UNTIL_DROPS, 3f).roundToInt()
 
     @JvmStatic
     fun includeFreeGames(): Boolean = prefs.getBoolean(INCLUDE_FREE_GAMES, false)
