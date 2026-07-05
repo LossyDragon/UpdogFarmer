@@ -1,22 +1,30 @@
-## Idle Daddy
+## Idle Daddy (fork)
 
-Steam Trading Card farmer for Android
+Steam Trading Card farmer for Android, originally by [Steev](https://github.com/steevp](https://github.com/steevp/UpdogFarmer)
+
+Snapshot, signed APK builds can be found here:<br>
+[![Build Signed Release APK](https://github.com/LossyDragon/UpdogFarmer/actions/workflows/release.yml/badge.svg)](https://github.com/LossyDragon/UpdogFarmer/actions/workflows/release.yml)
 
 ## Note
-This is a fork that has no guarantee of being bug free or working at times . Its more of a hobby project between other hobbies so my interest of maintaining this repo can come and go. 
+This fork is a hobby to me, it has no garantee to be bug free. Issues, suggestions, and PR's are welcome.
 
-Signed apk's can be found in the actions tab up top to download the latest snapshot of progress. Users with the original app will need to uninstall that first before using this app, different signing keys using the same app package name. 
+Signed APK builds can be found in the *Actions* tab. You must be logged into GitHub to download them. 
+Recommended to choose the first green checkmark for the latest build.
 
-Stable (enough) builds may be packaged as a release due to action artifacts having a short shelf life. 
+Stable (enough) builds may be packaged as a release due to action artifacts having a short shelf life.
 
-Some features have been removed from this version, due to no interest in maintaining or unable to replicate a 1-to-1 copy. Some notable features removed: Ads, shared secret importing, send logs, etc.
+Some features have been removed to easy the burden of maintaing this app. Idling is the primary focus.
 
-v97 is probably the last version to target the original UI design. I may rewrite the app to use modern features such as compose and coroutines. Maintaining oreo as the min sdk will be honored. 
+v100 is the last build to maintain the original codebase and UI design.
 
-# Features (in this fork) 
-- updated project to be opened in modern Android Studio versions. 
-- written in kotlin for cleaner code
-- updated dependencies to the latest version
-- updated JavaSteam version which uses the new login flow, also enables QR sign in.
-- various bug fixes 
+Subsequent versions will be a rewrite using Jetpack Compose, a modern UI framework for Android.
+- Google has put the old View System into maintence mode Jun 1 2026
+- Compose is a declarative UI framework, this makes it easier for newcomers to easily contribute.
+- Less boilerplate and hacks the View system has been plagued with.
 
+# What's different.
+- Updated project to be openable in newer Android Studio versions (2026.1.2+)
+- Various bug fixes and newer dependencies making the app work again.
+- Uses the new Steam login flow, with Credential or QR sign in.
+- Maintain Android Oreo (API 26) support as long as possible.
+- (Soon to be) Rewritten using modern Android features ensuring compatbility for newer devices. 
