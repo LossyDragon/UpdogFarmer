@@ -64,14 +64,26 @@ import `in`.dragonbra.javasteam.steam.discovery.FileServerListProvider
 import `in`.dragonbra.javasteam.steam.handlers.steamapps.SteamApps
 import `in`.dragonbra.javasteam.steam.handlers.steamapps.callback.FreeLicenseCallback
 import `in`.dragonbra.javasteam.steam.handlers.steamapps.callback.PurchaseResponseCallback
+import `in`.dragonbra.javasteam.steam.handlers.steamauthticket.SteamAuthTicket
+import `in`.dragonbra.javasteam.steam.handlers.steamcloud.SteamCloud
+import `in`.dragonbra.javasteam.steam.handlers.steamcontent.SteamContent
 import `in`.dragonbra.javasteam.steam.handlers.steamfriends.SteamFriends
 import `in`.dragonbra.javasteam.steam.handlers.steamfriends.callback.PersonaStateCallback
+import `in`.dragonbra.javasteam.steam.handlers.steamgamecoordinator.SteamGameCoordinator
+import `in`.dragonbra.javasteam.steam.handlers.steamgameserver.SteamGameServer
+import `in`.dragonbra.javasteam.steam.handlers.steammasterserver.SteamMasterServer
+import `in`.dragonbra.javasteam.steam.handlers.steammatchmaking.SteamMatchmaking
+import `in`.dragonbra.javasteam.steam.handlers.steamnetworking.SteamNetworking
+import `in`.dragonbra.javasteam.steam.handlers.steamnotifications.SteamNotifications
 import `in`.dragonbra.javasteam.steam.handlers.steamnotifications.callback.ItemAnnouncementsCallback
+import `in`.dragonbra.javasteam.steam.handlers.steamscreenshots.SteamScreenshots
 import `in`.dragonbra.javasteam.steam.handlers.steamuser.LogOnDetails
 import `in`.dragonbra.javasteam.steam.handlers.steamuser.SteamUser
 import `in`.dragonbra.javasteam.steam.handlers.steamuser.callback.AccountInfoCallback
 import `in`.dragonbra.javasteam.steam.handlers.steamuser.callback.LoggedOffCallback
 import `in`.dragonbra.javasteam.steam.handlers.steamuser.callback.LoggedOnCallback
+import `in`.dragonbra.javasteam.steam.handlers.steamuserstats.SteamUserStats
+import `in`.dragonbra.javasteam.steam.handlers.steamworkshop.SteamWorkshop
 import `in`.dragonbra.javasteam.steam.steamclient.SteamClient
 import `in`.dragonbra.javasteam.steam.steamclient.callbackmgr.CallbackManager
 import `in`.dragonbra.javasteam.steam.steamclient.callbacks.ConnectedCallback
@@ -168,6 +180,24 @@ class SteamService : Service() {
     inner class LocalBinder : Binder() {
         val service: SteamService
             get() = this@SteamService
+    }
+
+    /**
+     * Login flow events for the currently bound login UI, delivered on the main thread.
+     * Set through [LocalBinder]; only one listener at a time.
+     */
+    interface LoginEventListener {
+        fun onLoginResult(result: EResult)
+        fun onQrChallenge(url: String)
+        fun onDeviceConfirmation()
+    }
+
+    var loginEventListener: LoginEventListener? = null
+
+    private fun notifyLoginListener(block: (LoginEventListener) -> Unit) {
+        Handler(Looper.getMainLooper()).post {
+            loginEventListener?.let(block)
+        }
     }
 
     // This is the object that receives interactions from clients.
@@ -411,6 +441,20 @@ class SteamService : Service() {
         subscriptions.add(manager.subscribe<AccountInfoCallback>(::onAccountInfo))
         subscriptions.add(manager.subscribe<ItemAnnouncementsCallback>(::onItemAnnouncements))
         subscriptions.add(manager.subscribe<PurchaseResponseCallback>(::onPurchaseResponse))
+
+        // Unregister handlers we have no use for.
+        steamClient.removeHandler<SteamGameCoordinator>()
+        steamClient.removeHandler<SteamGameServer>()
+        steamClient.removeHandler<SteamUserStats>()
+        steamClient.removeHandler<SteamMasterServer>()
+        steamClient.removeHandler<SteamCloud>()
+        steamClient.removeHandler<SteamWorkshop>()
+        steamClient.removeHandler<SteamScreenshots>()
+        steamClient.removeHandler<SteamMatchmaking>()
+        steamClient.removeHandler<SteamNetworking>()
+        steamClient.removeHandler<SteamContent>()
+        steamClient.removeHandler<SteamAuthTicket>()
+        steamClient.removeHandler<SteamNotifications>()
 
         if (stayAwake()) {
             acquireWakeLock()
@@ -813,8 +857,8 @@ class SteamService : Service() {
 
     /**
      * Log in by scanning a QR code with the Steam Mobile App. No password/2FA code is needed;
-     * the QR auth session broadcasts QR_CHALLENGE_EVENT with the URL to render as soon as it begins,
-     * then blocks until the user approves the prompt on their phone.
+     * the QR auth session emits [LoginEventListener.onQrChallenge] with the URL to render as soon
+     * as it begins, then blocks until the user approves the prompt on their phone.
      */
     fun loginWithQr() {
         Log.i(TAG, "logging in via QR")
@@ -963,9 +1007,7 @@ class SteamService : Service() {
     }
 
     private fun sendQrChallengeUrl(url: String) {
-        val intent = Intent(QR_CHALLENGE_EVENT)
-        intent.putExtra(QR_URL, url)
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+        notifyLoginListener { it.onQrChallenge(url) }
     }
 
     /**
@@ -1036,13 +1078,14 @@ class SteamService : Service() {
     }
 
     /**
-     * Authenticator bridging JavaSteam's poll-based Steam Guard prompts to LoginActivity's UI: each
-     * callback parks a future in [.pendingGuardCodeFuture] and tells LoginActivity (via
-     * LOGIN_EVENT, reusing the EResults it already branches on) to show the code field. The actual
-     * code arrives later through [.submitTwoFactorCode].
+     * Authenticator bridging JavaSteam's poll-based Steam Guard prompts to the login UI: each
+     * callback parks a future in [.pendingGuardCodeFuture] and tells the login screen (via
+     * [LoginEventListener.onLoginResult], reusing the EResults it already branches on) to show the
+     * code field. The actual code arrives later through [.submitTwoFactorCode].
      */
     private inner class GuardCodeAuthenticator : IAuthenticator {
         override fun getDeviceCode(previousCodeWasIncorrect: Boolean): CompletableFuture<String> {
+            Log.i(TAG, "IAuthenticator: Device Confirmation")
             return requestGuardCode(
                 if (previousCodeWasIncorrect)
                     EResult.TwoFactorCodeMismatch
@@ -1055,6 +1098,7 @@ class SteamService : Service() {
             email: String?,
             previousCodeWasIncorrect: Boolean
         ): CompletableFuture<String> {
+            Log.i(TAG, "IAuthenticator: Email Code from $email")
             return requestGuardCode(
                 if (previousCodeWasIncorrect)
                     EResult.InvalidLoginAuthCode
@@ -1064,8 +1108,8 @@ class SteamService : Service() {
         }
 
         override fun acceptDeviceConfirmation(): CompletableFuture<Boolean> {
-            LocalBroadcastManager.getInstance(this@SteamService)
-                .sendBroadcast(Intent(DEVICE_CONFIRMATION_EVENT))
+            Log.i(TAG, "IAuthenticator: Device Confirmation")
+            notifyLoginListener { it.onDeviceConfirmation() }
             return CompletableFuture.completedFuture(true)
         }
     }
@@ -1084,6 +1128,8 @@ class SteamService : Service() {
     }
 
     private fun sendLoginResult(result: EResult) {
+        notifyLoginListener { it.onLoginResult(result) }
+        // MainActivity still watches LOGIN_EVENT to refresh its status display
         val intent = Intent(LOGIN_EVENT)
         intent.putExtra(RESULT, result)
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
@@ -1226,11 +1272,7 @@ class SteamService : Service() {
 
         writeCellId(callback.cellID)
 
-        // Tell LoginActivity the result
-        val intent = Intent(LOGIN_EVENT).apply {
-            putExtra(RESULT, result)
-        }
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+        sendLoginResult(result)
     }
 
     private fun onPurchaseResponse(callback: PurchaseResponseCallback) {
@@ -1387,15 +1429,6 @@ class SteamService : Service() {
 
         // Emitted when the game you're idling changes
         const val NOW_PLAYING_EVENT: String = "NOW_PLAYING_EVENT"
-
-        // Emitted when the QR login URL is available/refreshed
-        const val QR_CHALLENGE_EVENT: String = "QR_CHALLENGE_EVENT"
-
-        // The QR login challenge URL
-        const val QR_URL: String = "QR_URL"
-
-        // Emitted when awaiting Steam Mobile App approval
-        const val DEVICE_CONFIRMATION_EVENT: String = "DEVICE_CONFIRMATION_EVENT"
 
         // Actions
         const val SKIP_INTENT: String = "SKIP_INTENT"

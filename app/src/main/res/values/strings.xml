@@ -63,6 +63,7 @@
     <string name="steamguard_required">Steam Guard code required</string>
     <string name="invalid_code">Invalid code</string>
     <string name="timeout_error">Connection timed out. Please try again</string>
+    <string name="login_failed">Login failed. Please try again</string>
     <string name="channel_name">Idle Daddy notifications</string>
     <string name="now_playing2">Now playing %s</string>
     <string name="product_already_owned">Product already owned</string>
