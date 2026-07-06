@@ -38,22 +38,18 @@ import com.steevsapps.idledaddy.LoginActivity.Companion.createIntent
 import com.steevsapps.idledaddy.dialogs.AboutDialog
 import com.steevsapps.idledaddy.dialogs.AutoDiscoverDialog
 import com.steevsapps.idledaddy.dialogs.CustomAppDialog
-import com.steevsapps.idledaddy.dialogs.GameOptionsDialog
 import com.steevsapps.idledaddy.dialogs.RedeemDialog
 import com.steevsapps.idledaddy.fragments.GamesFragment
 import com.steevsapps.idledaddy.fragments.HomeFragment
 import com.steevsapps.idledaddy.fragments.SettingsFragment
 import com.steevsapps.idledaddy.listeners.DialogListener
-import com.steevsapps.idledaddy.listeners.GamePickedListener
 import com.steevsapps.idledaddy.listeners.SpinnerInteractionListener
 import com.steevsapps.idledaddy.preferences.PrefsManager
 import com.steevsapps.idledaddy.steam.SteamService
-import com.steevsapps.idledaddy.steam.model.Game
 import `in`.dragonbra.javasteam.enums.EPersonaState
 import java.util.Locale
 
-class MainActivity : BaseActivity(), DialogListener, GamePickedListener,
-    OnSharedPreferenceChangeListener {
+class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeListener {
     private var title = ""
     private var loggedIn = false
     private var farming = false
@@ -529,22 +525,6 @@ class MainActivity : BaseActivity(), DialogListener, GamePickedListener,
         }
     }
 
-    override fun onGamePicked(game: Game) {
-        service!!.addGame(game)
-    }
-
-    override fun onGamesPicked(games: MutableList<Game>) {
-        service!!.addGames(games)
-    }
-
-    override fun onGameRemoved(game: Game) {
-        service!!.removeGame(game)
-    }
-
-    override fun onGameLongPressed(game: Game) {
-        // Show game options
-        GameOptionsDialog.newInstance(game).show(supportFragmentManager, GameOptionsDialog.TAG)
-    }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         when (key) {
