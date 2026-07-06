@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -57,6 +59,24 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
+    }
+
+    packaging {
+        resources {
+            excludes += setOf(
+                "**/*.proto",
+                "junit/**",
+                "LICENSE-junit.txt",
+                "org/spongycastle/x509/CertPathReviewerMessages*.properties",
+            )
+        }
+    }
+
+    androidResources {
+        localeFilters += setOf(
+            "en", "ar", "bg", "bs", "cs", "de", "es-rES", "fa", "fr", "he", "iw", "in", "id",
+            "pl", "pt-rBR", "pt-rPT", "ro", "ru", "sl", "sr", "th", "tr", "uk", "vi", "zh", "zh-rCN",
+        )
     }
 }
 

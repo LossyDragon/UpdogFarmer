@@ -14,7 +14,6 @@ object Utils {
     /**
      * Check if API key is valid
      */
-    @JvmStatic
     fun isValidKey(key: String): Boolean = key.matches(API_KEY_REGEX)
 
     /**

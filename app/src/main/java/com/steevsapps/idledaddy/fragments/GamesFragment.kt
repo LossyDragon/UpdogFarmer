@@ -23,6 +23,7 @@ import com.steevsapps.idledaddy.preferences.PrefsManager.writeLastSession
 import com.steevsapps.idledaddy.steam.SteamWebHandler
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.ui.screen.games.GamesScreen
+import com.steevsapps.idledaddy.ui.screen.games.GamesViewModel
 
 class GamesFragment : Fragment() {
     private lateinit var viewModel: GamesViewModel

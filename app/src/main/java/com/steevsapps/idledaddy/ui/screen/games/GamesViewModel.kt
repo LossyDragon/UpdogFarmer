@@ -1,4 +1,4 @@
-package com.steevsapps.idledaddy.fragments
+package com.steevsapps.idledaddy.ui.screen.games
 
 import android.annotation.SuppressLint
 import android.app.Application
@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
+import com.steevsapps.idledaddy.fragments.GamesFragment
 import com.steevsapps.idledaddy.preferences.PrefsManager.getBlacklist
 import com.steevsapps.idledaddy.preferences.PrefsManager.getLastSession
 import com.steevsapps.idledaddy.preferences.PrefsManager.getSortValue
