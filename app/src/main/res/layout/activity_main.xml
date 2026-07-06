@@ -21,15 +21,6 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <ViewStub
-            android:id="@+id/ad_inflater"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:layout="@layout/banner_ad" />
-
     </LinearLayout>
 
     <com.google.android.material.navigation.NavigationView

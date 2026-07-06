@@ -1,4 +1,4 @@
-package com.steevsapps.idledaddy
+package com.steevsapps.idledaddy.ui.screen.login
 
 import android.annotation.SuppressLint
 import android.app.Application
@@ -23,6 +23,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.WriterException
 import com.google.zxing.qrcode.QRCodeWriter
+import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.preferences.PrefsManager
 import com.steevsapps.idledaddy.steam.SteamService
 import com.steevsapps.idledaddy.utils.Utils
@@ -45,6 +46,7 @@ data class LoginUiState(
     @StringRes val passwordError: Int? = null,
     @StringRes val twoFactorError: Int? = null,
     val qrCode: ImageBitmap? = null,
+    val qrFailed: Boolean = false,
     val loggedIn: Boolean = false,
     val snackbar: LoginSnackbar? = null,
 )
@@ -146,6 +148,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         uiState = uiState.copy(
             loginType = if (qrActive) LoginType.QR else LoginType.CREDENTIAL,
             qrCode = null,
+            qrFailed = false,
         )
         if (qrActive) {
             service?.loginWithQr()
@@ -153,6 +156,12 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             stopTimeout()
         }
+    }
+
+    fun retryQrLogin() {
+        uiState = uiState.copy(qrCode = null, qrFailed = false)
+        service?.loginWithQr()
+        startTimeout()
     }
 
     fun snackbarShown() {
@@ -180,7 +189,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         when {
             state.loginType == LoginType.QR -> {
                 // QR sessions just expire/fail outright; there's no field to attach an error to
-                state = state.copy(snackbar = LoginSnackbar.QR_FAILED)
+                state = state.copy(qrCode = null, qrFailed = true, snackbar = LoginSnackbar.QR_FAILED)
             }
 
             result == EResult.InvalidPassword -> {
@@ -213,7 +222,12 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         timeoutJob?.cancel()
         timeoutJob = viewModelScope.launch {
             delay(30.seconds)
-            uiState = uiState.copy(loginInProgress = false, snackbar = LoginSnackbar.TIMEOUT)
+            uiState = uiState.copy(
+                loginInProgress = false,
+                qrCode = null,
+                qrFailed = uiState.loginType == LoginType.QR,
+                snackbar = LoginSnackbar.TIMEOUT,
+            )
         }
     }
 

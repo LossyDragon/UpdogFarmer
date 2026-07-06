@@ -12,6 +12,7 @@
     <string name="login_with_password">Sign in with password</string>
     <string name="qr_login_instructions">Scan this code with the Steam Mobile App to sign in</string>
     <string name="qr_login_failed">QR sign in failed. Please try again</string>
+    <string name="retry">Retry</string>
     <string name="device_confirmation_prompt">Check your Steam Mobile App to approve the login</string>
     <string name="start_idling">Start farming</string>
     <string name="desc_start">Idle your games until all trading cards have dropped.</string>

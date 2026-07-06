@@ -46,9 +46,6 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.steevsapps.idledaddy.LoginType
-import com.steevsapps.idledaddy.LoginUiState
-import com.steevsapps.idledaddy.LoginViewModel
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 
@@ -89,11 +86,13 @@ fun LoginScreen(
         passwordError = state.passwordError?.let { stringResource(it) },
         twoFactorError = state.twoFactorError?.let { stringResource(it) },
         qrCode = state.qrCode,
+        qrFailed = state.qrFailed,
         initialUsername = viewModel.savedUsername,
         initialPassword = viewModel.savedPassword,
         snackbarHostState = snackbarHostState,
         onToggleLoginType = viewModel::toggleLoginType,
         onLogin = viewModel::doLogin,
+        onRetryQr = viewModel::retryQrLogin,
     )
 }
 
@@ -104,9 +103,11 @@ private fun LoginScreenComponent(
     loginInProgress: Boolean,
     loginType: LoginType,
     onLogin: (String, String, String) -> Unit,
+    onRetryQr: () -> Unit = {},
     onToggleLoginType: () -> Unit,
     passwordError: String?,
     qrCode: ImageBitmap?,
+    qrFailed: Boolean = false,
     snackbarHostState: SnackbarHostState,
     twoFactorError: String?,
     twoFactorRequired: Boolean,
@@ -144,7 +145,9 @@ private fun LoginScreenComponent(
 
                     LoginType.QR -> QrComponent(
                         qrCode = qrCode,
+                        qrFailed = qrFailed,
                         onToggleLoginType = onToggleLoginType,
+                        onRetry = onRetryQr,
                     )
                 }
             }
@@ -250,36 +253,53 @@ private fun CredentialsComponent(
 
 @Composable
 private fun QrComponent(
-    qrCode: ImageBitmap?,
+    onRetry: () -> Unit,
     onToggleLoginType: () -> Unit,
+    qrCode: ImageBitmap?,
+    qrFailed: Boolean,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        /* Box to align a QR Image or ProgressIndicator */
+        /* Box to align a QR Image, ProgressIndicator, or Retry button */
         Box(
             modifier = Modifier
                 .padding(top = 8.dp)
                 .size(220.dp),
             contentAlignment = Alignment.Center,
         ) {
-            if (qrCode != null) {
-                Image(
-                    bitmap = qrCode,
-                    contentDescription = stringResource(R.string.login_with_qr),
-                    modifier = Modifier.fillMaxSize(),
-                )
-            } else {
-                CircularProgressIndicator()
+            when {
+                qrFailed -> {
+                    Button(
+                        onClick = onRetry,
+                        shape = MaterialTheme.shapes.small,
+                    ) {
+                        Text(text = stringResource(R.string.retry))
+                    }
+                }
+
+                qrCode != null -> {
+                    Image(
+                        bitmap = qrCode,
+                        contentDescription = stringResource(R.string.login_with_qr),
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+
+                else -> {
+                    CircularProgressIndicator()
+                }
             }
         }
         /* QR text prompt */
-        Text(
-            text = stringResource(R.string.qr_login_instructions),
-            textAlign = TextAlign.Center,
-        )
+        if (!qrFailed) {
+            Text(
+                text = stringResource(R.string.qr_login_instructions),
+                textAlign = TextAlign.Center,
+            )
+        }
         /* Credential button */
         TextButton(
             onClick = onToggleLoginType,
@@ -304,6 +324,7 @@ private class LoginPreview : PreviewParameterProvider<LoginUiState> {
             twoFactorError = R.string.steamguard_required,
         ),
         LoginUiState(loginType = LoginType.QR),
+        LoginUiState(loginType = LoginType.QR, qrFailed = true),
     )
 }
 
@@ -319,6 +340,7 @@ private fun Preview(@PreviewParameter(LoginPreview::class) state: LoginUiState) 
         onToggleLoginType = {},
         passwordError = state.passwordError?.let { stringResource(it) },
         qrCode = state.qrCode,
+        qrFailed = state.qrFailed,
         snackbarHostState = remember { SnackbarHostState() },
         twoFactorError = state.twoFactorError?.let { stringResource(it) },
         twoFactorRequired = state.twoFactorRequired,

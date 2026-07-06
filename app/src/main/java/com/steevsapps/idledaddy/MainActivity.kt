@@ -433,7 +433,7 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
 
             R.id.stop_idling -> stopSteam()
             R.id.status -> startActivity(createIntent(this))
-            R.id.redeem -> RedeemDialog.newInstance().show(supportFragmentManager, "redeem")
+            // R.id.redeem -> RedeemDialog.newInstance().show(supportFragmentManager, "redeem")
             R.id.stop_button -> service!!.stopGame()
             R.id.pause_resume_button -> {
                 if (service!!.isPaused) {

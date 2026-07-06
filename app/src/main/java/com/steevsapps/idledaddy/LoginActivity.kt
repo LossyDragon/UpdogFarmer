@@ -11,9 +11,7 @@ class LoginActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         Log.i(TAG, "onCreate")
-
         setContent {
             LoginScreen(onLoggedIn = ::finish)
         }
