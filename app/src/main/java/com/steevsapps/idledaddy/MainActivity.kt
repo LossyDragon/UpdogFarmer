@@ -230,12 +230,10 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
                 }
 
                 R.id.about -> {
-                    // Same here
-                    AboutDialog.newInstance().show(supportFragmentManager, AboutDialog.TAG)
-                    closeDrawer()
-                }
-
-                R.id.remove_ads -> {
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.content_frame, AboutDialog.newInstance())
+                        .addToBackStack(null)
+                        .commit()
                     closeDrawer()
                 }
 
@@ -390,10 +388,12 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
 
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
         val loggedIn = service != null && service!!.isLoggedIn
+        val showOverflow = drawerItemId != R.id.about
         drawerView.getHeaderView(0).isClickable = loggedIn
-        menu.findItem(R.id.auto_discovery).isVisible = loggedIn
-        menu.findItem(R.id.custom_app).isVisible = loggedIn
-        menu.findItem(R.id.import_shared_secret).isVisible = loggedIn
+        menu.findItem(R.id.auto_discovery).isVisible = loggedIn && showOverflow
+        menu.findItem(R.id.custom_app).isVisible = loggedIn && showOverflow
+        menu.findItem(R.id.import_shared_secret).isVisible = loggedIn && showOverflow
+        menu.findItem(R.id.logcat).isVisible = showOverflow
         menu.findItem(R.id.search).isVisible = drawerItemId == R.id.games
         return super.onPrepareOptionsMenu(menu)
     }
@@ -476,6 +476,13 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
                 setTitle(R.string.settings)
                 hideSpinnerNav()
                 drawerView.menu.findItem(R.id.settings).isChecked = true
+            }
+
+            is AboutDialog -> {
+                drawerItemId = R.id.about
+                setTitle(R.string.about)
+                hideSpinnerNav()
+                drawerView.menu.findItem(R.id.about).isChecked = true
             }
         }
     }
