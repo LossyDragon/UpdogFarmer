@@ -459,7 +459,7 @@ class SteamService : Service() {
         steamClient.removeHandler<SteamNotifications>()
 
         if (stayAwake()) {
-            acquireWakeLock()
+            setWakeLock(true)
         }
 
         createChannel()
@@ -502,7 +502,7 @@ class SteamService : Service() {
         stopFarming()
         executor.shutdownNow()
         scheduler.shutdownNow()
-        releaseWakeLock()
+        setWakeLock(false)
         unregisterReceiver(receiver)
 
         subscriptions.forEach { it.close() }
@@ -533,27 +533,24 @@ class SteamService : Service() {
     }
 
     /**
-     * Acquire WakeLock to keep the CPU from sleeping
+     * Acquire or release the WakeLock that keeps the CPU from sleeping
      */
-    fun acquireWakeLock() {
-        if (wakeLock == null) {
-            Log.i(TAG, "Acquiring WakeLock")
-            val pm = getSystemService(POWER_SERVICE) as PowerManager
-            val lock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG)
-            lock.acquire(60 * 60 * 1000L) // 60 Minutes
-            wakeLock = lock
-        }
-    }
-
-    /**
-     * Release the WakeLock
-     */
-    fun releaseWakeLock() {
-        val lock = wakeLock
-        if (lock != null) {
-            Log.i(TAG, "Releasing WakeLock")
-            lock.release()
-            wakeLock = null
+    fun setWakeLock(acquire: Boolean) {
+        if (acquire) {
+            if (wakeLock == null) {
+                Log.i(TAG, "Acquiring WakeLock")
+                val pm = getSystemService(POWER_SERVICE) as PowerManager
+                val lock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG)
+                lock.acquire(60 * 60 * 1000L) // 60 Minutes
+                wakeLock = lock
+            }
+        } else {
+            val lock = wakeLock
+            if (lock != null) {
+                Log.i(TAG, "Releasing WakeLock")
+                lock.release()
+                wakeLock = null
+            }
         }
     }
 

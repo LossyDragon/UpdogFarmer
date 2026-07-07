@@ -326,7 +326,6 @@ class MainActivity : BaseActivity(), OnSharedPreferenceChangeListener {
             is HomeFragment -> {
                 drawerItemId = R.id.home
                 setTitle(R.string.app_name)
-                // hideSpinnerNav()
                 drawerView.menu.findItem(R.id.home).isChecked = true
             }
 
@@ -340,14 +339,12 @@ class MainActivity : BaseActivity(), OnSharedPreferenceChangeListener {
             is SettingsFragment -> {
                 drawerItemId = R.id.settings
                 setTitle(R.string.settings)
-                // hideSpinnerNav()
                 drawerView.menu.findItem(R.id.settings).isChecked = true
             }
 
             is AboutFragment -> {
                 drawerItemId = R.id.about
                 setTitle(R.string.about)
-                // hideSpinnerNav()
                 drawerView.menu.findItem(R.id.about).isChecked = true
             }
         }
@@ -356,20 +353,11 @@ class MainActivity : BaseActivity(), OnSharedPreferenceChangeListener {
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         when (key) {
-            "stay_awake" -> {
-                if (PrefsManager.stayAwake()) {
-                    // Keep device awake
-                    service!!.acquireWakeLock()
-                } else {
-                    // Allow device to sleep
-                    service!!.releaseWakeLock()
-                }
-            }
+            // Keep device awake or allow it to sleep
+            "stay_awake" -> service!!.setWakeLock(PrefsManager.stayAwake())
 
-            "offline" -> {
-                // Change status
-                service!!.changeStatus(if (PrefsManager.getOffline()) EPersonaState.Offline else EPersonaState.Online)
-            }
+            // Change status
+            "offline" -> service!!.changeStatus(if (PrefsManager.getOffline()) EPersonaState.Offline else EPersonaState.Online)
 
             "language" -> Toast.makeText(this, R.string.language_changed, Toast.LENGTH_LONG).show()
         }
