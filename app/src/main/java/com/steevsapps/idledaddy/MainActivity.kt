@@ -12,8 +12,6 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -29,23 +27,17 @@ import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.bumptech.glide.Glide
 import com.google.android.material.navigation.NavigationView
-import com.steevsapps.idledaddy.LoginActivity.Companion.createIntent
 import com.steevsapps.idledaddy.fragments.AboutFragment
-import com.steevsapps.idledaddy.dialogs.CustomAppDialog
 import com.steevsapps.idledaddy.fragments.GamesFragment
 import com.steevsapps.idledaddy.fragments.HomeFragment
 import com.steevsapps.idledaddy.fragments.SettingsFragment
-import com.steevsapps.idledaddy.listeners.DialogListener
 import com.steevsapps.idledaddy.preferences.PrefsManager
 import com.steevsapps.idledaddy.steam.SteamService
+import com.steevsapps.idledaddy.utils.Utils
 import `in`.dragonbra.javasteam.enums.EPersonaState
-import java.util.Locale
 
-class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeListener {
+class MainActivity : BaseActivity(), OnSharedPreferenceChangeListener {
     private var title = ""
-    private var loggedIn = false
-    private var farming = false
-    private var parentalStatus = false
 
     // Views
     private var mainContainer: LinearLayout? = null
@@ -62,17 +54,9 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
 
     private val receiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
-            loggedIn = service!!.isLoggedIn
-            farming = service!!.isFarming
             when (intent.action) {
                 SteamService.LOGIN_EVENT, SteamService.DISCONNECT_EVENT, SteamService.STOP_EVENT -> updateStatus()
-                SteamService.FARM_EVENT -> showDropInfo(intent)
                 SteamService.PERSONA_EVENT -> updateDrawerHeader(intent)
-                SteamService.NOW_PLAYING_EVENT -> showNowPlaying()
-                SteamService.PARENTAL_STATUS -> {
-                    parentalStatus = intent.getBooleanExtra("status", false)
-                    (currentFragment as? HomeFragment)?.updateParentalStatus(parentalStatus)
-                }
             }
         }
     }
@@ -85,8 +69,6 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
         logoutExpanded = false
         logoutToggle.rotation = 0f
         drawerView.menu.setGroupVisible(R.id.logout_group, false)
-        loggedIn = false
-        farming = false
         updateStatus()
     }
 
@@ -112,17 +94,12 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
         }
 
         if (!PrefsManager.minimizeData() && !avatarHash.isNullOrEmpty() && (avatarHash != "0000000000000000000000000000000000000000")) {
-            val avatar = "https://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/" +
-                "${avatarHash.substring(0, 2)}/${avatarHash}_full.jpg"
-            Glide.with(this).load(avatar).into(avatarView)
+            Glide.with(this).load(Utils.avatar(avatarHash)).into(avatarView)
         }
     }
 
     override fun onServiceConnected() {
         Log.i(TAG, "Service connected")
-        loggedIn = service!!.isLoggedIn
-        farming = service!!.isFarming
-        parentalStatus = service!!.parentalStatus
         updateStatus()
         updateDrawerHeader(null)
 
@@ -228,8 +205,6 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
 
         // Update the navigation drawer and title on backstack changes
         supportFragmentManager.addOnBackStackChangedListener {
-            loggedIn = service!!.isLoggedIn
-            farming = service!!.isFarming
             updateStatus()
         }
 
@@ -284,7 +259,7 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
         }
 
         val fragment: Fragment = when (id) {
-            R.id.home -> HomeFragment.newInstance(loggedIn, farming)
+            R.id.home -> HomeFragment.newInstance()
             R.id.games -> GamesFragment.newInstance()
             R.id.settings -> SettingsFragment.newInstance()
             else -> Fragment()
@@ -309,6 +284,10 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
         drawerLayout?.openDrawer(drawerView)
     }
 
+    fun stopSteamService() {
+        stopSteam()
+    }
+
     override fun setTitle(titleId: Int) {
         title = getString(titleId)
         super.setTitle(titleId)
@@ -325,10 +304,7 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
         filter.addAction(SteamService.LOGIN_EVENT)
         filter.addAction(SteamService.DISCONNECT_EVENT)
         filter.addAction(SteamService.STOP_EVENT)
-        filter.addAction(SteamService.FARM_EVENT)
         filter.addAction(SteamService.PERSONA_EVENT)
-        filter.addAction(SteamService.PARENTAL_STATUS)
-        filter.addAction(SteamService.NOW_PLAYING_EVENT)
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, filter)
         // Listen for preference changes
         prefs = PrefsManager.getPrefs()
@@ -341,71 +317,17 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
         prefs.unregisterOnSharedPreferenceChangeListener(this)
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
-        val loggedIn = service != null && service!!.isLoggedIn
-        val showOverflow = drawerItemId != R.id.about
-        drawerView.getHeaderView(0).isClickable = loggedIn
-        menu.findItem(R.id.custom_app).isVisible = loggedIn && showOverflow
-        return super.onPrepareOptionsMenu(menu)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (drawerToggle?.onOptionsItemSelected(item) == true) {
-            return true
-        }
-        return when (item.itemId) {
-            R.id.custom_app -> {
-                CustomAppDialog.newInstance().show(supportFragmentManager, CustomAppDialog.TAG)
-                true
-            }
-
-            else -> false
-        }
-    }
-
-    fun clickHandler(v: View) {
-        when (v.id) {
-            R.id.start_idling -> {
-                v.isEnabled = false
-                service!!.startFarming()
-            }
-
-            R.id.stop_idling -> stopSteam()
-            R.id.status -> startActivity(createIntent(this))
-            // R.id.redeem -> RedeemDialog.newInstance().show(supportFragmentManager, "redeem")
-            R.id.stop_button -> service!!.stopGame()
-            R.id.pause_resume_button -> {
-                if (service!!.isPaused) {
-                    service!!.resumeGame()
-                } else {
-                    service!!.pauseGame()
-                }
-            }
-
-            R.id.next_button -> service!!.skipGame()
-        }
-    }
-
     /**
      * Update the fragments
      */
     private fun updateStatus() {
-        invalidateOptionsMenu()
+        drawerView.getHeaderView(0).isClickable = service != null && service!!.isLoggedIn
         when (val fragment = this.currentFragment) {
             is HomeFragment -> {
                 drawerItemId = R.id.home
                 setTitle(R.string.app_name)
                 // hideSpinnerNav()
                 drawerView.menu.findItem(R.id.home).isChecked = true
-                fragment.update(loggedIn, farming)
-                showDropInfo(null)
-                showNowPlaying()
-                fragment.updateParentalStatus(parentalStatus)
             }
 
             is GamesFragment -> {
@@ -428,51 +350,6 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
                 // hideSpinnerNav()
                 drawerView.menu.findItem(R.id.about).isChecked = true
             }
-        }
-    }
-
-    /**
-     * Show/hide card drop info
-     */
-    private fun showDropInfo(intent: Intent?) {
-        val fragment = this.currentFragment
-        if (fragment is HomeFragment) {
-            if (intent != null) {
-                // Called by FARM_EVENT, always show drop info
-                val gameCount = intent.getIntExtra(SteamService.GAME_COUNT, 0)
-                val cardCount = intent.getIntExtra(SteamService.CARD_COUNT, 0)
-                fragment.showDropInfo(gameCount, cardCount)
-            } else if (farming) {
-                // Called by updateStatus(), only show drop info if we're farming
-                fragment.showDropInfo(
-                    service!!.gameCount,
-                    service!!.cardCount
-                )
-            } else {
-                // Hide drop info
-                fragment.hideDropInfo()
-            }
-        }
-    }
-
-    /**
-     * Show now playing if we're idling any games
-     */
-    private fun showNowPlaying() {
-        val fragment = this.currentFragment
-        if (fragment is HomeFragment) {
-            fragment.showNowPlaying(
-                service!!.currentGames,
-                service!!.isFarming,
-                service!!.isPaused
-            )
-        }
-    }
-
-    override fun onYesPicked(text: String) {
-        val key = text.uppercase(Locale.getDefault()).trim()
-        if (key.isNotEmpty()) {
-            service!!.redeemKey(key)
         }
     }
 

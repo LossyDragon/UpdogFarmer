@@ -19,6 +19,6 @@ class LoginActivity : BaseActivity() {
 
     companion object {
         private val TAG: String = LoginActivity::class.java.getSimpleName()
-        fun createIntent(c: Context?): Intent = Intent(c, LoginActivity::class.java)
+        fun createIntent(c: Context): Intent = Intent(c, LoginActivity::class.java)
     }
 }

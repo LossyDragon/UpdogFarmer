@@ -45,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
@@ -56,7 +57,7 @@ fun LoginScreen(
     onLoggedIn: () -> Unit = {},
 ) {
     val viewModel = viewModel<LoginViewModel>()
-    val state = viewModel.uiState
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val resources = LocalResources.current
 

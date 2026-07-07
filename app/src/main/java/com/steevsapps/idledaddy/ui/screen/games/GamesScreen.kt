@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Sort
@@ -68,57 +69,29 @@ import androidx.compose.ui.res.integerResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.fragments.GamesFragment
-import com.steevsapps.idledaddy.preferences.PrefsManager.minimizeData
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.ui.component.GameItem
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
-
-@Immutable
-data class GamesScreenState(
-    val games: List<Game> = emptyList(),
-    val selected: List<Game> = emptyList(),
-    val tab: Int = GamesFragment.TAB_GAMES,
-    val query: String = "",
-    val refreshing: Boolean = false,
-    val showPlayAll: Boolean = false,
-    val showRedeem: Boolean = false,
-    val showIcons: Boolean = false,
-    val optionsGame: Game? = null,
-    val optionsBlacklisted: Boolean = false,
-    val fabMenuExpanded: Boolean = false,
-)
 
 @Composable
 fun GamesScreen(
     viewModel: GamesViewModel,
     onMenuClick: () -> Unit,
-    onRedeem: () -> Unit,
 ) {
-    val uiState = viewModel.uiState
-    val visibleGames = remember(uiState.games, uiState.query, uiState.tab) {
-        viewModel.visibleGames()
-    }
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     GamesScreenContent(
-        state = GamesScreenState(
-            games = visibleGames,
-            selected = uiState.selected,
-            tab = uiState.tab,
-            query = uiState.query,
-            refreshing = uiState.refreshing,
-            showPlayAll = uiState.tab == GamesFragment.TAB_LAST && visibleGames.isNotEmpty(),
-            showRedeem = uiState.steamId > 0,
-            showIcons = !minimizeData(),
-            optionsGame = uiState.optionsGame,
-            optionsBlacklisted = uiState.optionsGame?.let(viewModel::isBlacklisted) ?: false,
-        ),
+        state = state,
         onMenuClick = onMenuClick,
         onQueryChange = viewModel::setQuery,
         onTabChange = viewModel::switchTab,
@@ -127,7 +100,7 @@ fun GamesScreen(
         onGameClick = viewModel::toggleGame,
         onGameLongClick = viewModel::showOptions,
         onPlayAll = viewModel::playAll,
-        onRedeem = onRedeem,
+        onRedeem = viewModel::redeemKey,
         onToggleBlacklist = viewModel::toggleBlacklist,
         onDismissOptions = viewModel::dismissOptions,
     )
@@ -145,13 +118,14 @@ fun GamesScreenContent(
     onGameClick: (Game) -> Unit,
     onGameLongClick: (Game) -> Unit,
     onPlayAll: () -> Unit,
-    onRedeem: () -> Unit,
+    onRedeem: (String) -> Unit,
     onToggleBlacklist: (Game) -> Unit,
     onDismissOptions: () -> Unit,
 ) {
     IdleTheme {
         val gridState = rememberLazyGridState()
         var fabMenuExpanded by rememberSaveable { mutableStateOf(state.fabMenuExpanded) }
+        var redeemDialogVisible by rememberSaveable { mutableStateOf(state.redeemDialogVisible) }
 
         LaunchedEffect(state.games) {
             if (state.games.isNotEmpty()) {
@@ -172,7 +146,7 @@ fun GamesScreenContent(
                     onMenuClick = onMenuClick,
                     onQueryChange = onQueryChange,
                     onSortChange = onSortChange,
-                    onRedeem = onRedeem,
+                    onRedeem = { redeemDialogVisible = true },
                 )
             },
             floatingActionButton = {
@@ -249,12 +223,22 @@ fun GamesScreenContent(
                     )
                 }
 
-                state.optionsGame?.let { game ->
+                if(state.optionsGame!= null) {
                     GameOptionsDialog(
-                        game = game,
+                        game = state.optionsGame,
                         blacklisted = state.optionsBlacklisted,
-                        onToggleBlacklist = { onToggleBlacklist(game) },
+                        onToggleBlacklist = { onToggleBlacklist(state.optionsGame) },
                         onDismiss = onDismissOptions,
+                    )
+                }
+
+                if (redeemDialogVisible) {
+                    RedeemDialog(
+                        onConfirm = { key ->
+                            onRedeem(key)
+                            redeemDialogVisible = false
+                        },
+                        onDismiss = { redeemDialogVisible = false },
                     )
                 }
             }
@@ -450,6 +434,7 @@ private fun GameOptionsDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = game.name) },
+        text = { Text(text = stringResource(R.string.sum_blacklist)) },
         confirmButton = {
             TextButton(onClick = onToggleBlacklist) {
                 Text(
@@ -468,6 +453,47 @@ private fun GameOptionsDialog(
                 Text(text = stringResource(android.R.string.cancel))
             }
         },
+    )
+}
+
+@Composable
+private fun RedeemDialog(
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var key by rememberSaveable { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = stringResource(R.string.redeem)) },
+        text = {
+            TextField(
+                value = key,
+                onValueChange = { key = it },
+                placeholder = {
+                    Text(
+                        text = stringResource(R.string.redeem_msg),
+                        maxLines = 1,
+                        autoSize = TextAutoSize.StepBased(
+                            minFontSize = 10.sp,
+                            stepSize = 1.sp,
+                        ),
+                    )
+                },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(key) }) {
+                Text(text = stringResource(android.R.string.ok))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = stringResource(android.R.string.cancel))
+            }
+        }
     )
 }
 
@@ -520,6 +546,17 @@ private class GamesPreview : PreviewParameterProvider<GamesScreenState> {
             games = sampleGames,
             showRedeem = true,
             fabMenuExpanded = true,
+        ),
+        "Redeem dialog open" to GamesScreenState(
+            games = sampleGames,
+            showRedeem = true,
+            redeemDialogVisible = true,
+        ),
+        "Options dialog open" to GamesScreenState(
+            games = sampleGames,
+            showRedeem = true,
+            optionsGame = sampleGames.first(),
+            optionsBlacklisted = false,
         ),
     )
 

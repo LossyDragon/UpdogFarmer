@@ -7,44 +7,55 @@ import android.content.Context
 import android.content.ServiceConnection
 import android.os.IBinder
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.Immutable
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import com.steevsapps.idledaddy.fragments.GamesFragment
 import com.steevsapps.idledaddy.preferences.PrefsManager.getBlacklist
 import com.steevsapps.idledaddy.preferences.PrefsManager.getLastSession
 import com.steevsapps.idledaddy.preferences.PrefsManager.getSortValue
+import com.steevsapps.idledaddy.preferences.PrefsManager.minimizeData
 import com.steevsapps.idledaddy.preferences.PrefsManager.writeBlacklist
 import com.steevsapps.idledaddy.preferences.PrefsManager.writeSortValue
 import com.steevsapps.idledaddy.steam.SteamService
 import com.steevsapps.idledaddy.steam.SteamWebHandler
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.steam.model.GamesOwnedResponse
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.Locale
 
-data class GamesUiState(
+@Immutable
+data class GamesScreenState(
     val games: List<Game> = emptyList(),
-    val refreshing: Boolean = false,
-    val query: String = "",
-    val tab: Int = GamesFragment.TAB_GAMES,
     val selected: List<Game> = emptyList(),
-    val steamId: Long = 0,
-    // The game whose long-press options dialog is showing, if any
+    val tab: Int = GamesFragment.TAB_GAMES,
+    val query: String = "",
+    val refreshing: Boolean = false,
+    val showPlayAll: Boolean = false,
+    val showRedeem: Boolean = false,
+    val showIcons: Boolean = false,
     val optionsGame: Game? = null,
+    val optionsBlacklisted: Boolean = false,
+    val fabMenuExpanded: Boolean = false,
+    val redeemDialogVisible: Boolean = false,
 )
 
 class GamesViewModel(application: Application) : AndroidViewModel(application) {
 
-    var uiState by mutableStateOf(GamesUiState())
-        private set
+    val uiState: StateFlow<GamesScreenState>
+        field = MutableStateFlow(GamesScreenState())
 
     private val webHandler: SteamWebHandler = SteamWebHandler.instance
     private var sortId: Int = getSortValue()
+    private var steamId: Long = 0
+
+    // Everything Steam returned; uiState.games holds the tab/query-filtered subset shown on screen
+    private var allGames: List<Game> = emptyList()
 
     @SuppressLint("StaticFieldLeak") // I know...
     private var service: SteamService? = null
@@ -53,10 +64,10 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName?, iBinder: IBinder) {
             service = (iBinder as SteamService.LocalBinder).service.also {
-                uiState = uiState.copy(
-                    steamId = it.steamId,
-                    selected = it.currentGames.toList(),
-                )
+                steamId = it.steamId
+                uiState.update { state ->
+                    state.copy(selected = it.currentGames.toList(), showRedeem = steamId > 0)
+                }
                 refresh()
             }
         }
@@ -81,40 +92,26 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /**
-     * The games shown for the current tab and search query
-     */
-    fun visibleGames(): List<Game> {
-        var games = uiState.games
-        if (uiState.tab == GamesFragment.TAB_BLACKLIST) {
-            val blacklist = getBlacklist()
-            games = games.filter { blacklist.contains(it.appId.toString()) }
-        }
-        if (uiState.query.isNotEmpty()) {
-            games = games.filter { it.name.contains(uiState.query, ignoreCase = true) }
-        }
-        return games
-    }
-
     fun setQuery(query: String) {
-        uiState = uiState.copy(query = query)
+        uiState.update { it.copy(query = query) }
+        applyFilter()
     }
 
     fun switchTab(tab: Int) {
-        uiState = uiState.copy(tab = tab)
+        uiState.update { it.copy(tab = tab) }
         refresh()
     }
 
     fun setSelected(games: List<Game>) {
-        uiState = uiState.copy(selected = games)
+        uiState.update { it.copy(selected = games) }
     }
 
     fun showOptions(game: Game) {
-        uiState = uiState.copy(optionsGame = game)
+        uiState.update { it.copy(optionsGame = game, optionsBlacklisted = isBlacklisted(game)) }
     }
 
     fun dismissOptions() {
-        uiState = uiState.copy(optionsGame = null)
+        uiState.update { it.copy(optionsGame = null) }
     }
 
     fun isBlacklisted(game: Game): Boolean =
@@ -132,23 +129,23 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
             blacklist.add(0, id)
         }
         writeBlacklist(blacklist)
-        // New games reference forces visibleGames() to re-filter so the blacklist tab updates
-        uiState = uiState.copy(games = uiState.games.toList(), optionsGame = null)
+        uiState.update { it.copy(optionsGame = null) }
+        applyFilter()
     }
 
     /**
      * Idle or un-idle a game, capped at [MAX_GAMES] at once
      */
     fun toggleGame(game: Game) {
-        val selected = uiState.selected
+        val selected = uiState.value.selected
         when {
             selected.contains(game) -> {
-                uiState = uiState.copy(selected = selected - game)
+                uiState.update { it.copy(selected = selected - game) }
                 service?.removeGame(game)
             }
 
             selected.size < MAX_GAMES -> {
-                uiState = uiState.copy(selected = selected + game)
+                uiState.update { it.copy(selected = selected + game) }
                 service?.addGame(game)
             }
         }
@@ -158,21 +155,31 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
      * Idle everything currently shown
      */
     fun playAll() {
-        val games = visibleGames()
-        uiState = uiState.copy(selected = games)
+        val games = uiState.value.games
+        uiState.update { it.copy(selected = games) }
         service?.addGames(games.toMutableList())
     }
 
     fun refresh() {
-        if (uiState.tab == GamesFragment.TAB_LAST) {
+        if (uiState.value.tab == GamesFragment.TAB_LAST) {
             // Load last idling session
-            val games = uiState.selected.ifEmpty {
+            val games = uiState.value.selected.ifEmpty {
                 getLastSession().filterNotNull()
             }
             setGames(games)
         } else {
-            uiState = uiState.copy(refreshing = true)
+            uiState.update { it.copy(refreshing = true) }
             fetchGames()
+        }
+    }
+
+    /**
+     * Redeem a Steam key or free game ID
+     */
+    fun redeemKey(text: String) {
+        val key = text.uppercase(Locale.getDefault()).trim()
+        if (key.isNotEmpty()) {
+            service?.redeemKey(key)
         }
     }
 
@@ -182,8 +189,8 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
         }
         this.sortId = sortId
         writeSortValue(sortId)
-        if (uiState.games.isNotEmpty()) {
-            setGames(uiState.games)
+        if (allGames.isNotEmpty()) {
+            setGames(allGames)
         }
     }
 
@@ -194,12 +201,36 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
             SORT_HOURS_PLAYED -> sorted.sortDescending()
             SORT_HOURS_PLAYED_REVERSED -> sorted.sort()
         }
-        uiState = uiState.copy(games = sorted, refreshing = false)
+        allGames = sorted
+        applyFilter()
+        uiState.update { it.copy(refreshing = false) }
+    }
+
+    /**
+     * Re-derive the tab/query-filtered games shown on screen from [allGames]
+     */
+    private fun applyFilter() {
+        val state = uiState.value
+        var games = allGames
+        if (state.tab == GamesFragment.TAB_BLACKLIST) {
+            val blacklist = getBlacklist()
+            games = games.filter { blacklist.contains(it.appId.toString()) }
+        }
+        if (state.query.isNotEmpty()) {
+            games = games.filter { it.name.contains(state.query, ignoreCase = true) }
+        }
+        uiState.update {
+            it.copy(
+                games = games,
+                showPlayAll = it.tab == GamesFragment.TAB_LAST && games.isNotEmpty(),
+                showIcons = !minimizeData(),
+            )
+        }
     }
 
     private fun fetchGames() {
         Log.i(TAG, "Fetching games...")
-        webHandler.getGamesOwned(uiState.steamId).enqueue(object : Callback<GamesOwnedResponse> {
+        webHandler.getGamesOwned(steamId).enqueue(object : Callback<GamesOwnedResponse> {
             override fun onResponse(
                 call: Call<GamesOwnedResponse>,
                 response: Response<GamesOwnedResponse>

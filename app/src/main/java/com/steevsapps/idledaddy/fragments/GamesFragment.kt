@@ -8,7 +8,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.steevsapps.idledaddy.MainActivity
-import com.steevsapps.idledaddy.dialogs.RedeemDialog
 import com.steevsapps.idledaddy.preferences.PrefsManager.writeLastSession
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.ui.screen.games.GamesScreen
@@ -31,13 +30,12 @@ class GamesFragment : Fragment() {
             GamesScreen(
                 viewModel = viewModel,
                 onMenuClick = { (activity as? MainActivity)?.openDrawer() },
-                onRedeem = { RedeemDialog.newInstance().show(parentFragmentManager, "redeem") },
             )
         }
     }
 
     override fun onPause() {
-        val selected = viewModel.uiState.selected
+        val selected = viewModel.uiState.value.selected
         if (selected.isNotEmpty()) {
             // Save idling session
             writeLastSession(selected.toMutableList())

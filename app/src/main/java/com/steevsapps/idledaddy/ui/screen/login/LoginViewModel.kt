@@ -10,9 +10,6 @@ import android.graphics.Color
 import android.os.IBinder
 import android.util.Log
 import androidx.annotation.StringRes
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.content.ContextCompat
@@ -30,6 +27,9 @@ import com.steevsapps.idledaddy.utils.Utils
 import `in`.dragonbra.javasteam.enums.EResult
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
 
@@ -61,8 +61,8 @@ enum class LoginSnackbar(@StringRes val message: Int, val indefinite: Boolean = 
 
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
-    var uiState by mutableStateOf(LoginUiState())
-        private set
+    val uiState: StateFlow<LoginUiState>
+        field = MutableStateFlow(LoginUiState())
 
     val savedUsername: String = PrefsManager.getUsername()
     val savedPassword: String = PrefsManager.getPassword()
@@ -80,11 +80,11 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         override fun onQrChallenge(url: String) {
-            uiState = uiState.copy(qrCode = generateQrBitmap(url))
+            uiState.update { it.copy(qrCode = generateQrBitmap(url)) }
         }
 
         override fun onDeviceConfirmation() {
-            uiState = uiState.copy(snackbar = LoginSnackbar.DEVICE_CONFIRMATION)
+            uiState.update { it.copy(snackbar = LoginSnackbar.DEVICE_CONFIRMATION) }
         }
     }
 
@@ -121,11 +121,11 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     fun doLogin(username: String, password: String, twoFactorCode: String) {
         val service = service ?: return
 
-        if (uiState.twoFactorRequired) {
+        if (uiState.value.twoFactorRequired) {
             // SteamService is already mid-login and waiting on a Steam Guard code
             val code = twoFactorCode.trim()
             if (code.isNotEmpty()) {
-                uiState = uiState.copy(loginInProgress = true, twoFactorError = null)
+                uiState.update { it.copy(loginInProgress = true, twoFactorError = null) }
                 service.submitTwoFactorCode(code)
                 startTimeout()
             }
@@ -137,19 +137,21 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         val pass = Utils.removeSpecialChars(password).trim()
         if (user.isNotEmpty() && pass.isNotEmpty()) {
             pendingPassword = pass
-            uiState = uiState.copy(loginInProgress = true, passwordError = null)
+            uiState.update { it.copy(loginInProgress = true, passwordError = null) }
             service.login(user, pass)
             startTimeout()
         }
     }
 
     fun toggleLoginType() {
-        val qrActive = uiState.loginType == LoginType.CREDENTIAL
-        uiState = uiState.copy(
-            loginType = if (qrActive) LoginType.QR else LoginType.CREDENTIAL,
-            qrCode = null,
-            qrFailed = false,
-        )
+        val qrActive = uiState.value.loginType == LoginType.CREDENTIAL
+        uiState.update {
+            it.copy(
+                loginType = if (qrActive) LoginType.QR else LoginType.CREDENTIAL,
+                qrCode = null,
+                qrFailed = false,
+            )
+        }
         if (qrActive) {
             service?.loginWithQr()
             startTimeout()
@@ -159,29 +161,30 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun retryQrLogin() {
-        uiState = uiState.copy(qrCode = null, qrFailed = false)
+        uiState.update { it.copy(qrCode = null, qrFailed = false) }
         service?.loginWithQr()
         startTimeout()
     }
 
     fun snackbarShown() {
-        uiState = uiState.copy(snackbar = null)
+        uiState.update { it.copy(snackbar = null) }
     }
 
     private fun onLoginEvent(result: EResult) {
         stopTimeout()
 
+        val current = uiState.value
         if (result == EResult.OK) {
             // Save password for autofill next time (SteamService persists the username itself,
             // since the QR flow never has one typed in)
-            if (uiState.loginType == LoginType.CREDENTIAL) {
+            if (current.loginType == LoginType.CREDENTIAL) {
                 PrefsManager.writePassword(pendingPassword)
             }
-            uiState = uiState.copy(loginInProgress = false, loggedIn = true)
+            uiState.value = current.copy(loginInProgress = false, loggedIn = true)
             return
         }
 
-        var state = uiState.copy(
+        var state = current.copy(
             loginInProgress = false,
             passwordError = null,
             twoFactorError = null,
@@ -214,7 +217,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                 state = state.copy(snackbar = LoginSnackbar.LOGIN_FAILED)
             }
         }
-        uiState = state
+        uiState.value = state
     }
 
     private fun startTimeout() {
@@ -222,12 +225,14 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         timeoutJob?.cancel()
         timeoutJob = viewModelScope.launch {
             delay(30.seconds)
-            uiState = uiState.copy(
-                loginInProgress = false,
-                qrCode = null,
-                qrFailed = uiState.loginType == LoginType.QR,
-                snackbar = LoginSnackbar.TIMEOUT,
-            )
+            uiState.update {
+                it.copy(
+                    loginInProgress = false,
+                    qrCode = null,
+                    qrFailed = it.loginType == LoginType.QR,
+                    snackbar = LoginSnackbar.TIMEOUT,
+                )
+            }
         }
     }
 
