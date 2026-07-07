@@ -16,7 +16,9 @@ class SettingsFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View = ComposeView(requireContext()).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        setContent { SettingsScreen() }
+        setContent {
+            SettingsScreen(onBack = { requireActivity().onBackPressedDispatcher.onBackPressed() })
+        }
     }
 
     companion object {

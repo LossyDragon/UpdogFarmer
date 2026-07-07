@@ -16,7 +16,9 @@ class AboutFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View = ComposeView(requireContext()).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        setContent { AboutScreen() }
+        setContent {
+            AboutScreen(onBack = { requireActivity().onBackPressedDispatcher.onBackPressed() })
+        }
     }
 
     companion object {
