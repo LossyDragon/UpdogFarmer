@@ -24,7 +24,7 @@ class Game : Comparable<Game>, Parcelable {
     constructor(appId: Int, name: String, hoursPlayed: Float, dropsRemaining: Int) {
         this.appId = appId
         this.name = name
-        this.iconUrl = "http://cdn.akamai.steamstatic.com/steam/apps/$appId/header_292x136.jpg"
+        this.iconUrl = "https://cdn.akamai.steamstatic.com/steam/apps/$appId/header_292x136.jpg"
         this.hoursPlayed = hoursPlayed
         this.dropsRemaining = dropsRemaining
     }

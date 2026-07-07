@@ -112,7 +112,7 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
         }
 
         if (!PrefsManager.minimizeData() && !avatarHash.isNullOrEmpty() && (avatarHash != "0000000000000000000000000000000000000000")) {
-            val avatar = "http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/" +
+            val avatar = "https://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/" +
                 "${avatarHash.substring(0, 2)}/${avatarHash}_full.jpg"
             Glide.with(this).load(avatar).into(avatarView)
         }
