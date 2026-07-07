@@ -18,6 +18,7 @@ class HomeFragment : Fragment() {
     private lateinit var status: View
     private lateinit var statusImg: ImageView
     private lateinit var statusText: TextView
+    private lateinit var parentalText: TextView
     private lateinit var dropInfo: ViewGroup
     private lateinit var cardCountText: TextView
     private lateinit var gameCountText: TextView
@@ -79,6 +80,7 @@ class HomeFragment : Fragment() {
         status = view.findViewById(R.id.status)
         statusImg = view.findViewById(R.id.status_img)
         statusText = view.findViewById(R.id.status_text)
+        parentalText = view.findViewById(R.id.status_parental)
         dropInfo = view.findViewById(R.id.drop_info)
         cardCountText = view.findViewById(R.id.card_count)
         gameCountText = view.findViewById(R.id.game_count)
@@ -97,6 +99,11 @@ class HomeFragment : Fragment() {
         status.isClickable = !online
         statusImg.setImageResource(if (online) R.drawable.ic_check_circle_white_48dp else R.drawable.ic_error_white_48dp)
         statusText.setText(if (online) R.string.logged_in else R.string.tap_to_login)
+    }
+
+    fun updateParentalStatus(enabled: Boolean) {
+        parentalText.visibility = if (enabled) View.VISIBLE else View.GONE
+        parentalText.text = getString(R.string.status_parental, enabled)
     }
 
     /**

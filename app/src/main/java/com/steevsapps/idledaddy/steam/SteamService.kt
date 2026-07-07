@@ -163,6 +163,8 @@ class SteamService : Service() {
         private set
     var isLoggedIn: Boolean = false
         private set
+    var parentalStatus: Boolean = false
+        private set
 
     private val executor: ExecutorService = Executors.newCachedThreadPool()
     private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(8)
@@ -1248,6 +1250,13 @@ class SteamService : Service() {
                     }
                 }
 
+                // TODO verify
+                parentalStatus = callback.parentalSettings?.isEnabled ?: false
+                val parentalIntent = Intent(PARENTAL_STATUS).apply {
+                    putExtra("status", parentalStatus)
+                }
+                LocalBroadcastManager.getInstance(this).sendBroadcast(parentalIntent)
+
                 keyToRedeem?.let {
                     redeemKey(it)
                     keyToRedeem = null
@@ -1420,6 +1429,9 @@ class SteamService : Service() {
 
         // Emitted when we get PersonaStateCallback
         const val PERSONA_EVENT: String = "PERSONA_EVENT"
+
+        // Emitted when we're logged in.
+        const val PARENTAL_STATUS: String = "PARENTAL_STATUS"
 
         // Username
         const val PERSONA_NAME: String = "PERSONA_NAME"

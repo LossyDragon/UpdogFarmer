@@ -315,17 +315,21 @@ private fun QrComponent(
  */
 
 private class LoginPreview : PreviewParameterProvider<LoginUiState> {
-    override val values = sequenceOf(
-        LoginUiState(),
-        LoginUiState(passwordError = R.string.invalid_password),
-        LoginUiState(
+    private val states = listOf(
+        "Credentials" to LoginUiState(),
+        "Password error" to LoginUiState(passwordError = R.string.invalid_password),
+        "Steam Guard" to LoginUiState(
             loginInProgress = true,
             twoFactorRequired = true,
             twoFactorError = R.string.steamguard_required,
         ),
-        LoginUiState(loginType = LoginType.QR),
-        LoginUiState(loginType = LoginType.QR, qrFailed = true),
+        "QR" to LoginUiState(loginType = LoginType.QR),
+        "QR failed" to LoginUiState(loginType = LoginType.QR, qrFailed = true),
     )
+
+    override val values = states.asSequence().map { it.second }
+
+    override fun getDisplayName(index: Int) = states[index].first
 }
 
 @Preview

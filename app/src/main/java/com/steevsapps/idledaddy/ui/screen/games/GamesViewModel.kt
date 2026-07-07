@@ -33,6 +33,7 @@ data class GamesUiState(
     val query: String = "",
     val tab: Int = GamesFragment.TAB_GAMES,
     val selected: List<Game> = emptyList(),
+    val steamId: Long = 0,
     // The game whose long-press options dialog is showing, if any
     val optionsGame: Game? = null,
 )
@@ -42,10 +43,8 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
     var uiState by mutableStateOf(GamesUiState())
         private set
 
-    private lateinit var webHandler: SteamWebHandler
-    private var steamId: Long = 0
-    private var sortId: Int = SORT_ALPHABETICALLY
-    private var initialized = false
+    private val webHandler: SteamWebHandler = SteamWebHandler.instance
+    private var sortId: Int = getSortValue()
 
     @SuppressLint("StaticFieldLeak") // I know...
     private var service: SteamService? = null
@@ -53,7 +52,13 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName?, iBinder: IBinder) {
-            service = (iBinder as SteamService.LocalBinder).service
+            service = (iBinder as SteamService.LocalBinder).service.also {
+                uiState = uiState.copy(
+                    steamId = it.steamId,
+                    selected = it.currentGames.toList(),
+                )
+                refresh()
+            }
         }
 
         override fun onServiceDisconnected(componentName: ComponentName?) {
@@ -74,18 +79,6 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
             getApplication<Application>().unbindService(connection)
             serviceBound = false
         }
-    }
-
-    fun init(webHandler: SteamWebHandler, steamId: Long, tab: Int, selected: List<Game>) {
-        if (initialized) {
-            return
-        }
-        initialized = true
-        this.webHandler = webHandler
-        this.steamId = steamId
-        this.sortId = getSortValue()
-        uiState = uiState.copy(tab = tab, selected = selected)
-        refresh()
     }
 
     /**
@@ -206,7 +199,7 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun fetchGames() {
         Log.i(TAG, "Fetching games...")
-        webHandler.getGamesOwned(steamId).enqueue(object : Callback<GamesOwnedResponse> {
+        webHandler.getGamesOwned(uiState.steamId).enqueue(object : Callback<GamesOwnedResponse> {
             override fun onResponse(
                 call: Call<GamesOwnedResponse>,
                 response: Response<GamesOwnedResponse>

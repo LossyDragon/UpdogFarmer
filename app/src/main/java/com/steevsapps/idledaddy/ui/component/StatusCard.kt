@@ -28,14 +28,15 @@ import com.steevsapps.idledaddy.ui.theme.IdleTheme
 
 @Composable
 fun StatusCard(
-    loggedIn: Boolean,
+    isLoggedIn: Boolean,
+    isParentalControlled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        enabled = !loggedIn,
+        enabled = !isLoggedIn,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -54,15 +55,21 @@ fun StatusCard(
                 Text(text = stringResource(R.string.status))
                 Text(
                     text = stringResource(
-                        if (loggedIn) R.string.logged_in else R.string.tap_to_login
+                        if (isLoggedIn) R.string.logged_in else R.string.tap_to_login
                     ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (isParentalControlled) {
+                    Text(
+                        text = stringResource(R.string.status_parental, true),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
-            val image = if (loggedIn) Icons.Default.CheckCircle
+            val image = if (isLoggedIn) Icons.Default.CheckCircle
             else Icons.Default.Error
-            val color = if (loggedIn) Color(0xFF90BA3C)
+            val color = if (isLoggedIn) Color(0xFF90BA3C)
             else Color(0xFFFFBB33)
             Icon(
                 modifier = Modifier.size(48.dp),
@@ -78,16 +85,29 @@ fun StatusCard(
  * Preview
  */
 
-private class StatusPreview : PreviewParameterProvider<Boolean> {
-    override val values = sequenceOf(false, true)
+private data class StatusPreviewState(
+    val loggedIn: Boolean,
+    val isParentalControlled: Boolean,
+)
+
+private class StatusPreview : PreviewParameterProvider<StatusPreviewState> {
+    override val values = sequenceOf(
+        StatusPreviewState(loggedIn = false, isParentalControlled = false),
+        StatusPreviewState(loggedIn = true, isParentalControlled = false),
+        StatusPreviewState(loggedIn = true, isParentalControlled = true),
+    )
 }
 
 @Preview
 @Composable
 private fun Preview(
-    @PreviewParameter(StatusPreview::class) loggedIn: Boolean,
+    @PreviewParameter(StatusPreview::class) state: StatusPreviewState,
 ) {
     IdleTheme {
-        StatusCard(loggedIn = loggedIn, onClick = {})
+        StatusCard(
+            isLoggedIn = state.loggedIn,
+            isParentalControlled = state.isParentalControlled,
+            onClick = {},
+        )
     }
 }

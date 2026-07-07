@@ -1,5 +1,11 @@
 package com.steevsapps.idledaddy.ui.screen.games
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,43 +17,130 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Redeem
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonMenu
+import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.ToggleFloatingActionButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.integerResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.steevsapps.idledaddy.R
+import com.steevsapps.idledaddy.fragments.GamesFragment
+import com.steevsapps.idledaddy.preferences.PrefsManager.minimizeData
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.ui.component.GameItem
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
+@Immutable
+data class GamesScreenState(
+    val games: List<Game> = emptyList(),
+    val selected: List<Game> = emptyList(),
+    val tab: Int = GamesFragment.TAB_GAMES,
+    val query: String = "",
+    val refreshing: Boolean = false,
+    val showPlayAll: Boolean = false,
+    val showRedeem: Boolean = false,
+    val showIcons: Boolean = false,
+    val optionsGame: Game? = null,
+    val optionsBlacklisted: Boolean = false,
+    val fabMenuExpanded: Boolean = false,
+)
+
 @Composable
 fun GamesScreen(
-    games: List<Game>,
-    selected: List<Game>,
-    refreshing: Boolean,
-    showPlayAll: Boolean,
-    showRedeem: Boolean,
-    showIcons: Boolean,
-    optionsGame: Game?,
-    optionsBlacklisted: Boolean,
+    viewModel: GamesViewModel,
+    onMenuClick: () -> Unit,
+    onRedeem: () -> Unit,
+) {
+    val uiState = viewModel.uiState
+    val visibleGames = remember(uiState.games, uiState.query, uiState.tab) {
+        viewModel.visibleGames()
+    }
+
+    GamesScreenContent(
+        state = GamesScreenState(
+            games = visibleGames,
+            selected = uiState.selected,
+            tab = uiState.tab,
+            query = uiState.query,
+            refreshing = uiState.refreshing,
+            showPlayAll = uiState.tab == GamesFragment.TAB_LAST && visibleGames.isNotEmpty(),
+            showRedeem = uiState.steamId > 0,
+            showIcons = !minimizeData(),
+            optionsGame = uiState.optionsGame,
+            optionsBlacklisted = uiState.optionsGame?.let(viewModel::isBlacklisted) ?: false,
+        ),
+        onMenuClick = onMenuClick,
+        onQueryChange = viewModel::setQuery,
+        onTabChange = viewModel::switchTab,
+        onSortChange = viewModel::sort,
+        onRefresh = viewModel::refresh,
+        onGameClick = viewModel::toggleGame,
+        onGameLongClick = viewModel::showOptions,
+        onPlayAll = viewModel::playAll,
+        onRedeem = onRedeem,
+        onToggleBlacklist = viewModel::toggleBlacklist,
+        onDismissOptions = viewModel::dismissOptions,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GamesScreenContent(
+    state: GamesScreenState,
+    onMenuClick: () -> Unit,
+    onQueryChange: (String) -> Unit,
+    onTabChange: (Int) -> Unit,
+    onSortChange: (Int) -> Unit,
     onRefresh: () -> Unit,
     onGameClick: (Game) -> Unit,
     onGameLongClick: (Game) -> Unit,
@@ -58,81 +151,291 @@ fun GamesScreen(
 ) {
     IdleTheme {
         val gridState = rememberLazyGridState()
+        var fabMenuExpanded by rememberSaveable { mutableStateOf(state.fabMenuExpanded) }
 
-        LaunchedEffect(games) {
-            if (games.isNotEmpty()) {
+        LaunchedEffect(state.games) {
+            if (state.games.isNotEmpty()) {
                 gridState.scrollToItem(0)
             }
         }
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            PullToRefreshBox(
-                isRefreshing = refreshing,
-                onRefresh = onRefresh,
-                modifier = Modifier.fillMaxSize(),
+        BackHandler(enabled = fabMenuExpanded) {
+            fabMenuExpanded = false
+        }
+
+        Scaffold(
+            topBar = {
+                GamesTopBar(
+                    tab = state.tab,
+                    query = state.query,
+                    showRedeem = state.showRedeem,
+                    onMenuClick = onMenuClick,
+                    onQueryChange = onQueryChange,
+                    onSortChange = onSortChange,
+                    onRedeem = onRedeem,
+                )
+            },
+            floatingActionButton = {
+                GamesFabMenu(
+                    expanded = fabMenuExpanded,
+                    onExpandedChange = { fabMenuExpanded = it },
+                    onTabChange = onTabChange,
+                )
+            },
+        ) { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
             ) {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(integerResource(R.integer.game_columns)),
+                PullToRefreshBox(
+                    isRefreshing = state.refreshing,
+                    onRefresh = onRefresh,
                     modifier = Modifier.fillMaxSize(),
-                    state = gridState,
-                    contentPadding = PaddingValues(
-                        start = 8.dp,
-                        top = 8.dp,
-                        end = 8.dp,
-                        bottom = if (showRedeem) 88.dp else 8.dp,
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    if (showPlayAll) {
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            PlayAllButton(onClick = onPlayAll)
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(integerResource(R.integer.game_columns)),
+                        modifier = Modifier.fillMaxSize(),
+                        state = gridState,
+                        contentPadding = PaddingValues(
+                            start = 8.dp,
+                            top = 8.dp,
+                            end = 8.dp,
+                            bottom = 88.dp,
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        if (state.showPlayAll) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                PlayAllButton(onClick = onPlayAll)
+                            }
+                        }
+                        items(items = state.games, key = { it.appId }) { game ->
+                            GameItem(
+                                game = game,
+                                selected = state.selected.contains(game),
+                                showIcon = state.showIcons,
+                                onClick = { onGameClick(game) },
+                                onLongClick = { onGameLongClick(game) },
+                            )
                         }
                     }
-                    items(items = games, key = { it.appId }) { game ->
-                        GameItem(
-                            game = game,
-                            selected = selected.contains(game),
-                            showIcon = showIcons,
-                            onClick = { onGameClick(game) },
-                            onLongClick = { onGameLongClick(game) },
+                    if (state.games.isEmpty() && !state.refreshing) {
+                        Text(
+                            text = stringResource(R.string.no_games_found),
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            textAlign = TextAlign.Center,
                         )
                     }
                 }
-                if (games.isEmpty() && !refreshing) {
-                    Text(
-                        text = stringResource(R.string.no_games_found),
+
+                // Scrim: catch stray taps while the FAB menu is open
+                AnimatedVisibility(
+                    visible = fabMenuExpanded,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                ) {
+                    Box(
                         modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        textAlign = TextAlign.Center,
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f))
+                            .pointerInput(Unit) {
+                                detectTapGestures { fabMenuExpanded = false }
+                            }
+                    )
+                }
+
+                state.optionsGame?.let { game ->
+                    GameOptionsDialog(
+                        game = game,
+                        blacklisted = state.optionsBlacklisted,
+                        onToggleBlacklist = { onToggleBlacklist(game) },
+                        onDismiss = onDismissOptions,
                     )
                 }
             }
+        }
+    }
+}
 
-            optionsGame?.let { game ->
-                GameOptionsDialog(
-                    game = game,
-                    blacklisted = optionsBlacklisted,
-                    onToggleBlacklist = { onToggleBlacklist(game) },
-                    onDismiss = onDismissOptions,
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun GamesTopBar(
+    tab: Int,
+    query: String,
+    showRedeem: Boolean,
+    onMenuClick: () -> Unit,
+    onQueryChange: (String) -> Unit,
+    onSortChange: (Int) -> Unit,
+    onRedeem: () -> Unit,
+) {
+    var searching by rememberSaveable { mutableStateOf(false) }
+    var sortMenuOpen by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+    val focusRequester = remember { FocusRequester() }
+
+    fun closeSearch() {
+        searching = false
+        onQueryChange("")
+    }
+
+    BackHandler(enabled = searching, onBack = ::closeSearch)
+
+    TopAppBar(
+        title = {
+            if (searching) {
+                TextField(
+                    value = query,
+                    onValueChange = onQueryChange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester),
+                    placeholder = { Text(text = stringResource(R.string.search)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                    ),
+                )
+                LaunchedEffect(Unit) {
+                    focusRequester.requestFocus()
+                }
+            } else {
+                Text(text = stringArrayResource(R.array.spinner_nav_options)[tab])
+            }
+        },
+        navigationIcon = {
+            if (searching) {
+                IconButton(onClick = ::closeSearch) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(android.R.string.cancel),
+                    )
+                }
+            } else {
+                IconButton(onClick = onMenuClick) {
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = stringResource(R.string.open_drawer),
+                    )
+                }
+            }
+        },
+        actions = {
+            if (searching) {
+                if (query.isNotEmpty()) {
+                    IconButton(onClick = { onQueryChange("") }) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(android.R.string.cancel),
+                        )
+                    }
+                }
+            } else {
+                IconButton(onClick = { searching = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = stringResource(R.string.search),
+                    )
+                }
+                IconButton(onClick = { sortMenuOpen = true }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Sort,
+                        contentDescription = stringResource(R.string.sort),
+                    )
+                }
+                DropdownMenu(
+                    expanded = sortMenuOpen,
+                    onDismissRequest = { sortMenuOpen = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(text = stringResource(R.string.sort_alphabetically)) },
+                        onClick = {
+                            sortMenuOpen = false
+                            onSortChange(GamesViewModel.SORT_ALPHABETICALLY)
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = stringResource(R.string.sort_hours_played)) },
+                        onClick = {
+                            sortMenuOpen = false
+                            onSortChange(GamesViewModel.SORT_HOURS_PLAYED)
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = stringResource(R.string.sort_hours_played_reversed)) },
+                        onClick = {
+                            sortMenuOpen = false
+                            onSortChange(GamesViewModel.SORT_HOURS_PLAYED_REVERSED)
+                        },
+                    )
+                }
+                if (showRedeem) {
+                    IconButton(onClick = onRedeem) {
+                        Icon(
+                            imageVector = Icons.Default.Redeem,
+                            contentDescription = stringResource(R.string.redeem),
+                        )
+                    }
+                }
+            }
+        },
+    )
+}
+
+@Composable
+private fun GamesFabMenu(
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    onTabChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val tabNames = stringArrayResource(R.array.spinner_nav_options)
+    val tabIcons = listOf(
+        Icons.Default.SportsEsports,
+        Icons.Default.History,
+        Icons.Default.Block,
+    )
+
+    FloatingActionButtonMenu(
+        expanded = expanded,
+        button = {
+            ToggleFloatingActionButton(
+                checked = expanded,
+                onCheckedChange = onExpandedChange,
+                containerSize = { 56.dp },
+                containerCornerRadius = { 2.dp },
+            ) {
+                Icon(
+                    imageVector = if (expanded) Icons.Default.Close else Icons.Default.Apps,
+                    contentDescription = null,
+                    tint = if (expanded) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    },
                 )
             }
-
-            if (showRedeem) {
-                FloatingActionButton(
-                    onClick = onRedeem,
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.redeem),
-                    )
-                }
-            }
+        },
+        modifier = modifier,
+    ) {
+        tabNames.forEachIndexed { index, name ->
+            FloatingActionButtonMenuItem(
+                onClick = {
+                    onExpandedChange(false)
+                    onTabChange(index)
+                },
+                text = { Text(text = name) },
+                icon = { Icon(imageVector = tabIcons[index], contentDescription = null) },
+            )
         }
     }
 }
@@ -193,35 +496,47 @@ private fun PlayAllButton(onClick: () -> Unit) {
  * Preview
  */
 
-@Preview(name = "Games")
-@Composable
-private fun PreviewGames() {
-    GamesPreview(
-        games = listOf(
-            Game(440, "Team Fortress 2", 12.3f, 3),
-            Game(730, "Counter-Strike 2", 1502.7f, 0),
-            Game(570, "Dota 2", 0.5f, 1),
+private class GamesPreview : PreviewParameterProvider<GamesScreenState> {
+    private val sampleGames = listOf(
+        Game(440, "Team Fortress 2", 12.3f, 3),
+        Game(730, "Counter-Strike 2", 1502.7f, 0),
+        Game(570, "Dota 2", 0.5f, 1),
+    )
+
+    private val states = listOf(
+        "Games" to GamesScreenState(
+            games = sampleGames,
+            selected = sampleGames.take(1),
+            showRedeem = true,
+        ),
+        "Last session" to GamesScreenState(
+            games = sampleGames,
+            tab = GamesFragment.TAB_LAST,
+            showPlayAll = true,
+            showRedeem = true,
+        ),
+        "Empty" to GamesScreenState(),
+        "Fab menu open" to GamesScreenState(
+            games = sampleGames,
+            showRedeem = true,
+            fabMenuExpanded = true,
         ),
     )
+
+    override val values = states.asSequence().map { it.second }
+
+    override fun getDisplayName(index: Int) = states[index].first
 }
 
-@Preview(name = "Empty")
+@Preview
 @Composable
-private fun PreviewEmpty() {
-    GamesPreview(games = emptyList())
-}
-
-@Composable
-private fun GamesPreview(games: List<Game>) {
-    GamesScreen(
-        games = games,
-        selected = games.take(1),
-        refreshing = false,
-        showPlayAll = games.isNotEmpty(),
-        showRedeem = true,
-        showIcons = false,
-        optionsGame = null,
-        optionsBlacklisted = false,
+private fun Preview(@PreviewParameter(GamesPreview::class) state: GamesScreenState) {
+    GamesScreenContent(
+        state = state,
+        onMenuClick = {},
+        onQueryChange = {},
+        onTabChange = {},
+        onSortChange = {},
         onRefresh = {},
         onGameClick = {},
         onGameLongClick = {},

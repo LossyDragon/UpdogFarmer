@@ -1,4 +1,4 @@
-package com.steevsapps.idledaddy.dialogs
+package com.steevsapps.idledaddy.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,7 +9,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import com.steevsapps.idledaddy.ui.screen.about.AboutScreen
 
-class AboutDialog : Fragment() {
+class AboutFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -20,7 +20,7 @@ class AboutDialog : Fragment() {
     }
 
     companion object {
-        val TAG: String = AboutDialog::class.java.getSimpleName()
-        fun newInstance(): AboutDialog = AboutDialog()
+        val TAG: String = AboutFragment::class.java.getSimpleName()
+        fun newInstance(): AboutFragment = AboutFragment()
     }
 }

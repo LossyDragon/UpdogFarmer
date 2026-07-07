@@ -2,32 +2,14 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
-
-    <item android:id="@+id/search"
-        android:title="@string/search"
-        app:actionViewClass="androidx.appcompat.widget.SearchView"
-        app:showAsAction="ifRoom"
-        android:visible="false" />
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
 
     <item
         android:id="@+id/custom_app"
+        android:orderInCategory="100"
         android:title="@string/idle_custom_app"
-        app:showAsAction="never"
         android:visible="false"
-        android:orderInCategory="100" />
-
-    <item
-        android:id="@+id/import_shared_secret"
-        android:title="@string/import_shared_secret"
-        app:showAsAction="never"
-        android:visible="false"
-        android:orderInCategory="103" />
-
-    <item
-        android:id="@+id/logcat"
-        android:title="@string/logcat"
-        app:showAsAction="never"
-        android:orderInCategory="103" />
+        app:showAsAction="never" />
 
 </menu>

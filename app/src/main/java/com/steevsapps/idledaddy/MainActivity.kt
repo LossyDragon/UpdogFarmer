@@ -15,17 +15,12 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.ArrayAdapter
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.widget.SearchView
-import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -35,14 +30,12 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.bumptech.glide.Glide
 import com.google.android.material.navigation.NavigationView
 import com.steevsapps.idledaddy.LoginActivity.Companion.createIntent
-import com.steevsapps.idledaddy.dialogs.AboutDialog
+import com.steevsapps.idledaddy.fragments.AboutFragment
 import com.steevsapps.idledaddy.dialogs.CustomAppDialog
-import com.steevsapps.idledaddy.dialogs.RedeemDialog
 import com.steevsapps.idledaddy.fragments.GamesFragment
 import com.steevsapps.idledaddy.fragments.HomeFragment
 import com.steevsapps.idledaddy.fragments.SettingsFragment
 import com.steevsapps.idledaddy.listeners.DialogListener
-import com.steevsapps.idledaddy.listeners.SpinnerInteractionListener
 import com.steevsapps.idledaddy.preferences.PrefsManager
 import com.steevsapps.idledaddy.steam.SteamService
 import `in`.dragonbra.javasteam.enums.EPersonaState
@@ -52,6 +45,7 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
     private var title = ""
     private var loggedIn = false
     private var farming = false
+    private var parentalStatus = false
 
     // Views
     private var mainContainer: LinearLayout? = null
@@ -61,22 +55,6 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
     private lateinit var drawerView: NavigationView
     private var drawerToggle: ActionBarDrawerToggle? = null
     private lateinit var logoutToggle: ImageView
-    private lateinit var spinnerNav: Spinner
-    private var searchView: SearchView? = null
-
-    private val backPressedCallback = object : OnBackPressedCallback(true) {
-        override fun handleOnBackPressed() {
-            if (searchView?.isIconified == false) {
-                // Dismiss the SearchView
-                searchView!!.setQuery("", false)
-                searchView!!.isIconified = true
-            } else {
-                isEnabled = false
-                onBackPressedDispatcher.onBackPressed()
-            }
-        }
-    }
-
     private var logoutExpanded = false
     private var drawerItemId = 0
 
@@ -91,6 +69,10 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
                 SteamService.FARM_EVENT -> showDropInfo(intent)
                 SteamService.PERSONA_EVENT -> updateDrawerHeader(intent)
                 SteamService.NOW_PLAYING_EVENT -> showNowPlaying()
+                SteamService.PARENTAL_STATUS -> {
+                    parentalStatus = intent.getBooleanExtra("status", false)
+                    (currentFragment as? HomeFragment)?.updateParentalStatus(parentalStatus)
+                }
             }
         }
     }
@@ -131,7 +113,7 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
 
         if (!PrefsManager.minimizeData() && !avatarHash.isNullOrEmpty() && (avatarHash != "0000000000000000000000000000000000000000")) {
             val avatar = "http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/" +
-                    "${avatarHash.substring(0, 2)}/${avatarHash}_full.jpg"
+                "${avatarHash.substring(0, 2)}/${avatarHash}_full.jpg"
             Glide.with(this).load(avatar).into(avatarView)
         }
     }
@@ -140,6 +122,7 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
         Log.i(TAG, "Service connected")
         loggedIn = service!!.isLoggedIn
         farming = service!!.isFarming
+        parentalStatus = service!!.parentalStatus
         updateStatus()
         updateDrawerHeader(null)
 
@@ -153,7 +136,6 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        onBackPressedDispatcher.addCallback(this, backPressedCallback)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -161,22 +143,10 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 0)
         }
 
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
+        //val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        //setSupportActionBar(toolbar)
 
         mainContainer = findViewById(R.id.main_container)
-
-        // Setup the navigation spinner (Games fragment only)
-        spinnerNav = findViewById(R.id.spinner_nav)
-        val adapter = ArrayAdapter.createFromResource(
-            this,
-            R.array.spinner_nav_options, R.layout.simple_spinner_title
-        )
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerNav.setAdapter(adapter)
-        val listener = SpinnerInteractionListener(supportFragmentManager)
-        spinnerNav.onItemSelectedListener = listener
-        spinnerNav.setOnTouchListener(listener)
 
         drawerLayout = findViewById(R.id.drawer_layout)
         // On tablets we use the DrawerView but not the DrawerLayout
@@ -198,8 +168,8 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
                 }
             }
             drawerLayout!!.addDrawerListener(drawerToggle!!)
-            supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-            supportActionBar!!.setHomeButtonEnabled(true)
+            supportActionBar?.setDisplayHomeAsUpEnabled(true)
+            supportActionBar?.setHomeButtonEnabled(true)
         }
         val contentFrame = findViewById<FrameLayout>(R.id.content_frame)
         val insetRoot: View = drawerLayout ?: mainContainer!!
@@ -207,10 +177,10 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
             val bars = insetsCompat.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
-            toolbar.setPaddingRelative(
-                toolbar.paddingStart, bars.top,
-                toolbar.paddingEnd, toolbar.paddingBottom
-            )
+            // toolbar.setPaddingRelative(
+            //     toolbar.paddingStart, bars.top,
+            //     toolbar.paddingEnd, toolbar.paddingBottom
+            // )
             contentFrame.setPaddingRelative(
                 contentFrame.paddingStart, contentFrame.paddingTop,
                 contentFrame.paddingEnd, bars.bottom
@@ -230,7 +200,7 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
 
                 R.id.about -> {
                     supportFragmentManager.beginTransaction()
-                        .replace(R.id.content_frame, AboutDialog.newInstance())
+                        .replace(R.id.content_frame, AboutFragment.newInstance())
                         .addToBackStack(null)
                         .commit()
                     closeDrawer()
@@ -315,12 +285,7 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
 
         val fragment: Fragment = when (id) {
             R.id.home -> HomeFragment.newInstance(loggedIn, farming)
-            R.id.games -> GamesFragment.newInstance(
-                service!!.steamId,
-                ArrayList(service!!.currentGames),
-                spinnerNav.selectedItemPosition
-            )
-
+            R.id.games -> GamesFragment.newInstance()
             R.id.settings -> SettingsFragment.newInstance()
             else -> Fragment()
         }
@@ -340,18 +305,8 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
         drawerLayout?.closeDrawer(drawerView)
     }
 
-    /**
-     * Show the navigation spinner (Games fragment only)
-     */
-    private fun showSpinnerNav() {
-        spinnerNav.visibility = View.VISIBLE
-    }
-
-    /**
-     * Hide it
-     */
-    private fun hideSpinnerNav() {
-        spinnerNav.visibility = View.GONE
+    fun openDrawer() {
+        drawerLayout?.openDrawer(drawerView)
     }
 
     override fun setTitle(titleId: Int) {
@@ -372,6 +327,7 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
         filter.addAction(SteamService.STOP_EVENT)
         filter.addAction(SteamService.FARM_EVENT)
         filter.addAction(SteamService.PERSONA_EVENT)
+        filter.addAction(SteamService.PARENTAL_STATUS)
         filter.addAction(SteamService.NOW_PLAYING_EVENT)
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, filter)
         // Listen for preference changes
@@ -390,15 +346,11 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
         val showOverflow = drawerItemId != R.id.about
         drawerView.getHeaderView(0).isClickable = loggedIn
         menu.findItem(R.id.custom_app).isVisible = loggedIn && showOverflow
-        menu.findItem(R.id.import_shared_secret).isVisible = loggedIn && showOverflow
-        menu.findItem(R.id.logcat).isVisible = showOverflow
-        menu.findItem(R.id.search).isVisible = drawerItemId == R.id.games
         return super.onPrepareOptionsMenu(menu)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
-        searchView = menu.findItem(R.id.search).actionView as SearchView?
         return true
     }
 
@@ -448,17 +400,17 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
             is HomeFragment -> {
                 drawerItemId = R.id.home
                 setTitle(R.string.app_name)
-                hideSpinnerNav()
+                // hideSpinnerNav()
                 drawerView.menu.findItem(R.id.home).isChecked = true
                 fragment.update(loggedIn, farming)
                 showDropInfo(null)
                 showNowPlaying()
+                fragment.updateParentalStatus(parentalStatus)
             }
 
             is GamesFragment -> {
                 drawerItemId = R.id.games
                 setTitle("")
-                showSpinnerNav()
                 drawerView.menu.findItem(R.id.games).isChecked = true
                 fragment.update(ArrayList(service!!.currentGames))
             }
@@ -466,14 +418,14 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
             is SettingsFragment -> {
                 drawerItemId = R.id.settings
                 setTitle(R.string.settings)
-                hideSpinnerNav()
+                // hideSpinnerNav()
                 drawerView.menu.findItem(R.id.settings).isChecked = true
             }
 
-            is AboutDialog -> {
+            is AboutFragment -> {
                 drawerItemId = R.id.about
                 setTitle(R.string.about)
-                hideSpinnerNav()
+                // hideSpinnerNav()
                 drawerView.menu.findItem(R.id.about).isChecked = true
             }
         }
