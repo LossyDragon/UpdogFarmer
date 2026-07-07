@@ -92,13 +92,6 @@
     <string name="sort">Sort</string>
     <string name="sort_alphabetically">Alphabetically</string>
     <string name="sort_hours_played">Hours Played</string>
-    <string name="auto_discovery_title">Auto Discovery Queue</string>
-    <string name="auto_discovery">This will automatically view the games in your Discovery Queue. During the Summer and Winter sales, you can get up to 3 trading cards per day by viewing your queue.</string>
-    <string name="generating_discovery">Generating new Discovery Queue…</string>
-    <string name="discovering">Discovering %s (%d/%d)</string>
-    <string name="discovery_finished">Discovery Queue Finished</string>
-    <string name="discovery_error">Could not complete the Discovery Queue at this time. Try again later</string>
-    <string name="auto_vote">Auto Vote (Steam Awards)</string>
     <string name="vote_successful">Vote successful!</string>
     <string name="vote_failed">Vote failed!</string>
     <string name="summer_event">Summer Event</string>
@@ -142,8 +135,6 @@
     <string name="non_steam_game">Non-Steam game</string>
     <string name="playing_unknown_app">Unknown app: %d</string>
     <string name="playing_non_steam_game">Non-Steam game: %s</string>
-    <string name="spring_cleaning_title">Spring Cleaning Event</string>
-    <string name="spring_cleaning_desc">Complete tasks to level up your Spring Cleaning Event badge. This event ends May 28th.</string>
     <string name="complete_daily_tasks">Complete Daily Tasks</string>
     <string name="complete_projects">Complete Project Tasks</string>
     <string name="daily_tasks_completed">Daily tasks completed. Come back again tomorrow.</string>

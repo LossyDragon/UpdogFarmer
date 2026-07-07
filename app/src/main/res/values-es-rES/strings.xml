@@ -89,13 +89,6 @@
     <string name="sort">Ordenar</string>
     <string name="sort_alphabetically">Alfabéticamente</string>
     <string name="sort_hours_played">Horas jugadas</string>
-    <string name="auto_discovery_title">Lista de descubrimientos automática</string>
-    <string name="auto_discovery">Esta función mira todos los productos de tu lista de descubrimiento automáticamente. Se pueden obtener hasta 3 cromos al día durante las ofertas de verano e invierno con solo ver tu lista.</string>
-    <string name="generating_discovery">Creando una nueva lista de descubrimiento…</string>
-    <string name="discovering">Descubriendo %s (%d/%d)</string>
-    <string name="discovery_finished">Se terminó de ver la lista de descubrimiento.</string>
-    <string name="discovery_error">No se pudo terminar de ver la lista de descubrimiento. Inténtalo de nuevo más tarde.</string>
-    <string name="auto_vote">Votar automáticamente en los Premios Steam</string>
     <string name="vote_successful">Voto registrado.</string>
     <string name="vote_failed">Fallo en la votación.</string>
     <string name="apikey_access_denied">La clave de acceso de la API de Steam fue rechazada, se usará una clave alternativa.</string>
@@ -146,8 +139,6 @@
     <string name="non_steam_game">Non-Steam game</string>
     <string name="playing_unknown_app">Unknown app: %d</string>
     <string name="playing_non_steam_game">Non-Steam game: %s</string>
-    <string name="spring_cleaning_title">Spring Cleaning Event</string>
-    <string name="spring_cleaning_desc">Complete tasks to level up your Spring Cleaning Event badge. This event ends May 28th.</string>
     <string name="complete_daily_tasks">Complete Daily Tasks</string>
     <string name="complete_projects">Complete Project Tasks</string>
     <string name="daily_tasks_completed">Daily tasks completed. Come back again tomorrow.</string>

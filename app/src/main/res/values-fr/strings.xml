@@ -91,13 +91,6 @@
     <string name="sort">Trier</string>
     <string name="sort_alphabetically">Dans l\'ordre alphabétique</string>
     <string name="sort_hours_played">Heures jouées</string>
-    <string name="auto_discovery_title">Lecture de la liste de découverte automatique</string>
-    <string name="auto_discovery">Cela va automatiquement regarder les jeux dans ta liste de découverte. Durant les soldes d\'été et d\'hiver, vous pouvez obtenir jusqu\'à 3 cartes à échanger par jour en explorant votre liste de découvertes.</string>
-    <string name="generating_discovery">Génération d\'une nouvelle liste de découvertes</string>
-    <string name="discovering">Découvertes %s (%d/%d)</string>
-    <string name="discovery_finished">Liste de découvertes finie</string>
-    <string name="discovery_error">Ne peut pas compléter la liste de découvertes. Essayez plus tard</string>
-    <string name="auto_vote">Vote automatique (Steam Awards)</string>
     <string name="vote_successful">Vote réussi !</string>
     <string name="vote_failed">Vote échoué!</string>
     <string name="english">Anglais</string>
@@ -146,8 +139,6 @@
     <string name="non_steam_game">Jeux non-Steam</string>
     <string name="playing_unknown_app">Application inconnue: %d</string>
     <string name="playing_non_steam_game">Jeu non-Steam: %s</string>
-    <string name="spring_cleaning_title">Spring Cleaning Event</string>
-    <string name="spring_cleaning_desc">Complete tasks to level up your Spring Cleaning Event badge. This event ends May 28th.</string>
     <string name="complete_daily_tasks">Compléter les tâches quotidiennes</string>
     <string name="complete_projects">Compléter les tâches du projet</string>
     <string name="daily_tasks_completed">Tâches quotidiennes complétées. Revenez demain.</string>

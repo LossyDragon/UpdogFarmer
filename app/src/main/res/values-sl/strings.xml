@@ -89,13 +89,6 @@
     <string name="sort">Razvrsti</string>
     <string name="sort_alphabetically">Po abecedi</string>
     <string name="sort_hours_played">Po številu ur</string>
-    <string name="auto_discovery_title">Samodejno odkrivanje iger</string>
-    <string name="auto_discovery">To bo samodejno prikazalo igre v čakalni vrsti Discovery. Med poletno in zimsko prodajo lahko dobite do 3 kartice za trgovanje na dan, tako da si ogledate svojo čakalno vrsto.</string>
-    <string name="generating_discovery">Ustvarjanje nove čakalne vrste Discovery…</string>
-    <string name="discovering">Odkrivanje %s (%d/%d)</string>
-    <string name="discovery_finished">Odkritje iger je končano</string>
-    <string name="discovery_error">Trenutno ni bilo mogoče dokončati čakalnega okna Discovery. Poskusite znova kasneje</string>
-    <string name="auto_vote">Samodejno glasovanje (Steam nagrade)</string>
     <string name="vote_successful">Glasovanje je uspelo!</string>
     <string name="vote_failed">Glasovanje ni uspelo</string>
     <string name="pref_language">Jezik</string>
@@ -146,8 +139,6 @@
     <string name="play_saliens_failed">Unable to auto play Saliens right now. Try again later.</string>
     <string name="bosnian_croatian">Bosnian/Croatian</string>
     <string name="serbian">Serbian</string>
-    <string name="spring_cleaning_title">Spring Cleaning Event</string>
-    <string name="spring_cleaning_desc">Complete tasks to level up your Spring Cleaning Event badge. This event ends May 28th.</string>
     <string name="complete_daily_tasks">Complete Daily Tasks</string>
     <string name="complete_projects">Complete Project Tasks</string>
     <string name="daily_tasks_completed">Daily tasks completed. Come back again tomorrow.</string>

@@ -91,13 +91,6 @@
     <string name="sort">מיין</string>
     <string name="sort_alphabetically">אלף בית</string>
     <string name="sort_hours_played">שעות ששוחקו</string>
-    <string name="auto_discovery_title">עבור על ה-Queue אוטומטית</string>
-    <string name="auto_discovery">זה יעבור אוטומטית על המשחקים ב-Queue שלך. בזמן הנחות הקיץ והחורף, אתה יכול לקבל עד 3 קלפים ביום על ידי מעבר על ה-Queue שלך.</string>
-    <string name="generating_discovery">יוצר Queue חדש…</string>
-    <string name="discovering">עובר על %s(%d/%d)</string>
-    <string name="discovery_finished">מעבר על ה-Queue הסתיים</string>
-    <string name="discovery_error">מעבר על ה-Queue נכשל. נסה שוב מאוחר יותר</string>
-    <string name="auto_vote">הצבעה אוטומטית (Steam Award)</string>
     <string name="vote_successful">הצבעה הצליחה!</string>
     <string name="vote_failed">הצבעה נכשלה!</string>
     <string name="apikey_access_denied">מפתח API של סטים נדחה, משתמש במפתח הכלול.</string>
@@ -124,8 +117,6 @@
     <string name="non_steam_game">משחק שלא בסטים</string>
     <string name="playing_unknown_app">אפליקציה לא ידועה: %d</string>
     <string name="playing_non_steam_game">משחק שלא בסטים: %s</string>
-    <string name="spring_cleaning_title">אירוע ניקיון האביב</string>
-    <string name="spring_cleaning_desc"> השלם משימות  כדי להעלות  את תג ניקיון האביב  שלך. האירוע מסתיים ב-28 במאי.</string>
     <string name="complete_daily_tasks">השלם משימות יומיות</string>
     <string name="complete_projects">השלם משימות פרויקטים</string>
     <string name="daily_tasks_completed">משימות יומיות הושלמו. חזור מחר לעוד משימות.</string>

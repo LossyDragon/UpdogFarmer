@@ -94,13 +94,6 @@
     <string name="sort">Poredaj</string>
     <string name="sort_alphabetically">Po abecedi</string>
     <string name="sort_hours_played">Po broju sati</string>
-    <string name="auto_discovery_title">Automatski pregledaj listu preporučenih igara</string>
-    <string name="auto_discovery">Ovo će automatski pregledati listu preporučenih igara. Tjekom Ljetne i Zimske rasprodaje možete dobiti do 3 trading kartice svaki dan kada pregledate preporučene igre.</string>
-    <string name="generating_discovery">Generiranje liste preporučenih igara...</string>
-    <string name="discovering">Pregledavanje %s (%d/%d)</string>
-    <string name="discovery_finished">Pregledavanje završeno</string>
-    <string name="discovery_error">Trenutno nije moguće dovršiti pregledavanje liste igara. Pokušajte ponovno kasnije</string>
-    <string name="auto_vote">Automatsko glasanje (Steam Awards)</string>
     <string name="vote_successful">Glasanje uspješno!</string>
     <string name="vote_failed">Glasanje nije uspjelo!</string>
     <string name="apikey_access_denied">Odbijen pristup Steam API koda, koristim ugrađeni kod</string>
@@ -136,8 +129,6 @@
     <string name="non_steam_game">Ime igre</string>
     <string name="playing_unknown_app">Nepoznata aplikacija: %d</string>
     <string name="playing_non_steam_game">Igra koja nije na Steamu: %s</string>
-    <string name="spring_cleaning_title">Proljetno cišcenje</string>
-    <string name="spring_cleaning_desc">Završi zadatke da biste unaprijedili vašu znacku proljetnog cišcenja. Ovaj dogadaj se završava 28. maja.</string>
     <string name="complete_daily_tasks">Završi dnevne zadatke</string>
     <string name="complete_projects">Završi zadatke projekta</string>
     <string name="daily_tasks_completed">Dnevni zadaci završeni. Vratite se ponovo sutra.</string>

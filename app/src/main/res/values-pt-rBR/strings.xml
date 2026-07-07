@@ -96,13 +96,6 @@
     <string name="sort">Classificar</string>
     <string name="sort_alphabetically">Alfabeticamente</string>
     <string name="sort_hours_played">Horas jogadas</string>
-    <string name="auto_discovery_title">Auto Lista de descoberta</string>
-    <string name="auto_discovery">Isto irá ver automaticamente os jogos na sua Fila de Descoberta. Durante as vendas de verão e inverno, você pode obter até três cartões comerciais por dia, visualizando sua fila.</string>
-    <string name="generating_discovery">Gerando nova fila de descoberta…</string>
-    <string name="discovering">Descobrindo %s (%d/%d)</string>
-    <string name="discovery_finished">Fila de descoberta finalizada</string>
-    <string name="discovery_error">Não foi possível concluir a Fila de Descoberta neste momento. Tente mais tarde.</string>
-    <string name="auto_vote">Auto Voto (Steam Awards)</string>
     <string name="vote_successful">Voto bem sucedido!</string>
     <string name="vote_failed">Voto Falhou!</string>
     <string name="summer_event">Evento de verão</string>
@@ -146,8 +139,6 @@
     <string name="non_steam_game">Jogo Não-Steam</string>
     <string name="playing_unknown_app">App Desconhecido: %d</string>
     <string name="playing_non_steam_game">Jogo Não-Steam: %s</string>
-    <string name="spring_cleaning_title">Spring Cleaning Event</string>
-    <string name="spring_cleaning_desc">Complete tasks to level up your Spring Cleaning Event badge. This event ends May 28th.</string>
     <string name="complete_daily_tasks">Tarefas diárias completas</string>
     <string name="complete_projects">Tarefas completas do projeto</string>
     <string name="daily_tasks_completed">Tarefas diárias concluídas. Volte novamente amanhã.</string>

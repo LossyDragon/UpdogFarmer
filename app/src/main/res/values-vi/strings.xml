@@ -94,13 +94,6 @@
     <string name="sort">Sắp xếp</string>
     <string name="sort_alphabetically">Theo bảng chữ cái</string>
     <string name="sort_hours_played">Số giờ đã chơi</string>
-    <string name="auto_discovery_title">Tự động chạy Discovery Queue</string>
-    <string name="auto_discovery">Sẽ tự động xem hết game trong Discovery Queue của bạn. Giữa Summer và Winter sales, bạn có thể lấy lên đến 3 trading card mỗi ngày khi xem.</string>
-    <string name="generating_discovery">Đang tạo Discovery Queue mới…</string>
-    <string name="discovering">Đang xem %s (%d/%d)</string>
-    <string name="discovery_finished">Xem queue thành công</string>
-    <string name="discovery_error">Không thể chạy queue trong lúc này. Vui lòng thử lại sau</string>
-    <string name="auto_vote">Tự động bỏ phiếu (Steam Awards)</string>
     <string name="vote_successful">Bỏ phiếu thành công!</string>
     <string name="vote_failed">Bỏ phiếu không thành công!</string>
     <string name="apikey_access_denied">Không thể lấy Steam API key, sẽ sử dụng key có sẵn.</string>
@@ -136,8 +129,6 @@
     <string name="playing_non_steam_game">Non-Steam game: %s</string>
     <string name="vietnamese">Tiếng Việt</string>
     <string name="persian">Tiếng Ba Tư</string>
-    <string name="spring_cleaning_title">Sự kiện dọn dẹp Mùa Xuân</string>
-    <string name="spring_cleaning_desc">Hoàn thành các nhiệm vụ để lên cấp cho huy hiệu Dọn dẹp Mùa Xuân. Sự kiện kết thúc vào ngày 25 tháng 5.</string>
     <string name="complete_daily_tasks">Hoàn thành nhiệm vụ hàng ngày</string>
     <string name="complete_projects">Hoàn thành nhiệm vụ kế hoạch</string>
     <string name="daily_tasks_completed">Nhiệm vụ hàng ngày đã hoàn thành. Hãy quay lại vào ngày mai.</string>

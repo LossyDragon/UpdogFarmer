@@ -97,13 +97,6 @@
     <string name="sort_alphabetically">字母顺序</string>
     <string name="sort_hours_played">游戏时长</string>
     <string name="sort_hours_played_reversed">游戏时长倒序</string>
-    <string name="auto_discovery_title">自动浏览探索队列</string>
-    <string name="auto_discovery">将会自动浏览探索队列内的游戏。在夏季和冬季特卖活动期间，您每天可以通过浏览探索队列获得最多 3 张卡牌。</string>
-    <string name="generating_discovery">生成新的探索队列……</string>
-    <string name="discovering">正在探索 %s（%d/%d）</string>
-    <string name="discovery_finished">探索队列浏览完成</string>
-    <string name="discovery_error">目前无法完成探索队列，请稍后重试。</string>
-    <string name="auto_vote">自动投票（Steam 大奖）</string>
     <string name="vote_successful">投票成功！</string>
     <string name="vote_failed">投票失败！</string>
     <string name="summer_event">夏季活动</string>
@@ -150,8 +143,6 @@
     <string name="non_steam_game">非 Steam 游戏</string>
     <string name="playing_unknown_app">未知 App：%d</string>
     <string name="playing_non_steam_game">非 Steam 游戏：%s</string>
-    <string name="spring_cleaning_title">涤尘送春活动</string>
-    <string name="spring_cleaning_desc">完成任务以升级您的涤尘送春活动徽章。该活动结束于 5 月 28 日。</string>
     <string name="complete_daily_tasks">完成每日任务</string>
     <string name="complete_projects">完成长期任务</string>
     <string name="daily_tasks_completed">每日任务已完成，请明天再来。</string>

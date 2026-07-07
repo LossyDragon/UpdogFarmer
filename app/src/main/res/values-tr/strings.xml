@@ -97,13 +97,6 @@
     <string name="sort_alphabetically">Alfabetik</string>
     <string name="sort_hours_played">Oynama süresine göre (Azalan)</string>
     <string name="sort_hours_played_reversed">Oynama süresine göre (Artan)</string>
-    <string name="auto_discovery_title">Otomatik Keşif Kuyruğu</string>
-    <string name="auto_discovery">Keşif Kuyruğunu otomatik olarak yapar. Yaz ve Kış indirimlerinde, her gün Keşif Kuyruğunu tamamlayarak 3 takas kartı kazanabilirsin.</string>
-    <string name="generating_discovery">Yeni keşif kuyruğu oluşturuluyor</string>
-    <string name="discovering">Keşfediliyor %s (%d/%d)</string>
-    <string name="discovery_finished">Keşif Kuyruğu tamamlandı </string>
-    <string name="discovery_error">Keşif Kuyruğu tamamlanamadı. Daha sonra tekrar dene</string>
-    <string name="auto_vote">Otomatik oyla (Steam Ödülleri)</string>
     <string name="vote_successful">Oy verme tamamlandı!</string>
     <string name="vote_failed">Oy verme başarısız!</string>
     <string name="summer_event">Yaz Etkinliği</string>
@@ -147,8 +140,6 @@
     <string name="non_steam_game">Steam Dışı oyun</string>
     <string name="playing_unknown_app">Bilinmeyen Uygulama: %d</string>
     <string name="playing_non_steam_game">Steam Dışı Oyunda: %s</string>
-    <string name="spring_cleaning_title">Bahar Temizliği Etkinliği</string>
-    <string name="spring_cleaning_desc">Görevleri tamamlayarak Bahar Temizliği Etkinliği rozetinin seviyesini yükseltebilirsin. Bu etkinlik 28 Mayıs\'ta bitecek.</string>
     <string name="complete_daily_tasks">Günlük Görevleri Tamamla</string>
     <string name="complete_projects">Proje Görevlerini Tamamla</string>
     <string name="daily_tasks_completed">Günlük Görevler tamamlandı. Yarın tekrar yapmayı unutma.</string>

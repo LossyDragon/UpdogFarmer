@@ -97,13 +97,6 @@
     <string name="sort_alphabetically">Alphabetisch</string>
     <string name="sort_hours_played">Spielzeit</string>
     <string name="sort_hours_played_reversed">Spielzeit (umgekehrt)</string>
-    <string name="auto_discovery_title">Automatische Entdeckungsliste</string>
-    <string name="auto_discovery">Dadurch wird die Entdeckungsliste automatisch abgearbeitet. Während der Sommer- und Winterverkäufe kannst du bis zu 3 Sammelkarten pro Tag bekommen, indem du deine Entdeckungsliste abarbeitest.</string>
-    <string name="generating_discovery">Generiere neue Entdeckungsliste…</string>
-    <string name="discovering">Entdecke %s (%d/%d)</string>
-    <string name="discovery_finished">Entdeckungsliste fertig</string>
-    <string name="discovery_error">Die Entdeckungsliste konnte zu diesem Zeitpunkt nicht abgeschlossen werden. Versuche es später noch einmal</string>
-    <string name="auto_vote">Automatische Abstimmung (Steam Awards)</string>
     <string name="vote_successful">Abstimmung erfolgreich!</string>
     <string name="vote_failed">Abstimmung fehlgeschlagen!</string>
     <string name="summer_event">Sommer Aktion</string>
@@ -150,8 +143,6 @@
     <string name="non_steam_game">Steam-fremdes Spiel</string>
     <string name="playing_unknown_app">Unbekannte Anwendung: %d</string>
     <string name="playing_non_steam_game">In Steam-fremdem Spiel: %s</string>
-    <string name="spring_cleaning_title">Frühjahrsputzaktion</string>
-    <string name="spring_cleaning_desc">Erfülle Aufgaben, um dein Frühjahrsputzaktions Abzeichen zu bekommen. Dieses Ereignis endet am 28. Mai.</string>
     <string name="complete_daily_tasks">Erledige tägliche Aufgaben</string>
     <string name="complete_projects">Erledige Projekt Aufgaben</string>
     <string name="daily_tasks_completed">Tägliche Aufgaben erledigt. Komm morgen wieder zurück.</string>

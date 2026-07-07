@@ -7,6 +7,12 @@ plugins {
     alias(libs.plugins.compose.compiler)
 }
 
+// Used to not cache JavaSteam snapshots when developing
+configurations.configureEach {
+    resolutionStrategy.cacheChangingModulesFor(0, TimeUnit.SECONDS)
+    resolutionStrategy.cacheDynamicVersionsFor(0, TimeUnit.SECONDS)
+}
+
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xexplicit-backing-fields")

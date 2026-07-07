@@ -97,13 +97,6 @@
     <string name="sort_alphabetically">За назвою</string>
     <string name="sort_hours_played">За часом</string>
     <string name="sort_hours_played_reversed">За часом (навпаки)</string>
-    <string name="auto_discovery_title">Авто Черга Знахідок</string>
-    <string name="auto_discovery">Автоматичний перегляд продуктів у Черзі Знахідок. Під час Літніх та Зимових розпродажів ви можете отримати до 3 торгових карток за добу, переглядаючи чергу.</string>
-    <string name="generating_discovery">Утворення нової Черги Знахідок…</string>
-    <string name="discovering">Перегляд %s (%d/%d)</string>
-    <string name="discovery_finished">Черга Знахідок проглянута</string>
-    <string name="discovery_error">Не вдалося проглянути Чергу Знахідок у цей час. Спробуйте ще раз пізніше</string>
-    <string name="auto_vote">Авто Голос (Нагороди Steam)</string>
     <string name="vote_successful">Успішне голосування!</string>
     <string name="vote_failed">Не вдалося проголосувати!</string>
     <string name="summer_event">Гра Saliens</string>
@@ -150,8 +143,6 @@
     <string name="non_steam_game">Не-Steam гра</string>
     <string name="playing_unknown_app">Невідома гра: %d</string>
     <string name="playing_non_steam_game">Не-Steam гра: %s</string>
-    <string name="spring_cleaning_title">Подія \'Весняне прибирання\'</string>
-    <string name="spring_cleaning_desc">Підвищуйте рівень значка події \'Весняне прибирання\', виконуючи завдання. Кінець події 28 травня.</string>
     <string name="complete_daily_tasks">Виконати щоденні завдання</string>
     <string name="complete_projects">Виконати завдання проектів</string>
     <string name="daily_tasks_completed">Щоденні завдання виконані. Повертайтесь завтра.</string>

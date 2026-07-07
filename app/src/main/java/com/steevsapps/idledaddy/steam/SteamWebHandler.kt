@@ -16,8 +16,6 @@ import com.steevsapps.idledaddy.utils.Utils.isValidKey
 import `in`.dragonbra.javasteam.util.Strings.toHex
 import `in`.dragonbra.javasteam.util.crypto.CryptoHelper
 import okhttp3.OkHttpClient
-import org.json.JSONArray
-import org.json.JSONObject
 import org.jsoup.Connection
 import org.jsoup.Jsoup
 import retrofit2.Call
@@ -82,7 +80,7 @@ class SteamWebHandler private constructor() {
         this.sessionId = toHex(CryptoHelper.generateRandomBlock(4))
         this.authenticated = true
 
-        val pin = getParentalPin().trim { it <= ' ' }
+        val pin = getParentalPin().trim()
         if (pin.isNotEmpty()) {
             // Unlock family view
             steamParental = unlockParental(pin)
@@ -182,11 +180,11 @@ class SteamWebHandler private constructor() {
 
                 // Get app name
                 val badgeTitle = b.select("div.badge_title").first() ?: continue
-                val name = badgeTitle.ownText().trim { it <= ' ' }
+                val name = badgeTitle.ownText().trim()
 
                 // Get play time
                 val playTime = b.select("div.badge_title_stats_playtime").first() ?: continue
-                val playTimeText = playTime.text().trim { it <= ' ' }
+                val playTimeText = playTime.text().trim()
                 m = timePattern.matcher(playTimeText)
                 var time = 0f
                 if (m.find()) {
@@ -277,35 +275,6 @@ class SteamWebHandler private constructor() {
         return false
     }
 
-    @Throws(Exception::class)
-    fun generateNewDiscoveryQueue(): JSONArray {
-        val url = STEAM_STORE + "explore/generatenewdiscoveryqueue"
-        val json = Jsoup.connect(url)
-            .ignoreContentType(true)
-            .referrer(STEAM_STORE)
-            .followRedirects(true)
-            .cookies(generateWebCookies())
-            .method(Connection.Method.POST)
-            .data("sessionid", sessionId!!)
-            .data("queuetype", "0")
-            .execute()
-            .body()
-        return JSONObject(json).getJSONArray("queue")
-    }
-
-    @Throws(Exception::class)
-    fun clearFromQueue(appId: String) {
-        val url = STEAM_STORE + "app/10"
-        Jsoup.connect(url)
-            .ignoreContentType(true)
-            .referrer(STEAM_STORE)
-            .followRedirects(true)
-            .cookies(generateWebCookies())
-            .data("sessionid", sessionId!!)
-            .data("appid_to_clear_from_queue", appId)
-            .post()
-    }
-
     @ApiKeyState
     fun updateApiKey(): Int {
         if (isValidKey(getApiKey())) {
@@ -322,7 +291,7 @@ class SteamWebHandler private constructor() {
                 .cookies(generateWebCookies())
                 .get()
             val titleNode = doc.select("div#mainContents h2").first() ?: return ApiKeyState.ERROR
-            val title = titleNode.text().trim { it <= ' ' }
+            val title = titleNode.text().trim()
             if (title.lowercase(Locale.getDefault()).contains("access denied")) {
                 // Limited account, use the built-in API key
                 apiKey = BuildConfig.STEAM_API_KEY
@@ -330,7 +299,7 @@ class SteamWebHandler private constructor() {
                 return ApiKeyState.ACCESS_DENIED
             }
             val bodyContentsEx = doc.select("div#bodyContents_ex p").first() ?: return ApiKeyState.ERROR
-            val text = bodyContentsEx.text().trim { it <= ' ' }
+            val text = bodyContentsEx.text().trim()
             if (text.lowercase(Locale.getDefault()).contains("registering for a steam web api key")
                 && registerApiKey()
             ) {

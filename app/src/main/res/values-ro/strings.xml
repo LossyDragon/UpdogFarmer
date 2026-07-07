@@ -95,13 +95,6 @@ Seteaza starea ta ca "Offline", astfel incat prietenii tai sa nu vada ca esti in
     <string name="sort">Sorteaza</string>
     <string name="sort_alphabetically">Alfabetical</string>
     <string name="sort_hours_played">Ore jucate</string>
-    <string name="auto_discovery_title">Descopera automat queue</string>
-    <string name="auto_discovery">Acest lucru va afisa automat jocurile din Discovery Queue.In timpul reducerilor de vara si de iarna, puteti obtine pana la 3 carduri pe zi prin vizualizarea queue-ului.</string>
-    <string name="generating_discovery">Se genereaza un nou queue…</string>
-    <string name="discovering">Se descopera %s (%d/%d)</string>
-    <string name="discovery_finished">Descoperirea queue-ului terminata</string>
-    <string name="discovery_error">Nu s-a putut fii finalizata in acest moment Descoperirea queue-ului. Incearca din nou mai tarziu</string>
-    <string name="auto_vote">Voteaza automat (Steam Awards)</string>
     <string name="vote_successful">Votat cu succes !</string>
     <string name="vote_failed">Votul a esuat!</string>
     <string name="apikey_access_denied">A fost refuzata cheia Steam API, utilizand o cheie incorporata.</string>
@@ -150,8 +143,6 @@ Seteaza starea ta ca "Offline", astfel incat prietenii tai sa nu vada ca esti in
     <string name="play_saliens_failed">Unable to auto play Saliens right now. Try again later.</string>
     <string name="bosnian_croatian">Bosnian/Croatian</string>
     <string name="serbian">Serbian</string>
-    <string name="spring_cleaning_title">Spring Cleaning Event</string>
-    <string name="spring_cleaning_desc">Complete tasks to level up your Spring Cleaning Event badge. This event ends May 28th.</string>
     <string name="complete_daily_tasks">Complete Daily Tasks</string>
     <string name="complete_projects">Complete Project Tasks</string>
     <string name="daily_tasks_completed">Daily tasks completed. Come back again tomorrow.</string>

@@ -91,13 +91,6 @@
     <string name="sort">Urutkan</string>
     <string name="sort_alphabetically">Sesuai Abjad</string>
     <string name="sort_hours_played">Sesuai jumlah waktu dimainkan</string>
-    <string name="auto_discovery_title">Discovery Queue Otomatis</string>
-    <string name="auto_discovery">Ini akan otomatis melihat game di Discovery Queue kamu. Selama Summer dan Winter sales, kamu bisa dapat hingga 3 trading card per hari hanya dengan melihat Discovery Queue mu.</string>
-    <string name="generating_discovery">Menghasilkan Discovery Queue baru…</string>
-    <string name="discovering">Mencari %s (%d/%d)</string>
-    <string name="discovery_finished">Discovery Queue Selesai</string>
-    <string name="discovery_error">Tidak dapat menyelesaikan Discovery Queue saat ini. Silahkan Coba beberapa saat lagi</string>
-    <string name="auto_vote">Vote Otomatis(Steam Awards)</string>
     <string name="vote_successful">Vote berhasil!</string>
     <string name="vote_failed">Vote gagal!</string>
     <string name="apikey_access_denied">Akses Steam API key ditolak, menggunakan kunci built-in.</string>
@@ -146,8 +139,6 @@
     <string name="persian">Persian</string>
     <string name="bosnian_croatian">Bosnian/Croatian</string>
     <string name="serbian">Serbian</string>
-    <string name="spring_cleaning_title">Spring Cleaning Event</string>
-    <string name="spring_cleaning_desc">Complete tasks to level up your Spring Cleaning Event badge. This event ends May 28th.</string>
     <string name="complete_daily_tasks">Complete Daily Tasks</string>
     <string name="complete_projects">Complete Project Tasks</string>
     <string name="daily_tasks_completed">Daily tasks completed. Come back again tomorrow.</string>

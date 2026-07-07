@@ -90,13 +90,6 @@
     <string name="sort">การเรียงลำดับรายชื่อเกม</string>
     <string name="sort_alphabetically">เรียงตาม พยัญชนะ</string>
     <string name="sort_hours_played">เรียงตาม ชั่วโมงการเล่น</string>
-    <string name="auto_discovery_title">สำรวจคิวอัตโนมัติ (Discovery Queue)</string>
-    <string name="auto_discovery">เป็นการสำรวจคิว เพื่อรับการ์ด 3 ใบในช่วงเทศกาล</string>
-    <string name="generating_discovery">กำลังทำการสำรวจคิว…(Discovery Queue)</string>
-    <string name="discovering">กำลังสำรวจคิว (Discovering Queue…) AppID: %s (%d/%d)</string>
-    <string name="discovery_finished">สำรวจคิว (Discovery Queue) สำเร็จ</string>
-    <string name="discovery_error">มีปัญหาในการสำรวจคิว  (Discovery Queue), โปรดลองอีกครั้ง</string>
-    <string name="auto_vote">โหวต (Vote) Steam Awards อัตโนมัติ</string>
     <string name="vote_successful">โหวต (Vote) สำเร็จ</string>
     <string name="vote_failed">โหวต (Vote) ล้มเหลว, โปรดลองอีกครั้ง</string>
     <string name="pref_language">Language</string>
@@ -147,8 +140,6 @@
     <string name="non_steam_game">Non-Steam game</string>
     <string name="playing_unknown_app">Unknown app: %d</string>
     <string name="playing_non_steam_game">Non-Steam game: %s</string>
-    <string name="spring_cleaning_title">Spring Cleaning Event</string>
-    <string name="spring_cleaning_desc">Complete tasks to level up your Spring Cleaning Event badge. This event ends May 28th.</string>
     <string name="complete_daily_tasks">Complete Daily Tasks</string>
     <string name="complete_projects">Complete Project Tasks</string>
     <string name="daily_tasks_completed">Daily tasks completed. Come back again tomorrow.</string>

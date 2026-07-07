@@ -89,13 +89,6 @@
     <string name="sort">Сортирай</string>
     <string name="sort_alphabetically">По азбучен ред</string>
     <string name="sort_hours_played">По изиграни часове</string>
-    <string name="auto_discovery_title">Автоматична "Опашка за откриване"</string>
-    <string name="auto_discovery">Това автоматично ще прегледа игрите в твоята Опашка за Откриване. По време на лятните и зимните разпродажби, можеш да получиш до 3 карти като ползваш тази екстра.</string>
-    <string name="generating_discovery">Генерирам нова Опашка за Откриване…</string>
-    <string name="discovering">Откривам %s (%d/%d)</string>
-    <string name="discovery_finished">Опашката за Оркриване приключи</string>
-    <string name="discovery_error">Не успях да завърша Опашката за Откриване. Опитай отново по-късно.</string>
-    <string name="auto_vote">Автоматичен вот (Steam награди)</string>
     <string name="vote_successful">Гласът бе успешно приет!</string>
     <string name="vote_failed">Гласът бе неуспешно приет!</string>
     <string name="pref_language">Език</string>
@@ -131,8 +124,6 @@
     <string name="non_steam_game">Игра извън Steam</string>
     <string name="playing_unknown_app">Непозната игра: %d</string>
     <string name="playing_non_steam_game">Игра извън Steam: %s</string>
-    <string name="spring_cleaning_desc">Правете задачи за да вдигнете нивото на вашата значка за събитието \'\'Sprint Cleaning\'\'. Събитието приключва на 28 май.</string>
-    <string name="spring_cleaning_title">"Spring Cleaning Event"</string>
     <string name="complete_daily_tasks">"Завършете Ежедневните Задачи "</string>
     <string name="complete_projects">Завършете Проектни Задачи</string>
     <string name="pref_gdpr_consent">Отхвърли GDPR съгласието</string>

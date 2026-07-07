@@ -91,13 +91,6 @@
     <string name="sort">چینش</string>
     <string name="sort_alphabetically">حروف الفبا</string>
     <string name="sort_hours_played">ساعت</string>
-    <string name="auto_discovery_title">صف خودکار یافتن بازی ها</string>
-    <string name="auto_discovery">این مورد به صورت خودکار صف بازی ها را مشاهده می کند. در تخفیفات تابستانه و زمستانه با مشاهده صف بازیهای خود می توانید تا 3 کارت دریافت کنید</string>
-    <string name="generating_discovery">در حال ایجاد صف جدید</string>
-    <string name="discovering">در حال مشاهده %s (%d/%d)</string>
-    <string name="discovery_finished">صف مشاهده به پایان رسید</string>
-    <string name="discovery_error">در حال حاضر مشاهده ی صف تکمیل نشد. بعداً تلاش کنید</string>
-    <string name="auto_vote">رای خودکار (برای جوایز استیم)</string>
     <string name="vote_successful">!رای ثبت شد</string>
     <string name="vote_failed">!رای ثبت نشد</string>
     <string name="apikey_access_denied">دسترسی به کلید اِ پی آی استیم با شکست مواجه شد. استفاده از کلید قبلاً ساخته شده</string>
@@ -146,8 +139,6 @@
     <string name="play_saliens_failed">Unable to auto play Saliens right now. Try again later.</string>
     <string name="bosnian_croatian">Bosnian/Croatian</string>
     <string name="serbian">Serbian</string>
-    <string name="spring_cleaning_title">Spring Cleaning Event</string>
-    <string name="spring_cleaning_desc">Complete tasks to level up your Spring Cleaning Event badge. This event ends May 28th.</string>
     <string name="complete_daily_tasks">Complete Daily Tasks</string>
     <string name="complete_projects">Complete Project Tasks</string>
     <string name="daily_tasks_completed">Daily tasks completed. Come back again tomorrow.</string>

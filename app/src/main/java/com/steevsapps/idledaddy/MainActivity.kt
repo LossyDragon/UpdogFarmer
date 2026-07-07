@@ -36,7 +36,6 @@ import com.bumptech.glide.Glide
 import com.google.android.material.navigation.NavigationView
 import com.steevsapps.idledaddy.LoginActivity.Companion.createIntent
 import com.steevsapps.idledaddy.dialogs.AboutDialog
-import com.steevsapps.idledaddy.dialogs.AutoDiscoverDialog
 import com.steevsapps.idledaddy.dialogs.CustomAppDialog
 import com.steevsapps.idledaddy.dialogs.RedeemDialog
 import com.steevsapps.idledaddy.fragments.GamesFragment
@@ -390,7 +389,6 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
         val loggedIn = service != null && service!!.isLoggedIn
         val showOverflow = drawerItemId != R.id.about
         drawerView.getHeaderView(0).isClickable = loggedIn
-        menu.findItem(R.id.auto_discovery).isVisible = loggedIn && showOverflow
         menu.findItem(R.id.custom_app).isVisible = loggedIn && showOverflow
         menu.findItem(R.id.import_shared_secret).isVisible = loggedIn && showOverflow
         menu.findItem(R.id.logcat).isVisible = showOverflow
@@ -409,12 +407,6 @@ class MainActivity : BaseActivity(), DialogListener, OnSharedPreferenceChangeLis
             return true
         }
         return when (item.itemId) {
-            R.id.auto_discovery -> {
-                AutoDiscoverDialog.newInstance()
-                    .show(supportFragmentManager, AutoDiscoverDialog.TAG)
-                true
-            }
-
             R.id.custom_app -> {
                 CustomAppDialog.newInstance().show(supportFragmentManager, CustomAppDialog.TAG)
                 true

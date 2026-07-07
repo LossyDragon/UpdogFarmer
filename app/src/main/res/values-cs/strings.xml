@@ -94,13 +94,6 @@
     <string name="sort">Seřadit</string>
     <string name="sort_alphabetically">Abecedně</string>
     <string name="sort_hours_played">Nahráno hodin</string>
-    <string name="auto_discovery_title">Automatické objevení fronty</string>
-    <string name="auto_discovery">Tato akce automaticky prozkoumá frontu her. Při letních nebo zimních slevách můžeš získat až 3 sběratelské karty denně v 1 frontě.</string>
-    <string name="generating_discovery">Generuji novou frontu…</string>
-    <string name="discovering">Prohledávám %s (%d/%d)</string>
-    <string name="discovery_finished">Prohledání fronty proběhlo úspěšně</string>
-    <string name="discovery_error">Nepodařilo se mi prozkoumat frontu. Zkus to pozdějir</string>
-    <string name="auto_vote">Automatické hlasování (Steam Awards)</string>
     <string name="vote_successful">Hlasování úspěšné!</string>
     <string name="vote_failed">Hlasování selhalo!</string>
     <string name="summer_event">Letní událost</string>
@@ -144,8 +137,6 @@
     <string name="non_steam_game">Hra mimo Steam</string>
     <string name="playing_unknown_app">Neznámá app: %d</string>
     <string name="playing_non_steam_game">Hra mimo Steam: %s</string>
-    <string name="spring_cleaning_title">Spring Cleaning Event</string>
-    <string name="spring_cleaning_desc">Complete tasks to level up your Spring Cleaning Event badge. This event ends May 28th.</string>
     <string name="complete_daily_tasks">Splnit denní úkoly</string>
     <string name="complete_projects">Splnit denní úkoly</string>
     <string name="daily_tasks_completed">Denní úkoly splněny. Vrať se zpět zítra.</string>

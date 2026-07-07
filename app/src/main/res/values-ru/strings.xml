@@ -97,13 +97,6 @@
     <string name="sort_alphabetically">По названию</string>
     <string name="sort_hours_played">По времени</string>
     <string name="sort_hours_played_reversed">По времени (наоборот)</string>
-    <string name="auto_discovery_title">Список Рекомендаций</string>
-    <string name="auto_discovery">Автоматический просмотр продуктов в Списке Рекомендаций. Во время Летних и Зимних распродаж вы можете получить до 3 коллекционных карточек в сутки, просматривая список.</string>
-    <string name="generating_discovery">Создание нового Списка Рекомендаций…</string>
-    <string name="discovering">Просмотр %s (%d/%d)</string>
-    <string name="discovery_finished">Список Рекомендаций просмотрен</string>
-    <string name="discovery_error">Не удалось просмотреть Список Рекомендаций в данный момент. Повторите попытку ещё раз</string>
-    <string name="auto_vote">Авто Голос (Премия Steam)</string>
     <string name="vote_successful">Успешное голосование!</string>
     <string name="vote_failed">Проголосовать не удалось!</string>
     <string name="summer_event">Стимопланетяне</string>
@@ -150,8 +143,6 @@
     <string name="non_steam_game">Не-Steam игра</string>
     <string name="playing_unknown_app">Неизвестная игра: %d</string>
     <string name="playing_non_steam_game">Не-Steam игра: %s</string>
-    <string name="spring_cleaning_title">Акция \'Весенняя уборка\'</string>
-    <string name="spring_cleaning_desc">Выполняйте задания для повышения уровня значка акции \'Весенняя уборка\'. Окончание акции 28 мая.</string>
     <string name="complete_daily_tasks">Выполнить ежедневные задания</string>
     <string name="complete_projects">Выполнить задания проектов</string>
     <string name="daily_tasks_completed">Ежедневные задания выполнены. Возвращайтесь завтра.</string>

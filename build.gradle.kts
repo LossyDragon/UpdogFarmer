@@ -4,9 +4,3 @@ plugins {
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.compose.compiler) apply false
 }
-
-// Used to try not to cache JavaSteam snapshots when developing
-configurations.configureEach {
-    resolutionStrategy.cacheChangingModulesFor(0, TimeUnit.SECONDS)
-    resolutionStrategy.cacheDynamicVersionsFor(0, TimeUnit.SECONDS)
-}

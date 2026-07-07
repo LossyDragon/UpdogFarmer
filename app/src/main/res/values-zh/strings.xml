@@ -89,13 +89,6 @@
     <string name="sort">排序</string>
     <string name="sort_alphabetically">字母順序</string>
     <string name="sort_hours_played">已遊玩小時數</string>
-    <string name="auto_discovery_title">自動探索隊列</string>
-    <string name="auto_discovery">這將自動執行探索隊列。在冬季和夏季促銷期間，通過探索您的隊列，您每天最多可以獲得3張集換式卡牌。</string>
-    <string name="generating_discovery">生成新的探索隊列……</string>
-    <string name="discovering">正在探索中： %s (%d/%d)</string>
-    <string name="discovery_finished">探索隊列已完成</string>
-    <string name="discovery_error">目前無法完成探索隊列，稍後再試。</string>
-    <string name="auto_vote">自動投票 (Steam大獎)</string>
     <string name="vote_successful">投票成功！</string>
     <string name="vote_failed">投票失敗！</string>
     <string name="pref_language">語言</string>
@@ -146,8 +139,6 @@
     <string name="persian">Persian</string>
     <string name="bosnian_croatian">Bosnian/Croatian</string>
     <string name="serbian">Serbian</string>
-    <string name="spring_cleaning_title">春季大掃除活動</string>
-    <string name="spring_cleaning_desc">完成任務以升級您的春季大掃除活動徽章。該活動將於5月28日結束。</string>
     <string name="complete_daily_tasks">完成日常任務</string>
     <string name="complete_projects">完成項目任務</string>
     <string name="daily_tasks_completed">每日任務完成。明天再來吧。</string>

@@ -98,13 +98,6 @@
     <string name="sort">Sortuj</string>
     <string name="sort_alphabetically">Alfabetycznie</string>
     <string name="sort_hours_played">Wg czasu gry</string>
-    <string name="auto_discovery_title">Automatyczna \"Kolejka Odkryć\"</string>
-    <string name="auto_discovery">Funkcja automatycznego przewijania twojej kolejki odkryć. Podczas letnich i zimowych wyprzedaży możesz otrzymać maksymalnie 3 karty kolekcjonerskie dziennie przez przeglądanie kolejki.</string>
-    <string name="generating_discovery">Generuję nową kolejkę odkryć…</string>
-    <string name="discovering">Przeglądanie %s (%d/%d)</string>
-    <string name="discovery_finished">Zakończono przeglądanie kolejki.</string>
-    <string name="discovery_error">Wystąpił błąd podczas przeglądania twojej kolejki odkryć. Spróbuj ponownie później.</string>
-    <string name="auto_vote">Zagłosuj automatycznie (Nagrody Steam)</string>
     <string name="vote_successful">Zagłosowano pomyślnie!</string>
     <string name="vote_failed">Głosowanie nieudane!</string>
     <string name="summer_event">Letnie wydarzenie (Saliens)</string>
@@ -150,8 +143,6 @@
     <string name="non_steam_game">Gra spoza Steam</string>
     <string name="playing_unknown_app">Nieznana aplikacja: %d</string>
     <string name="playing_non_steam_game">Gra spoza Steam: %s</string>
-    <string name="spring_cleaning_title">Wiosenne Porządki</string>
-    <string name="spring_cleaning_desc">Podczas trwania wydarzenia wykonaj określone zadania i projekty, aby zwiększyć poziom odznaki w profilu. Wydarzenie kończy się 28 maja.</string>
     <string name="complete_daily_tasks">Wykonaj codzienne zadania</string>
     <string name="complete_projects">Wykonaj projekty</string>
     <string name="daily_tasks_completed">Codzienne zadania wykonane. Wróc jutro, by ukończyć nową listę zadań.</string>
