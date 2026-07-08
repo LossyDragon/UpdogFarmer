@@ -33,4 +33,8 @@ google-services.json
 # Android Profiling
 *.hprof
 
+# Android Baseline Profiles
 app/release/baselineProfiles/
+
+# ProGuard/R8 seed mappings. Use "-printseeds seeds.txt"
+app/seeds.txt

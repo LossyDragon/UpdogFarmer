@@ -4,12 +4,7 @@ import android.util.Log
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.steevsapps.idledaddy.preferences.PrefsManager.getBlacklist
-import com.steevsapps.idledaddy.preferences.PrefsManager.getLastSession
-import com.steevsapps.idledaddy.preferences.PrefsManager.getSortValue
-import com.steevsapps.idledaddy.preferences.PrefsManager.minimizeData
-import com.steevsapps.idledaddy.preferences.PrefsManager.writeBlacklist
-import com.steevsapps.idledaddy.preferences.PrefsManager.writeSortValue
+import com.steevsapps.idledaddy.preferences.PrefsManager
 import com.steevsapps.idledaddy.steam.SteamService
 import com.steevsapps.idledaddy.steam.SteamServiceConnection
 import com.steevsapps.idledaddy.steam.SteamWebHandler
@@ -52,7 +47,7 @@ class GamesViewModel(private val connection: SteamServiceConnection) : ViewModel
         field = MutableStateFlow(GamesScreenState())
 
     private val webHandler: SteamWebHandler = SteamWebHandler.instance
-    private var sortId: Int = getSortValue()
+    private var sortId: Int = PrefsManager.getSortValue()
     private var steamId: Long = 0
 
     // Everything Steam returned; uiState.games holds the tab/query-filtered subset shown on screen
@@ -85,8 +80,14 @@ class GamesViewModel(private val connection: SteamServiceConnection) : ViewModel
         refresh()
     }
 
-    fun setSelected(games: List<Game>) {
-        uiState.update { it.copy(selected = games) }
+    /**
+     * Save the currently idling games as the last session, called when the screen is paused
+     */
+    fun saveLastSession() {
+        val selected = uiState.value.selected
+        if (selected.isNotEmpty()) {
+            PrefsManager.writeLastSession(selected.toMutableList())
+        }
     }
 
     fun showOptions(game: Game) {
@@ -98,20 +99,20 @@ class GamesViewModel(private val connection: SteamServiceConnection) : ViewModel
     }
 
     fun isBlacklisted(game: Game): Boolean =
-        getBlacklist().contains(game.appId.toString())
+        PrefsManager.getBlacklist().contains(game.appId.toString())
 
     /**
      * Add/remove the game from the blacklist and close the options dialog
      */
     fun toggleBlacklist(game: Game) {
-        val blacklist = getBlacklist()
+        val blacklist = PrefsManager.getBlacklist()
         val id = game.appId.toString()
         if (blacklist.contains(id)) {
             blacklist.remove(id)
         } else {
             blacklist.add(0, id)
         }
-        writeBlacklist(blacklist)
+        PrefsManager.writeBlacklist(blacklist)
         uiState.update { it.copy(optionsGame = null) }
         applyFilter()
     }
@@ -147,7 +148,7 @@ class GamesViewModel(private val connection: SteamServiceConnection) : ViewModel
         if (uiState.value.tab == TAB_LAST) {
             // Load last idling session
             val games = uiState.value.selected.ifEmpty {
-                getLastSession().filterNotNull()
+                PrefsManager.getLastSession().filterNotNull()
             }
             setGames(games)
         } else {
@@ -171,7 +172,7 @@ class GamesViewModel(private val connection: SteamServiceConnection) : ViewModel
             return
         }
         this.sortId = sortId
-        writeSortValue(sortId)
+        PrefsManager.writeSortValue(sortId)
         if (allGames.isNotEmpty()) {
             setGames(allGames)
         }
@@ -196,7 +197,7 @@ class GamesViewModel(private val connection: SteamServiceConnection) : ViewModel
         val state = uiState.value
         var games = allGames
         if (state.tab == TAB_BLACKLIST) {
-            val blacklist = getBlacklist()
+            val blacklist = PrefsManager.getBlacklist()
             games = games.filter { blacklist.contains(it.appId.toString()) }
         }
         if (state.query.isNotEmpty()) {
@@ -206,7 +207,7 @@ class GamesViewModel(private val connection: SteamServiceConnection) : ViewModel
             it.copy(
                 games = games,
                 showPlayAll = it.tab == TAB_LAST && games.isNotEmpty(),
-                showIcons = !minimizeData(),
+                showIcons = !PrefsManager.minimizeData(),
             )
         }
     }

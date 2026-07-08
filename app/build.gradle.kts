@@ -6,6 +6,14 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.dependency.analysis)
+}
+
+dependencyAnalysis {
+    issues {
+        onUnusedDependencies {
+        }
+    }
 }
 
 // Used to not cache JavaSteam snapshots when developing
@@ -32,7 +40,7 @@ android {
         minSdk = 26 // Android 8
         targetSdk = 36 // Android 16
 
-        versionCode = 100
+        versionCode = 101
         versionName = "3.0.0"
 
         val apiKey = providers.gradleProperty("steamApiKey").get()
@@ -65,16 +73,13 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-        isCoreLibraryDesugaringEnabled = true
     }
 
     packaging {
         resources {
             excludes += setOf(
                 "**/*.proto",
-                "junit/**",
-                "LICENSE-junit.txt",
-                "org/spongycastle/x509/CertPathReviewerMessages*.properties",
+                "org/bouncycastle/x509/CertPathReviewerMessages*.properties",
             )
         }
     }
@@ -82,47 +87,49 @@ android {
     androidResources {
         localeFilters += setOf(
             "en", "ar", "bg", "bs", "cs", "de", "es-rES", "fa", "fr", "he", "iw", "in", "id",
-            "pl", "pt-rBR", "pt-rPT", "ro", "ru", "sl", "sr", "th", "tr", "uk", "vi", "zh", "zh-rCN",
+            "pl", "pt-rBR", "pt-rPT", "ro", "ru", "sl", "sr", "th", "tr", "uk", "vi", "zh",
+            "zh-rCN",
         )
     }
 }
 
 dependencies {
-    coreLibraryDesugaring(libs.desugar.jdk.libs)
-
+    /** Java Steam **/
     implementation(libs.bundles.javasteam) {
         isChanging = version?.contains("SNAPSHOT") ?: false
     }
+    runtimeOnly(libs.bouncycastle)
+
+    /** AndroidX views (service notifications, preferences) **/
     implementation(libs.bundles.androidx.ui)
-    implementation(libs.bundles.legacy)
+
+    /** Compose **/
+    implementation(platform(libs.compose.bom))
+    implementation(libs.bundles.compose)
+    debugImplementation(libs.compose.ui.tooling)
+
+    /** Lifecycle & Navigation **/
+    implementation(libs.bundles.lifecycle)
+    implementation(libs.bundles.navigation)
+
+    /** Images **/
+    implementation(libs.bundles.coil)
+
+    /** Network & serialization **/
     implementation(libs.bundles.network)
-    implementation(libs.glide)
+    implementation(libs.kotlinx.serialization.core)
+
+    /** Misc **/
     implementation(libs.jsoup)
-    implementation(libs.lifecycle.extensions)
     implementation(libs.zxing.core)
+    implementation(libs.compose.preference)
 
-    val composeBom = platform("androidx.compose:compose-bom:2026.06.00")
-    implementation(composeBom)
-    implementation("androidx.compose.material3:material3:1.5.0-alpha23")
-    implementation("androidx.compose.material:material-icons-core")
-    implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.compose.material3.adaptive:adaptive")
-
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-
-    implementation("androidx.activity:activity-compose:1.13.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
-    implementation("me.zhanghai.compose.preference:preference:2.2.0")
-    implementation("io.coil-kt.coil3:coil-compose:3.5.0")
-    implementation("io.coil-kt.coil3:coil-network-okhttp:3.5.0")
-    implementation("androidx.navigation3:navigation3-ui:1.1.4")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-navigation3:2.11.0")
-
+    /** Dependency injection **/
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.androidx.compose)
 
+    /** Testing **/
     testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
 }

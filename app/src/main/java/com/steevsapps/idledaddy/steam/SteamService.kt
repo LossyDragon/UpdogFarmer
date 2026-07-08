@@ -9,8 +9,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
 import android.os.Binder
 import android.os.Handler
 import android.os.IBinder
@@ -22,9 +20,10 @@ import android.widget.Toast
 import androidx.compose.runtime.Immutable
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
+import coil3.imageLoader
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
+import coil3.toBitmap
 import com.steevsapps.idledaddy.BuildConfig
 import com.steevsapps.idledaddy.MainActivity
 import com.steevsapps.idledaddy.R
@@ -640,25 +639,21 @@ class SteamService : Service() {
         val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         if (!PrefsManager.minimizeData()) {
             // Load game icon into notification
-            Glide.with(applicationContext)
-                .asBitmap()
-                .load(game.iconUrl)
-                .into(object : CustomTarget<Bitmap>() {
-                    override fun onResourceReady(
-                        resource: Bitmap,
-                        transition: Transition<in Bitmap>?
-                    ) {
-                        builder.setLargeIcon(resource)
+            val request = ImageRequest.Builder(applicationContext)
+                .data(game.iconUrl)
+                // Notification#setLargeIcon requires a software bitmap, not a hardware one
+                .allowHardware(false)
+                .target(
+                    onSuccess = { result ->
+                        builder.setLargeIcon(result.toBitmap())
                         nm.notify(NOTIF_ID, builder.build())
-                    }
-
-                    override fun onLoadFailed(errorDrawable: Drawable?) {
+                    },
+                    onError = {
                         nm.notify(NOTIF_ID, builder.build())
-                    }
-
-                    override fun onLoadCleared(placeholder: Drawable?) {
-                    }
-                })
+                    },
+                )
+                .build()
+            applicationContext.imageLoader.enqueue(request)
         } else {
             nm.notify(NOTIF_ID, builder.build())
         }

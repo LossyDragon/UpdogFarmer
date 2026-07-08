@@ -87,7 +87,9 @@ fun NowPlayingCard(
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(
-                    text = if (game.dropsRemaining > 0) {
+                    text = if (isPaused) {
+                        stringResource(R.string.paused)
+                    } else if (game.dropsRemaining > 0) {
                         pluralStringResource(
                             R.plurals.card_drops_remaining,
                             game.dropsRemaining,
