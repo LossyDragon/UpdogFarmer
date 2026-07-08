@@ -1,4 +1,4 @@
-package com.steevsapps.idledaddy.ui.component
+package com.steevsapps.idledaddy.ui.component.cards
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
