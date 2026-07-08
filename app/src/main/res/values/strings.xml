@@ -150,6 +150,10 @@
     <string name="service_started">Steam Service Started</string>
     <string name="idle_custom_app">Idle Hidden/Non-Steam Game</string>
     <string name="hidden_appid">Hidden appid</string>
+    <string name="hidden_appid_list">Hidden appid list</string>
+    <string name="custom_app_list_hint">Enter an appid and click +</string>
+    <string name="add_app_id">Add app ID</string>
+    <string name="remove_app_id">Remove app ID</string>
     <string name="non_steam_game">Non-Steam game</string>
     <string name="playing_unknown_app">Unknown app: %d</string>
     <string name="playing_non_steam_game">Non-Steam game: %s</string>

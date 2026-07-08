@@ -78,4 +78,11 @@ class HomeViewModel(private val connection: SteamServiceConnection) : ViewModel(
     fun idleGame(game: Game) {
         service?.addGame(game)
     }
+
+    /**
+     * Idle a list of hidden games by app ID
+     */
+    fun idleGames(games: List<Game>) {
+        service?.addGames(games)
+    }
 }

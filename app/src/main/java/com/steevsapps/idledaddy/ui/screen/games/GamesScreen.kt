@@ -83,12 +83,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.ui.component.GameItem
+import com.steevsapps.idledaddy.ui.component.dialog.GameOptionsDialog
+import com.steevsapps.idledaddy.ui.component.dialog.RedeemDialog
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun GamesScreen(
-    onBack: () -> Unit, // TODO
     onMenuClick: () -> Unit,
 ) {
     val viewModel = koinViewModel<GamesViewModel>()
@@ -437,79 +438,6 @@ private fun GamesFabMenu(
             )
         }
     }
-}
-
-@Composable
-private fun GameOptionsDialog(
-    game: Game,
-    blacklisted: Boolean,
-    onToggleBlacklist: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(text = game.name) },
-        text = { Text(text = stringResource(R.string.sum_blacklist)) },
-        confirmButton = {
-            TextButton(onClick = onToggleBlacklist) {
-                Text(
-                    text = stringResource(
-                        if (blacklisted) {
-                            R.string.remove_from_blacklist
-                        } else {
-                            R.string.add_to_blacklist
-                        }
-                    )
-                )
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(android.R.string.cancel))
-            }
-        },
-    )
-}
-
-@Composable
-private fun RedeemDialog(
-    onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var key by rememberSaveable { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(text = stringResource(R.string.redeem)) },
-        text = {
-            TextField(
-                value = key,
-                onValueChange = { key = it },
-                placeholder = {
-                    Text(
-                        text = stringResource(R.string.redeem_msg),
-                        maxLines = 1,
-                        autoSize = TextAutoSize.StepBased(
-                            minFontSize = 10.sp,
-                            stepSize = 1.sp,
-                        ),
-                    )
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(key) }) {
-                Text(text = stringResource(android.R.string.ok))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(android.R.string.cancel))
-            }
-        }
-    )
 }
 
 @Composable

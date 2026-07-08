@@ -1,42 +1,27 @@
 package com.steevsapps.idledaddy.ui.screen.home
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -50,11 +35,9 @@ import com.steevsapps.idledaddy.ui.component.NowPlayingCard
 import com.steevsapps.idledaddy.ui.component.StartCard
 import com.steevsapps.idledaddy.ui.component.StatusCard
 import com.steevsapps.idledaddy.ui.component.StopCard
+import com.steevsapps.idledaddy.ui.component.dialog.CustomAppDialog
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 import org.koin.androidx.compose.koinViewModel
-
-private const val TYPE_APPID = 0
-private const val TYPE_CUSTOM = 1
 
 @Composable
 fun HomeScreen(
@@ -76,6 +59,7 @@ fun HomeScreen(
         onNextGame = viewModel::skipGame,
         onStopSteam = onStopSteam,
         onIdleCustomApp = viewModel::idleGame,
+        onIdleCustomApps = viewModel::idleGames,
     )
 }
 
@@ -92,6 +76,7 @@ fun HomeScreenContent(
     onNextGame: () -> Unit,
     onStopSteam: () -> Unit,
     onIdleCustomApp: (Game) -> Unit,
+    onIdleCustomApps: (List<Game>) -> Unit,
 ) {
     // Currently just show the first game
     val game = state.currentGames.firstOrNull()
@@ -180,98 +165,17 @@ fun HomeScreenContent(
                     onIdleCustomApp(customGame)
                     customAppDialogVisible = false
                 },
+                onConfirmList = { customGames ->
+                    onIdleCustomApps(customGames)
+                    customAppDialogVisible = false
+                },
                 onDismiss = { customAppDialogVisible = false },
             )
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CustomAppDialog(
-    onConfirm: (Game) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val resources = LocalResources.current
-    val typeOptions = stringArrayResource(R.array.custom_app_type_options)
-    var typeIndex by rememberSaveable { mutableIntStateOf(TYPE_APPID) }
-    var typeMenuExpanded by remember { mutableStateOf(false) }
-    var input by rememberSaveable { mutableStateOf("") }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(text = stringResource(R.string.idle_custom_app)) },
-        text = {
-            Column {
-                Box {
-                    TextButton(onClick = { typeMenuExpanded = true }) {
-                        Text(text = typeOptions[typeIndex])
-                        Icon(
-                            imageVector = if (typeMenuExpanded) {
-                                Icons.Default.ArrowDropUp
-                            } else {
-                                Icons.Default.ArrowDropDown
-                            },
-                            contentDescription = null,
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = typeMenuExpanded,
-                        onDismissRequest = { typeMenuExpanded = false },
-                    ) {
-                        typeOptions.forEachIndexed { index, option ->
-                            DropdownMenuItem(
-                                text = { Text(text = option) },
-                                onClick = {
-                                    typeIndex = index
-                                    typeMenuExpanded = false
-                                },
-                            )
-                        }
-                    }
-                }
-                TextField(
-                    value = input,
-                    onValueChange = { input = it },
-                    placeholder = { Text(text = stringResource(R.string.desc_custom_app)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = if (typeIndex == TYPE_APPID) KeyboardType.Number else KeyboardType.Text,
-                    ),
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                val text = input.trim()
-                val game = if (text.isEmpty()) {
-                    null
-                } else {
-                    when (typeIndex) {
-                        TYPE_APPID -> text.toIntOrNull()?.let { appId ->
-                            Game(appId, resources.getString(R.string.playing_unknown_app, appId), 0f, 0)
-                        }
-
-                        TYPE_CUSTOM -> Game(0, text, 0f, 0)
-                        else -> null
-                    }
-                }
-                if (game != null) {
-                    onConfirm(game)
-                } else {
-                    onDismiss()
-                }
-            }) {
-                Text(text = stringResource(android.R.string.ok))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(android.R.string.cancel))
-            }
-        },
-    )
-}
 
 /**
  * Preview
@@ -319,5 +223,6 @@ private fun Preview(@PreviewParameter(HomePreview::class) state: HomeUiState) {
         onNextGame = {},
         onStopSteam = {},
         onIdleCustomApp = {},
+        onIdleCustomApps = {},
     )
 }

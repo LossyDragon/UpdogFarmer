@@ -320,10 +320,7 @@ private fun MainScreen(
                     )
                 }
                 entry<NavKeyRoot.Games> {
-                    GamesScreen(
-                        onBack = backStack::removeLastOrNull,
-                        onMenuClick = toggleDrawer,
-                    )
+                    GamesScreen(onMenuClick = toggleDrawer)
                 }
                 entry<NavKeyRoot.About> {
                     AboutScreen(onBack = backStack::removeLastOrNull)
