@@ -1,5 +1,6 @@
 package com.steevsapps.idledaddy.ui.screen.settings
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +15,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,26 +28,37 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.preference.PreferenceManager
 import com.steevsapps.idledaddy.BuildConfig
 import com.steevsapps.idledaddy.R
+import com.steevsapps.idledaddy.preferences.PrefsManager
+import com.steevsapps.idledaddy.steam.SteamServiceConnection
 import com.steevsapps.idledaddy.ui.component.dialog.BlacklistEditDialog
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.createDefaultPreferenceFlow
-import me.zhanghai.compose.preference.createPreferenceFlow
 import me.zhanghai.compose.preference.footerPreference
 import me.zhanghai.compose.preference.listPreference
 import me.zhanghai.compose.preference.preference
 import me.zhanghai.compose.preference.preferenceCategory
+import me.zhanghai.compose.preference.rememberPreferenceState
 import me.zhanghai.compose.preference.sliderPreference
 import me.zhanghai.compose.preference.switchPreference
 import me.zhanghai.compose.preference.textFieldPreference
+import org.koin.compose.koinInject
 import kotlin.math.roundToInt
+
+@Composable
+private fun <T> OnPreferenceChanged(value: T, onChanged: (T) -> Unit) {
+    var isFirst by remember { mutableStateOf(true) }
+    LaunchedEffect(value) {
+        if (isFirst) isFirst = false else onChanged(value)
+    }
+}
 
 @Composable
 fun SettingsScreen(onBack: () -> Unit = {}) {
     val context = LocalContext.current
+    val serviceConnection = koinInject<SteamServiceConnection>()
 
     // entryValues + entries from arrays.xml, keyed so valueToText can look up the label
     val languageValues = stringArrayResource(R.array.language_option_values).toList()
@@ -54,10 +67,7 @@ fun SettingsScreen(onBack: () -> Unit = {}) {
     val preferenceFlow = if (LocalView.current.isInEditMode) {
         createDefaultPreferenceFlow()
     } else {
-        remember {
-            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-            createPreferenceFlow(prefs)
-        }
+        PrefsManager.preferenceFlow
     }
 
     var showBlacklist by rememberSaveable { mutableStateOf(false) }
@@ -67,6 +77,18 @@ fun SettingsScreen(onBack: () -> Unit = {}) {
             if (showBlacklist) {
                 BlacklistEditDialog(onDismiss = { showBlacklist = false })
             }
+
+            val stayAwake by rememberPreferenceState("stay_awake", false)
+            OnPreferenceChanged(stayAwake) { serviceConnection.service.value?.setWakeLock() }
+
+            val offline by rememberPreferenceState("offline", false)
+            OnPreferenceChanged(offline) { serviceConnection.service.value?.changeStatus() }
+
+            val language by rememberPreferenceState("language", "")
+            OnPreferenceChanged(language) {
+                Toast.makeText(context, R.string.language_changed, Toast.LENGTH_LONG).show()
+            }
+
             Scaffold(
                 topBar = {
                     TopAppBar(

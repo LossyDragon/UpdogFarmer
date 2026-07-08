@@ -8,6 +8,9 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.utils.CryptHelper
+import kotlinx.coroutines.flow.MutableStateFlow
+import me.zhanghai.compose.preference.Preferences
+import me.zhanghai.compose.preference.createPreferenceFlow
 import kotlin.math.roundToInt
 
 /**
@@ -75,7 +78,7 @@ object PrefsManager {
         writeVersion(CURRENT_VERSION)
     }
 
-    fun getPrefs(): SharedPreferences = prefs
+    val preferenceFlow: MutableStateFlow<Preferences> by lazy { createPreferenceFlow(prefs) }
 
     /**
      * Clear all preferences related to user

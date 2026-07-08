@@ -2,13 +2,10 @@ package com.steevsapps.idledaddy
 
 import android.Manifest
 import android.content.Context
-import android.content.SharedPreferences
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.StringRes
@@ -75,7 +72,6 @@ import coil3.annotation.ExperimentalCoilApi
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePreviewHandler
 import coil3.compose.LocalAsyncImagePreviewHandler
-import com.steevsapps.idledaddy.preferences.PrefsManager
 import com.steevsapps.idledaddy.steam.SteamService
 import com.steevsapps.idledaddy.steam.SteamServiceConnection
 import com.steevsapps.idledaddy.steam.SteamServiceState
@@ -122,7 +118,7 @@ private sealed class NavKeyRoot : NavKey {
     data object Settings : NavKeyRoot()
 }
 
-class MainActivity : ComponentActivity(), OnSharedPreferenceChangeListener {
+class MainActivity : ComponentActivity() {
 
     companion object {
         private val TAG: String = MainActivity::class.java.simpleName
@@ -166,25 +162,6 @@ class MainActivity : ComponentActivity(), OnSharedPreferenceChangeListener {
                     onStopSteam = ::stopSteam,
                 )
             }
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        PrefsManager.getPrefs().registerOnSharedPreferenceChangeListener(this)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        PrefsManager.getPrefs().unregisterOnSharedPreferenceChangeListener(this)
-    }
-
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-        Log.i(TAG, "Pref Changed - Key $key")
-        when (key) {
-            "stay_awake" -> serviceConnection.service.value?.setWakeLock()
-            "offline" -> serviceConnection.service.value?.changeStatus()
-            "language" -> Toast.makeText(this, R.string.language_changed, Toast.LENGTH_LONG).show()
         }
     }
 }
