@@ -34,7 +34,7 @@ jobs:
           BEFORE_SHA: ${{ github.event.before }}
         run: |
           set -euo pipefail
-          FILE="app/build.gradle"
+          FILE="app/build.gradle.kts"
 
           # Groovy DSL: "versionCode 87" (no equals sign)
           CURRENT=$(grep -E '^\s*versionCode\s+[0-9]+' "$FILE" | head -n1 | sed -E 's/.*versionCode\s+([0-9]+).*/\1/')
