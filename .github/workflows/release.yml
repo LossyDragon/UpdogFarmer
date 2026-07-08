@@ -36,8 +36,8 @@ jobs:
           set -euo pipefail
           FILE="app/build.gradle.kts"
 
-          # Groovy DSL: "versionCode 87" (no equals sign)
-          CURRENT=$(grep -E '^\s*versionCode\s+[0-9]+' "$FILE" | head -n1 | sed -E 's/.*versionCode\s+([0-9]+).*/\1/')
+          # Kotlin DSL: "versionCode = 101"
+          CURRENT=$(grep -E '^\s*versionCode\s*=\s*[0-9]+' "$FILE" | head -n1 | sed -E 's/.*versionCode\s*=\s*([0-9]+).*/\1/')
           echo "Current versionCode: $CURRENT"
           echo "version_code=$CURRENT" >> "$GITHUB_OUTPUT"
 
@@ -56,9 +56,9 @@ jobs:
           fi
 
           PREVIOUS=$(git show "$BEFORE_SHA:$FILE" 2>/dev/null \
-            | grep -E '^\s*versionCode\s+[0-9]+' \
+            | grep -E '^\s*versionCode\s*=\s*[0-9]+' \
             | head -n1 \
-            | sed -E 's/.*versionCode\s+([0-9]+).*/\1/' || true)
+            | sed -E 's/.*versionCode\s*=\s*([0-9]+).*/\1/' || true)
           echo "Previous versionCode: ${PREVIOUS:-<none>}"
 
           if [[ "$CURRENT" != "$PREVIOUS" ]]; then
