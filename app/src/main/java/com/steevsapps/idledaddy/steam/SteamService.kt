@@ -19,9 +19,9 @@ import android.os.PowerManager
 import android.os.PowerManager.WakeLock
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.runtime.Immutable
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
@@ -29,20 +29,7 @@ import com.steevsapps.idledaddy.BuildConfig
 import com.steevsapps.idledaddy.MainActivity
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.listeners.AndroidLogListener
-import com.steevsapps.idledaddy.preferences.PrefsManager.clearUser
-import com.steevsapps.idledaddy.preferences.PrefsManager.getCellId
-import com.steevsapps.idledaddy.preferences.PrefsManager.getGuardData
-import com.steevsapps.idledaddy.preferences.PrefsManager.getHoursUntilDrops
-import com.steevsapps.idledaddy.preferences.PrefsManager.getOffline
-import com.steevsapps.idledaddy.preferences.PrefsManager.getRefreshToken
-import com.steevsapps.idledaddy.preferences.PrefsManager.getUsername
-import com.steevsapps.idledaddy.preferences.PrefsManager.minimizeData
-import com.steevsapps.idledaddy.preferences.PrefsManager.stayAwake
-import com.steevsapps.idledaddy.preferences.PrefsManager.useCustomLoginId
-import com.steevsapps.idledaddy.preferences.PrefsManager.writeCellId
-import com.steevsapps.idledaddy.preferences.PrefsManager.writeGuardData
-import com.steevsapps.idledaddy.preferences.PrefsManager.writeRefreshToken
-import com.steevsapps.idledaddy.preferences.PrefsManager.writeUsername
+import com.steevsapps.idledaddy.preferences.PrefsManager
 import com.steevsapps.idledaddy.steam.model.Game
 import `in`.dragonbra.javasteam.base.ClientMsgProtobuf
 import `in`.dragonbra.javasteam.enums.EMsg
@@ -95,10 +82,12 @@ import `in`.dragonbra.javasteam.types.SteamID
 import `in`.dragonbra.javasteam.util.NetHelpers.getIPAddress
 import `in`.dragonbra.javasteam.util.Strings
 import `in`.dragonbra.javasteam.util.log.LogManager.addListener
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import java.io.Closeable
 import java.io.File
 import java.util.LinkedList
-import java.util.Locale
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorService
@@ -109,28 +98,50 @@ import java.util.concurrent.TimeUnit
 import java.util.zip.CRC32
 import kotlin.concurrent.Volatile
 
+/**
+ * UI-facing snapshot of the service, published to [SteamService.state] whenever
+ * something the UI shows changes.
+ */
+@Immutable
+data class SteamServiceState(
+    val loggedIn: Boolean = false,
+    val steamId: Long = 0,
+    val farming: Boolean = false,
+    val paused: Boolean = false,
+    val parentalStatus: Boolean = false,
+    val personaName: String = "",
+    val avatarHash: String = "",
+    val currentGames: List<Game> = emptyList(),
+    val gameCount: Int = 0,
+    val cardCount: Int = 0,
+    val personaState: EPersonaState = EPersonaState.Offline,
+)
+
 class SteamService : Service() {
+    // JavaSteam client and handlers
     private lateinit var steamClient: SteamClient
     private lateinit var manager: CallbackManager
     private lateinit var steamUser: SteamUser
     private lateinit var steamFriends: SteamFriends
     private lateinit var steamApps: SteamApps
     private val webHandler: SteamWebHandler = SteamWebHandler.instance
-    private var wakeLock: WakeLock? = null
     private val subscriptions: MutableList<Closeable> = mutableListOf()
 
-    private var farmIndex = 0
-    private var gamesToFarm: MutableList<Game>? = null
+    // Session state
+    @Volatile
+    private var running = false // Service running
 
-    var currentGames: MutableList<Game> = mutableListOf()
-        private set
-    var gameCount: Int = 0
-        private set
-    var cardCount: Int = 0
-        private set
+    @Volatile
+    private var connected = false // Connected to Steam
+
+    private val isLoggedIn: Boolean
+        get() = state.value.loggedIn
+
+    // In-progress login flow
+    @Volatile
+    private var loginInProgress = true // Currently logging in, so don't reconnect on disconnects
 
     private var pendingAuthDetails: AuthSessionDetails? = null
-
     private var currentRefreshToken: String? = null
 
     @Volatile
@@ -139,40 +150,30 @@ class SteamService : Service() {
     @Volatile
     private var pendingGuardCodeFuture: CompletableFuture<String>? = null
 
-    @Volatile
-    private var running = false // Service running
+    // Farming/idling state
+    private var farmIndex = 0
+    private var gamesToFarm: MutableList<Game>? = null
 
-    @Volatile
-    private var connected = false // Connected to Steam
-
-    @Volatile
-    var isFarming: Boolean = false // Currently farming
-        private set
-
-    @Volatile
-    var isPaused: Boolean = false // Game paused
-        private set
+    private val currentGames: List<Game>
+        get() = state.value.currentGames
+    private val isFarming: Boolean
+        get() = state.value.farming
+    private val isPaused: Boolean
+        get() = state.value.paused
 
     @Volatile
     private var waiting = false // Waiting for user to stop playing
 
-    @Volatile
-    private var loginInProgress = true // Currently logging in, so don't reconnect on disconnects
+    // Key redemption
+    private var keyToRedeem: String? = null
+    private val pendingFreeLicenses = LinkedList<Int>()
 
-    var steamId: Long = 0
-        private set
-    var isLoggedIn: Boolean = false
-        private set
-    var parentalStatus: Boolean = false
-        private set
-
+    // Background work
     private val executor: ExecutorService = Executors.newCachedThreadPool()
     private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(8)
     private var farmHandle: ScheduledFuture<*>? = null
     private var waitHandle: ScheduledFuture<*>? = null
-
-    private var keyToRedeem: String? = null
-    private val pendingFreeLicenses = LinkedList<Int>()
+    private var wakeLock: WakeLock? = null
 
     /**
      * Class for clients to access.  Because we know this service always
@@ -195,6 +196,9 @@ class SteamService : Service() {
     }
 
     var loginEventListener: LoginEventListener? = null
+
+    val state: StateFlow<SteamServiceState>
+        field = MutableStateFlow(SteamServiceState())
 
     private fun notifyLoginListener(block: (LoginEventListener) -> Unit) {
         Handler(Looper.getMainLooper()).post {
@@ -248,18 +252,16 @@ class SteamService : Service() {
 
     fun startFarming() {
         if (!isFarming) {
-            isFarming = true
-            isPaused = false
+            state.update { it.copy(farming = true, paused = false) }
             executor.execute(farmTask)
         }
     }
 
     fun stopFarming() {
         if (isFarming) {
-            isFarming = false
             gamesToFarm = null
             farmIndex = 0
-            currentGames.clear()
+            state.update { it.copy(farming = false, currentGames = emptyList()) }
             unscheduleFarmTask()
         }
     }
@@ -315,14 +317,9 @@ class SteamService : Service() {
         gamesToFarm = games
 
         // Count the games and cards
-        gameCount = games.size
-        cardCount = games.sumOf { it.dropsRemaining }
-
-        // Send farm event
-        val event = Intent(FARM_EVENT)
-        event.putExtra(GAME_COUNT, gameCount)
-        event.putExtra(CARD_COUNT, cardCount)
-        LocalBroadcastManager.getInstance(this).sendBroadcast(event)
+        state.update { s ->
+            s.copy(gameCount = games.size, cardCount = games.sumOf { it.dropsRemaining })
+        }
 
         if (games.isEmpty()) {
             Log.i(TAG, "Finished idling")
@@ -341,7 +338,7 @@ class SteamService : Service() {
         val game = games[farmIndex]
 
         // TODO: Steam only updates play time every half hour, so maybe we should keep track of it ourselves
-        if (game.hoursPlayed >= getHoursUntilDrops() || games.size == 1 || farmIndex > 0) {
+        if (game.hoursPlayed >= PrefsManager.getHoursUntilDrops() || games.size == 1 || farmIndex > 0) {
             // Idle a single game
             Handler(Looper.getMainLooper()).post { idleSingle(game) }
             unscheduleFarmTask()
@@ -367,19 +364,16 @@ class SteamService : Service() {
     }
 
     fun stopGame() {
-        isPaused = false
+        state.update { it.copy(paused = false) }
         stopPlaying()
         stopFarming()
         updateNotification(getString(R.string.stopped))
-        LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(STOP_EVENT))
     }
 
     fun pauseGame() {
-        isPaused = true
+        state.update { it.copy(paused = true) }
         stopPlaying()
         showPausedNotification()
-        // Tell the activity to update
-        LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(NOW_PLAYING_EVENT))
     }
 
     fun resumeGame() {
@@ -391,7 +385,7 @@ class SteamService : Service() {
             idleMultiple(currentGames)
         } else if (isFarming) {
             Log.i(TAG, "Resume farming")
-            isPaused = false
+            state.update { it.copy(paused = false) }
             executor.execute(farmTask)
         }
     }
@@ -418,7 +412,7 @@ class SteamService : Service() {
         Log.i(TAG, "Service created")
         super.onCreate()
 
-        val cellId = getCellId()
+        val cellId = PrefsManager.getCellId()
         val servers = File(filesDir, "servers.bin")
         val fileServerListProvider = FileServerListProvider(servers)
 
@@ -458,7 +452,7 @@ class SteamService : Service() {
         steamClient.removeHandler<SteamAuthTicket>()
         steamClient.removeHandler<SteamNotifications>()
 
-        if (stayAwake()) {
+        if (PrefsManager.stayAwake()) {
             setWakeLock(true)
         }
 
@@ -526,16 +520,19 @@ class SteamService : Service() {
         nm.createNotificationChannel(channel)
     }
 
-    fun changeStatus(status: EPersonaState) {
+    fun changeStatus() {
+        val personaState =
+            if (PrefsManager.getOffline()) EPersonaState.Offline else EPersonaState.Online
         if (isLoggedIn) {
-            executor.execute { steamFriends.setPersonaState(status) }
+            executor.execute { steamFriends.setPersonaState(personaState) }
+            state.update { it.copy(personaState = personaState) }
         }
     }
 
     /**
      * Acquire or release the WakeLock that keeps the CPU from sleeping
      */
-    fun setWakeLock(acquire: Boolean) {
+    fun setWakeLock(acquire: Boolean = PrefsManager.stayAwake()) {
         if (acquire) {
             if (wakeLock == null) {
                 Log.i(TAG, "Acquiring WakeLock")
@@ -641,7 +638,7 @@ class SteamService : Service() {
         }
 
         val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        if (!minimizeData()) {
+        if (!PrefsManager.minimizeData()) {
             // Load game icon into notification
             Glide.with(applicationContext)
                 .asBitmap()
@@ -747,38 +744,27 @@ class SteamService : Service() {
 
     private fun idleSingle(game: Game) {
         Log.i(TAG, "Now playing ${game.name}")
-        isPaused = false
-        currentGames.clear()
-        currentGames.add(game)
+        state.update { it.copy(paused = false, currentGames = listOf(game)) }
         playGames(game)
         showIdleNotification(game)
     }
 
-    private fun idleMultiple(games: MutableList<Game>) {
+    private fun idleMultiple(games: List<Game>) {
         Log.i(TAG, "Idling multiple")
-        isPaused = false
-        val gamesCopy: MutableList<Game> = ArrayList(games)
-        currentGames.clear()
+        val playing = games.take(32)
+        state.update { it.copy(paused = false, currentGames = playing) }
 
-        val size = minOf(gamesCopy.size, 32)
-
-        val msg = StringBuilder()
-        for (i in 0..<size) {
-            val game = gamesCopy[i]
-            currentGames.add(game)
+        val msg = playing.joinToString("\n") { game ->
             if (game.appId == 0) {
                 // Non-Steam game
-                msg.append(getString(R.string.playing_non_steam_game, game.name))
+                getString(R.string.playing_non_steam_game, game.name)
             } else {
-                msg.append(game.name)
-            }
-            if (i + 1 < size) {
-                msg.append("\n")
+                game.name
             }
         }
 
-        playGames(*currentGames.toTypedArray())
-        showMultipleNotification(msg.toString())
+        playGames(*playing.toTypedArray())
+        showMultipleNotification(msg)
     }
 
     fun addGame(game: Game) {
@@ -786,12 +772,11 @@ class SteamService : Service() {
         if (currentGames.isEmpty()) {
             idleSingle(game)
         } else {
-            currentGames.add(game)
-            idleMultiple(currentGames)
+            idleMultiple(currentGames + game)
         }
     }
 
-    fun addGames(games: MutableList<Game>) {
+    fun addGames(games: List<Game>) {
         stopFarming()
         if (games.size == 1) {
             idleSingle(games[0])
@@ -804,11 +789,11 @@ class SteamService : Service() {
 
     fun removeGame(game: Game) {
         stopFarming()
-        currentGames.remove(game)
-        if (currentGames.size == 1) {
-            idleSingle(currentGames[0])
-        } else if (currentGames.size > 1) {
-            idleMultiple(currentGames)
+        val remaining = currentGames - game
+        if (remaining.size == 1) {
+            idleSingle(remaining[0])
+        } else if (remaining.size > 1) {
+            idleMultiple(remaining)
         } else {
             stopGame()
         }
@@ -816,7 +801,7 @@ class SteamService : Service() {
 
     fun start() {
         running = true
-        if (getRefreshToken().isNotEmpty()) {
+        if (PrefsManager.getRefreshToken().isNotEmpty()) {
             // We can log in using saved credentials
             executor.execute { steamClient.connect() }
         }
@@ -843,7 +828,7 @@ class SteamService : Service() {
         val details = AuthSessionDetails().apply {
             this.username = username
             this.password = password
-            guardData = getGuardData().takeIf { it.isNotEmpty() }
+            guardData = PrefsManager.getGuardData().takeIf { it.isNotEmpty() }
             persistentSession = true
             clientOSType = EOSType.AndroidUnknown
             deviceFriendlyName = FRIENDLY_NAME
@@ -882,21 +867,27 @@ class SteamService : Service() {
     fun logoff() {
         Log.i(TAG, "logging off")
         loginInProgress = true
-        isLoggedIn = false
-        steamId = 0
         pendingAuthDetails = null
         pendingQrLogin = false
         currentRefreshToken = null
         cancelPendingGuardCode()
-        currentGames.clear()
         keyToRedeem = null
         pendingFreeLicenses.clear()
         stopFarming()
+        state.update {
+            it.copy(
+                loggedIn = false,
+                steamId = 0,
+                personaName = "",
+                avatarHash = "",
+                currentGames = emptyList(),
+            )
+        }
         executor.execute {
             steamUser.logOff()
             steamClient.disconnect()
         }
-        clearUser()
+        PrefsManager.clearUser()
         updateNotification(getString(R.string.logged_out))
     }
 
@@ -904,7 +895,7 @@ class SteamService : Service() {
      * Redeem Steam key or activate free license
      */
     fun redeemKey(key: String) {
-        if (!isLoggedIn && getRefreshToken().isNotEmpty()) {
+        if (!isLoggedIn && PrefsManager.getRefreshToken().isNotEmpty()) {
             Log.i(TAG, "Will redeem key at login")
             keyToRedeem = key
             return
@@ -959,7 +950,7 @@ class SteamService : Service() {
                     .get()
                 val pollResult: AuthPollResult = authSession.pollingWaitForResult().get()
 
-                pollResult.newGuardData?.let { writeGuardData(it) }
+                pollResult.newGuardData?.let { PrefsManager.writeGuardData(it) }
                 performLogOn(pollResult.accountName, pollResult.refreshToken)
             } catch (e: Exception) {
                 Log.i(TAG, "Credentials login failed", e)
@@ -1016,7 +1007,7 @@ class SteamService : Service() {
     private fun performLogOn(username: String, refreshToken: String) {
         currentRefreshToken = refreshToken
         // Always keep this current: the QR login flow never types a username for LoginActivity to save
-        writeUsername(username)
+        PrefsManager.writeUsername(username)
 
         val details = LogOnDetails(
             username = username,
@@ -1025,7 +1016,7 @@ class SteamService : Service() {
             machineName = FRIENDLY_NAME,
             shouldRememberPassword = true
         )
-        if (useCustomLoginId()) {
+        if (PrefsManager.useCustomLoginId()) {
             val localIP = steamClient.localIP
             if (localIP != null) {
                 details.loginID = getIPAddress(localIP) xor CUSTOM_OBFUSCATION_MASK
@@ -1038,8 +1029,8 @@ class SteamService : Service() {
      * Log in using a saved refresh token
      */
     private fun attemptRestoreLogin() {
-        val username = getUsername()
-        val refreshToken = getRefreshToken()
+        val username = PrefsManager.getUsername()
+        val refreshToken = PrefsManager.getRefreshToken()
         if (username.isEmpty() || refreshToken.isEmpty()) return
         Log.i(TAG, "Restoring login")
         performLogOn(username, refreshToken)
@@ -1128,10 +1119,6 @@ class SteamService : Service() {
 
     private fun sendLoginResult(result: EResult) {
         notifyLoginListener { it.onLoginResult(result) }
-        // MainActivity still watches LOGIN_EVENT to refresh its status display
-        val intent = Intent(LOGIN_EVENT)
-        intent.putExtra(RESULT, result)
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
     }
 
     private fun resolveFailureResult(e: Exception): EResult {
@@ -1178,7 +1165,7 @@ class SteamService : Service() {
     private fun onDisconnected(callback: DisconnectedCallback) {
         Log.i(TAG, "Disconnected()")
         connected = false
-        isLoggedIn = false
+        state.update { it.copy(loggedIn = false) }
 
         if (!loginInProgress) {
             // Try to reconnect after a 5-second delay
@@ -1191,10 +1178,6 @@ class SteamService : Service() {
             // but since it reconnects immediately after we do not have to reconnect here.
             Log.i(TAG, "NOT reconnecting (logon in progress)")
         }
-
-        // Tell the activity that we've been disconnected from Steam
-        val intent = Intent(DISCONNECT_EVENT)
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
     }
 
     private fun onLoggedOff(callback: LoggedOffCallback) {
@@ -1220,14 +1203,20 @@ class SteamService : Service() {
                 // Successful login
                 Log.i(TAG, "Logged on!")
                 loginInProgress = false
-                isLoggedIn = true
 
-                currentRefreshToken?.let(::writeRefreshToken)
+                currentRefreshToken?.let(PrefsManager::writeRefreshToken)
                 val refreshToken = currentRefreshToken!!
-                writeRefreshToken(refreshToken)
+                PrefsManager.writeRefreshToken(refreshToken)
 
                 val clientSteamId = steamClient.steamID!!
-                steamId = clientSteamId.convertToUInt64()
+                state.update {
+                    it.copy(
+                        loggedIn = true,
+                        steamId = clientSteamId.convertToUInt64(),
+                        // TODO verify
+                        parentalStatus = callback.parentalSettings?.isEnabled ?: false,
+                    )
+                }
 
                 if (isPaused) {
                     showPausedNotification()
@@ -1247,23 +1236,16 @@ class SteamService : Service() {
                     }
                 }
 
-                // TODO verify
-                parentalStatus = callback.parentalSettings?.isEnabled ?: false
-                val parentalIntent = Intent(PARENTAL_STATUS).apply {
-                    putExtra("status", parentalStatus)
-                }
-                LocalBroadcastManager.getInstance(this).sendBroadcast(parentalIntent)
-
                 keyToRedeem?.let {
                     redeemKey(it)
                     keyToRedeem = null
                 }
             }
 
-            EResult.InvalidPassword if getRefreshToken().isNotEmpty() -> {
+            EResult.InvalidPassword if PrefsManager.getRefreshToken().isNotEmpty() -> {
                 // Refresh token no longer valid
                 Log.i(TAG, "Refresh token expired")
-                writeRefreshToken("")
+                PrefsManager.writeRefreshToken("")
                 updateNotification(getString(R.string.login_key_expired))
                 keyToRedeem = null
                 steamClient.disconnect()
@@ -1276,7 +1258,7 @@ class SteamService : Service() {
             }
         }
 
-        writeCellId(callback.cellID)
+        PrefsManager.writeCellId(callback.cellID)
 
         sendLoginResult(result)
     }
@@ -1310,14 +1292,13 @@ class SteamService : Service() {
 
     private fun onPersonaState(callback: PersonaStateCallback) {
         if (callback.friendId == steamClient.steamID) {
-            val personaName: String = callback.playerName
-            val avatarHash = Strings.toHex(callback.avatarHash).lowercase(Locale.getDefault())
-            Log.i(TAG, "Avatar hash $avatarHash")
-            val event = Intent(PERSONA_EVENT).apply {
-                putExtra(PERSONA_NAME, personaName)
-                putExtra(AVATAR_HASH, avatarHash)
+            state.update {
+                it.copy(
+                    personaName = callback.playerName,
+                    personaState = callback.personaState,
+                    avatarHash = Strings.toHex(callback.avatarHash)
+                )
             }
-            LocalBroadcastManager.getInstance(this).sendBroadcast(event)
         }
     }
 
@@ -1342,7 +1323,7 @@ class SteamService : Service() {
 
     @Suppress("unused")
     private fun onAccountInfo(callback: AccountInfoCallback) {
-        if (!getOffline()) {
+        if (!PrefsManager.getOffline()) {
             steamFriends.setPersonaState(EPersonaState.Online)
         }
     }
@@ -1384,13 +1365,11 @@ class SteamService : Service() {
             }
         }
         executor.execute { steamClient.send(gamesPlayed) }
-        // Tell the activity
-        LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(NOW_PLAYING_EVENT))
     }
 
     private fun stopPlaying() {
         if (!isPaused) {
-            currentGames.clear()
+            state.update { it.copy(currentGames = emptyList()) }
         }
         val stopGame = ClientMsgProtobuf<CMsgClientGamesPlayed.Builder>(
             CMsgClientGamesPlayed::class.java,
@@ -1398,8 +1377,6 @@ class SteamService : Service() {
         )
         stopGame.body.addGamesPlayedBuilder().setGameId(0)
         executor.execute { steamClient.send(stopGame) }
-        // Tell the activity
-        LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(NOW_PLAYING_EVENT))
     }
 
     companion object {
@@ -1414,30 +1391,6 @@ class SteamService : Service() {
         private const val CUSTOM_OBFUSCATION_MASK = -0xff24553
 
         private const val FRIENDLY_NAME = "Idle Daddy-Fork, " + BuildConfig.VERSION_NAME
-
-        // Events
-        const val LOGIN_EVENT: String = "LOGIN_EVENT" // Emitted on login
-        const val RESULT: String = "RESULT" // Login result
-        const val DISCONNECT_EVENT: String = "DISCONNECT_EVENT" // Emitted on disconnect
-        const val STOP_EVENT: String = "STOP_EVENT" // Emitted when stop clicked
-        const val FARM_EVENT: String = "FARM_EVENT" // Emitted when farm() is called
-        const val GAME_COUNT: String = "GAME_COUNT" // Number of games left to farm
-        const val CARD_COUNT: String = "CARD_COUNT" // Number of card drops remaining
-
-        // Emitted when we get PersonaStateCallback
-        const val PERSONA_EVENT: String = "PERSONA_EVENT"
-
-        // Emitted when we're logged in.
-        const val PARENTAL_STATUS: String = "PARENTAL_STATUS"
-
-        // Username
-        const val PERSONA_NAME: String = "PERSONA_NAME"
-
-        // User avatar hash
-        const val AVATAR_HASH: String = "AVATAR_HASH"
-
-        // Emitted when the game you're idling changes
-        const val NOW_PLAYING_EVENT: String = "NOW_PLAYING_EVENT"
 
         // Actions
         const val SKIP_INTENT: String = "SKIP_INTENT"

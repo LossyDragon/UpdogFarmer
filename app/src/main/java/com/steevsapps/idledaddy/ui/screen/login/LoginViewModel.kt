@@ -1,17 +1,11 @@
 package com.steevsapps.idledaddy.ui.screen.login
 
-import android.annotation.SuppressLint
-import android.content.ComponentName
-import android.content.Context
-import android.content.ServiceConnection
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.os.IBinder
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.set
 import androidx.lifecycle.ViewModel
@@ -22,6 +16,7 @@ import com.google.zxing.qrcode.QRCodeWriter
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.preferences.PrefsManager
 import com.steevsapps.idledaddy.steam.SteamService
+import com.steevsapps.idledaddy.steam.SteamServiceConnection
 import com.steevsapps.idledaddy.utils.Utils
 import `in`.dragonbra.javasteam.enums.EResult
 import kotlinx.coroutines.Job
@@ -58,7 +53,7 @@ enum class LoginSnackbar(@StringRes val message: Int, val indefinite: Boolean = 
     ;
 }
 
-class LoginViewModel(private val appContext: Context) : ViewModel() {
+class LoginViewModel(private val connection: SteamServiceConnection) : ViewModel() {
 
     val uiState: StateFlow<LoginUiState>
         field = MutableStateFlow(LoginUiState())
@@ -67,9 +62,8 @@ class LoginViewModel(private val appContext: Context) : ViewModel() {
     val savedPassword: String = PrefsManager.getPassword()
     private var pendingPassword = ""
 
-    @SuppressLint("StaticFieldLeak") // I know...
-    private var service: SteamService? = null
-    private var serviceBound = false
+    private val service: SteamService?
+        get() = connection.service.value
 
     private var timeoutJob: Job? = null
 
@@ -87,33 +81,15 @@ class LoginViewModel(private val appContext: Context) : ViewModel() {
         }
     }
 
-    private val connection = object : ServiceConnection {
-        override fun onServiceConnected(componentName: ComponentName?, iBinder: IBinder) {
-            service = (iBinder as SteamService.LocalBinder).service.also {
-                it.loginEventListener = loginEventListener
-            }
-        }
-
-        override fun onServiceDisconnected(componentName: ComponentName?) {
-            service = null
-        }
-    }
-
     init {
-        val app = appContext
-        val serviceIntent = SteamService.createIntent(app)
-        ContextCompat.startForegroundService(app, serviceIntent)
-        app.bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE)
-        serviceBound = true
+        viewModelScope.launch {
+            connection.service.collect { it?.loginEventListener = loginEventListener }
+        }
     }
 
     override fun onCleared() {
         stopTimeout()
         service?.loginEventListener = null
-        if (serviceBound) {
-            appContext.unbindService(connection)
-            serviceBound = false
-        }
         pendingPassword = ""
     }
 

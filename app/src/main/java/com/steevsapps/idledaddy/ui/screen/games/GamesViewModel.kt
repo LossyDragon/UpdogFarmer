@@ -1,14 +1,9 @@
 package com.steevsapps.idledaddy.ui.screen.games
 
-import android.annotation.SuppressLint
-import android.content.ComponentName
-import android.content.Context
-import android.content.ServiceConnection
-import android.os.IBinder
 import android.util.Log
 import androidx.compose.runtime.Immutable
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.steevsapps.idledaddy.preferences.PrefsManager.getBlacklist
 import com.steevsapps.idledaddy.preferences.PrefsManager.getLastSession
 import com.steevsapps.idledaddy.preferences.PrefsManager.getSortValue
@@ -16,13 +11,16 @@ import com.steevsapps.idledaddy.preferences.PrefsManager.minimizeData
 import com.steevsapps.idledaddy.preferences.PrefsManager.writeBlacklist
 import com.steevsapps.idledaddy.preferences.PrefsManager.writeSortValue
 import com.steevsapps.idledaddy.steam.SteamService
+import com.steevsapps.idledaddy.steam.SteamServiceConnection
 import com.steevsapps.idledaddy.steam.SteamWebHandler
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.steam.model.GamesOwnedResponse
 import com.steevsapps.idledaddy.ui.screen.games.GamesViewModel.Companion.MAX_GAMES
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -48,7 +46,7 @@ data class GamesScreenState(
     val redeemDialogVisible: Boolean = false,
 )
 
-class GamesViewModel(private val appContext: Context) : ViewModel() {
+class GamesViewModel(private val connection: SteamServiceConnection) : ViewModel() {
 
     val uiState: StateFlow<GamesScreenState>
         field = MutableStateFlow(GamesScreenState())
@@ -60,38 +58,20 @@ class GamesViewModel(private val appContext: Context) : ViewModel() {
     // Everything Steam returned; uiState.games holds the tab/query-filtered subset shown on screen
     private var allGames: List<Game> = emptyList()
 
-    @SuppressLint("StaticFieldLeak") // I know...
-    private var service: SteamService? = null
-    private var serviceBound = false
-
-    private val connection = object : ServiceConnection {
-        override fun onServiceConnected(componentName: ComponentName?, iBinder: IBinder) {
-            service = (iBinder as SteamService.LocalBinder).service.also {
-                steamId = it.steamId
-                uiState.update { state ->
-                    state.copy(selected = it.currentGames.toList(), showRedeem = steamId > 0)
-                }
-                refresh()
-            }
-        }
-
-        override fun onServiceDisconnected(componentName: ComponentName?) {
-            service = null
-        }
-    }
+    private val service: SteamService?
+        get() = connection.service.value
 
     init {
-        val app = appContext
-        val serviceIntent = SteamService.createIntent(app)
-        ContextCompat.startForegroundService(app, serviceIntent)
-        app.bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE)
-        serviceBound = true
-    }
-
-    override fun onCleared() {
-        if (serviceBound) {
-            appContext.unbindService(connection)
-            serviceBound = false
+        viewModelScope.launch {
+            connection.state
+                .distinctUntilChangedBy { it.steamId }
+                .collect { state ->
+                    steamId = state.steamId
+                    uiState.update {
+                        it.copy(selected = state.currentGames, showRedeem = steamId > 0)
+                    }
+                    refresh()
+                }
         }
     }
 
@@ -160,7 +140,7 @@ class GamesViewModel(private val appContext: Context) : ViewModel() {
     fun playAll() {
         val games = uiState.value.games
         uiState.update { it.copy(selected = games) }
-        service?.addGames(games.toMutableList())
+        service?.addGames(games)
     }
 
     fun refresh() {

@@ -14,8 +14,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -24,6 +29,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,7 +60,7 @@ private const val TWO_FACTOR_LENGTH = 5
 
 @Composable
 fun LoginScreen(
-    onBack: () -> Unit, // TODO
+    onBack: () -> Unit,
     onLoggedIn: () -> Unit,
 ) {
     val viewModel = koinViewModel<LoginViewModel>()
@@ -82,6 +88,7 @@ fun LoginScreen(
     }
 
     LoginScreenComponent(
+        onBack = onBack,
         loginType = state.loginType,
         loginInProgress = state.loginInProgress,
         twoFactorRequired = state.twoFactorRequired,
@@ -100,6 +107,7 @@ fun LoginScreen(
 
 @Composable
 private fun LoginScreenComponent(
+    onBack: () -> Unit,
     initialPassword: String,
     initialUsername: String,
     loginInProgress: Boolean,
@@ -117,6 +125,19 @@ private fun LoginScreenComponent(
     IdleTheme {
         Scaffold(
             modifier = Modifier.imePadding(),
+            topBar = {
+                TopAppBar(
+                    title = { Text(text = stringResource(R.string.login)) },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = null
+                            )
+                        }
+                    }
+                )
+            },
             snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { paddingValues ->
             Column(
@@ -338,6 +359,7 @@ private class LoginPreview : PreviewParameterProvider<LoginUiState> {
 @Composable
 private fun Preview(@PreviewParameter(LoginPreview::class) state: LoginUiState) {
     LoginScreenComponent(
+        onBack = {},
         initialPassword = "idledaddy",
         initialUsername = "steev",
         loginInProgress = state.loginInProgress,

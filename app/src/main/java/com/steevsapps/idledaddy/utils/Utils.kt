@@ -21,6 +21,12 @@ object Utils {
     /**
      * Build the full avatar URL from an avatar hash
      */
-    fun avatar(avatarHash: String): String =
-        AVATAR_URL + "${avatarHash.substring(0, 2)}/${avatarHash}_full.jpg"
+    fun avatar(avatarHash: String): String {
+        val avatar = if(avatarHash.isBlank()) {
+            "$AVATAR_URL/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg"
+        } else {
+            "$AVATAR_URL${avatarHash.substring(0, 2)}/${avatarHash}_full.jpg"
+        }
+        return avatar
+    }
 }

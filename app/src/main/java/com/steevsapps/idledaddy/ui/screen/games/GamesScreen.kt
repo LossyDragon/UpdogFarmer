@@ -168,7 +168,7 @@ fun GamesScreenContent(
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     LazyVerticalGrid(
-                        columns = GridCells.Fixed(integerResource(R.integer.game_columns)),
+                        columns = GridCells.Fixed(integerResource(2)),
                         modifier = Modifier.fillMaxSize(),
                         state = gridState,
                         contentPadding = PaddingValues(
