@@ -1,7 +1,6 @@
 package com.steevsapps.idledaddy.ui.screen.games
 
 import android.annotation.SuppressLint
-import android.app.Application
 import android.content.ComponentName
 import android.content.Context
 import android.content.ServiceConnection
@@ -9,8 +8,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.compose.runtime.Immutable
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.AndroidViewModel
-import com.steevsapps.idledaddy.fragments.GamesFragment
+import androidx.lifecycle.ViewModel
 import com.steevsapps.idledaddy.preferences.PrefsManager.getBlacklist
 import com.steevsapps.idledaddy.preferences.PrefsManager.getLastSession
 import com.steevsapps.idledaddy.preferences.PrefsManager.getSortValue
@@ -21,6 +19,7 @@ import com.steevsapps.idledaddy.steam.SteamService
 import com.steevsapps.idledaddy.steam.SteamWebHandler
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.steam.model.GamesOwnedResponse
+import com.steevsapps.idledaddy.ui.screen.games.GamesViewModel.Companion.MAX_GAMES
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -29,11 +28,15 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.util.Locale
 
+const val TAB_GAMES: Int = 0
+const val TAB_LAST: Int = 1
+const val TAB_BLACKLIST: Int = 2
+
 @Immutable
 data class GamesScreenState(
     val games: List<Game> = emptyList(),
     val selected: List<Game> = emptyList(),
-    val tab: Int = GamesFragment.TAB_GAMES,
+    val tab: Int = TAB_GAMES,
     val query: String = "",
     val refreshing: Boolean = false,
     val showPlayAll: Boolean = false,
@@ -45,7 +48,7 @@ data class GamesScreenState(
     val redeemDialogVisible: Boolean = false,
 )
 
-class GamesViewModel(application: Application) : AndroidViewModel(application) {
+class GamesViewModel(private val appContext: Context) : ViewModel() {
 
     val uiState: StateFlow<GamesScreenState>
         field = MutableStateFlow(GamesScreenState())
@@ -78,7 +81,7 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     init {
-        val app = getApplication<Application>()
+        val app = appContext
         val serviceIntent = SteamService.createIntent(app)
         ContextCompat.startForegroundService(app, serviceIntent)
         app.bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE)
@@ -87,7 +90,7 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
 
     override fun onCleared() {
         if (serviceBound) {
-            getApplication<Application>().unbindService(connection)
+            appContext.unbindService(connection)
             serviceBound = false
         }
     }
@@ -161,7 +164,7 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun refresh() {
-        if (uiState.value.tab == GamesFragment.TAB_LAST) {
+        if (uiState.value.tab == TAB_LAST) {
             // Load last idling session
             val games = uiState.value.selected.ifEmpty {
                 getLastSession().filterNotNull()
@@ -212,7 +215,7 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
     private fun applyFilter() {
         val state = uiState.value
         var games = allGames
-        if (state.tab == GamesFragment.TAB_BLACKLIST) {
+        if (state.tab == TAB_BLACKLIST) {
             val blacklist = getBlacklist()
             games = games.filter { blacklist.contains(it.appId.toString()) }
         }
@@ -222,7 +225,7 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
         uiState.update {
             it.copy(
                 games = games,
-                showPlayAll = it.tab == GamesFragment.TAB_LAST && games.isNotEmpty(),
+                showPlayAll = it.tab == TAB_LAST && games.isNotEmpty(),
                 showIcons = !minimizeData(),
             )
         }

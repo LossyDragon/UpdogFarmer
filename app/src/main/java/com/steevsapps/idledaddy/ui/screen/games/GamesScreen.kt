@@ -51,7 +51,6 @@ import androidx.compose.material3.ToggleFloatingActionButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -78,16 +77,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.steevsapps.idledaddy.R
-import com.steevsapps.idledaddy.fragments.GamesFragment
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.ui.component.GameItem
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun GamesScreen(
-    viewModel: GamesViewModel,
+    onBack: () -> Unit, // TODO
     onMenuClick: () -> Unit,
 ) {
+    val viewModel = koinViewModel<GamesViewModel>()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     GamesScreenContent(
@@ -223,7 +223,7 @@ fun GamesScreenContent(
                     )
                 }
 
-                if(state.optionsGame!= null) {
+                if (state.optionsGame != null) {
                     GameOptionsDialog(
                         game = state.optionsGame,
                         blacklisted = state.optionsBlacklisted,
@@ -537,7 +537,7 @@ private class GamesPreview : PreviewParameterProvider<GamesScreenState> {
         ),
         "Last session" to GamesScreenState(
             games = sampleGames,
-            tab = GamesFragment.TAB_LAST,
+            tab = TAB_LAST,
             showPlayAll = true,
             showRedeem = true,
         ),

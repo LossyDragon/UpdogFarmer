@@ -1,7 +1,6 @@
 package com.steevsapps.idledaddy.ui.screen.login
 
 import android.annotation.SuppressLint
-import android.app.Application
 import android.content.ComponentName
 import android.content.Context
 import android.content.ServiceConnection
@@ -15,7 +14,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.set
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.WriterException
@@ -59,7 +58,7 @@ enum class LoginSnackbar(@StringRes val message: Int, val indefinite: Boolean = 
     ;
 }
 
-class LoginViewModel(application: Application) : AndroidViewModel(application) {
+class LoginViewModel(private val appContext: Context) : ViewModel() {
 
     val uiState: StateFlow<LoginUiState>
         field = MutableStateFlow(LoginUiState())
@@ -101,7 +100,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     init {
-        val app = getApplication<Application>()
+        val app = appContext
         val serviceIntent = SteamService.createIntent(app)
         ContextCompat.startForegroundService(app, serviceIntent)
         app.bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE)
@@ -112,7 +111,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         stopTimeout()
         service?.loginEventListener = null
         if (serviceBound) {
-            getApplication<Application>().unbindService(connection)
+            appContext.unbindService(connection)
             serviceBound = false
         }
         pendingPassword = ""
@@ -192,7 +191,8 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         when {
             state.loginType == LoginType.QR -> {
                 // QR sessions just expire/fail outright; there's no field to attach an error to
-                state = state.copy(qrCode = null, qrFailed = true, snackbar = LoginSnackbar.QR_FAILED)
+                state =
+                    state.copy(qrCode = null, qrFailed = true, snackbar = LoginSnackbar.QR_FAILED)
             }
 
             result == EResult.InvalidPassword -> {

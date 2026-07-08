@@ -51,17 +51,18 @@ import com.steevsapps.idledaddy.ui.component.StartCard
 import com.steevsapps.idledaddy.ui.component.StatusCard
 import com.steevsapps.idledaddy.ui.component.StopCard
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
+import org.koin.androidx.compose.koinViewModel
 
 private const val TYPE_APPID = 0
 private const val TYPE_CUSTOM = 1
 
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel,
     onMenuClick: () -> Unit,
     onLoginClick: () -> Unit,
     onStopSteam: () -> Unit,
 ) {
+    val viewModel = koinViewModel<HomeViewModel>()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     HomeScreenContent(

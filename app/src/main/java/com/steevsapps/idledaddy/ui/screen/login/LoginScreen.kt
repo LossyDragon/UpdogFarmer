@@ -46,17 +46,18 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
+import org.koin.androidx.compose.koinViewModel
 
 private const val TWO_FACTOR_LENGTH = 5
 
 @Composable
 fun LoginScreen(
-    onLoggedIn: () -> Unit = {},
+    onBack: () -> Unit, // TODO
+    onLoggedIn: () -> Unit,
 ) {
-    val viewModel = viewModel<LoginViewModel>()
+    val viewModel = koinViewModel<LoginViewModel>()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val resources = LocalResources.current

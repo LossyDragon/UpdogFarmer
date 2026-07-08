@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 // Used to not cache JavaSteam snapshots when developing
@@ -116,6 +117,12 @@ dependencies {
     implementation("me.zhanghai.compose.preference:preference:2.2.0")
     implementation("io.coil-kt.coil3:coil-compose:3.5.0")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.5.0")
+    implementation("androidx.navigation3:navigation3-ui:1.1.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-navigation3:2.11.0")
+
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.androidx.compose)
 
     testImplementation(libs.junit)
 }

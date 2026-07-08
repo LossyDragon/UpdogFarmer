@@ -38,6 +38,100 @@ private const val STEAM_GROUP_URL = "https://steamcommunity.com/groups/idledaddy
 private data class Contributor(val name: String, val url: String? = null)
 private data class TranslatorEntry(val language: String, val contributors: List<Contributor>)
 
+@Composable
+fun AboutScreen(onBack: () -> Unit) {
+    IdleTheme {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(text = stringResource(R.string.about)) },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = null,
+                            )
+                        }
+                    }
+                )
+            }
+        ) { paddingValues ->
+            LazyColumn(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp)
+            ) {
+                item { GeneralInfoText() }
+                item { TranslatorsText() }
+                item { LicenseText() }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionHeader(text: String) {
+    Text(text = text, style = MaterialTheme.typography.headlineSmall)
+}
+
+@Composable
+private fun GeneralInfoText() {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        SectionHeader(stringResource(R.string.app_name))
+        Column(
+            modifier = Modifier.padding(start = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            LinkText(text = stringResource(R.string.source_code), url = SOURCE_CODE_URL)
+            LinkText(text = stringResource(R.string.steam_group), url = STEAM_GROUP_URL)
+        }
+    }
+}
+
+@Composable
+private fun TranslatorsText() {
+    val nameStyle = SpanStyle(
+        fontSize = MaterialTheme.typography.bodySmall.fontSize,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        SectionHeader(stringResource(R.string.translations))
+        Column(
+            modifier = Modifier.padding(start = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            translators.forEach { entry ->
+                Column {
+                    Text(text = entry.language, fontWeight = FontWeight.Bold)
+                    Text(
+                        modifier = Modifier.padding(start = 4.dp),
+                        text = contributorsText(entry.contributors, nameStyle)
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun contributorsText(contributors: List<Contributor>, nameStyle: SpanStyle) =
+    buildAnnotatedString {
+        contributors.forEachIndexed { index, contributor ->
+            withStyle(nameStyle) {
+                if (index > 0) append(", ")
+                val url = contributor.url
+                if (url != null) {
+                    withLink(LinkAnnotation.Url(url = url)) {
+                        append(contributor.name)
+                    }
+                } else {
+                    append(contributor.name)
+                }
+            }
+        }
+    }
+
 private val translators = listOf(
     TranslatorEntry(
         "German",
@@ -138,100 +232,6 @@ private val translators = listOf(
         listOf(Contributor("Eldin", "https://steamcommunity.com/id/eldinturkic")),
     ),
 )
-
-@Composable
-fun AboutScreen(onBack: () -> Unit) {
-    IdleTheme {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text(text = stringResource(R.string.about)) },
-                    navigationIcon = {
-                        IconButton(onClick = onBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = null,
-                            )
-                        }
-                    }
-                )
-            }
-        ) { paddingValues ->
-            LazyColumn(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp)
-            ) {
-                item { GeneralInfoText() }
-                item { TranslatorsText() }
-                item { LicenseText() }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SectionHeader(text: String) {
-    Text(text = text, style = MaterialTheme.typography.headlineSmall)
-}
-
-@Composable
-private fun GeneralInfoText() {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        SectionHeader(stringResource(R.string.app_name))
-        Column(
-            modifier = Modifier.padding(start = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            LinkText(text = stringResource(R.string.source_code), url = SOURCE_CODE_URL)
-            LinkText(text = stringResource(R.string.steam_group), url = STEAM_GROUP_URL)
-        }
-    }
-}
-
-@Composable
-private fun TranslatorsText() {
-    val nameStyle = SpanStyle(
-        fontSize = MaterialTheme.typography.bodySmall.fontSize,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        SectionHeader(stringResource(R.string.translations))
-        Column(
-            modifier = Modifier.padding(start = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            translators.forEach { entry ->
-                Column {
-                    Text(text = entry.language, fontWeight = FontWeight.Bold)
-                    Text(
-                        modifier = Modifier.padding(start = 4.dp),
-                        text = contributorsText(entry.contributors, nameStyle)
-                    )
-                }
-            }
-        }
-    }
-}
-
-private fun contributorsText(contributors: List<Contributor>, nameStyle: SpanStyle) =
-    buildAnnotatedString {
-        contributors.forEachIndexed { index, contributor ->
-            withStyle(nameStyle) {
-                if (index > 0) append(", ")
-                val url = contributor.url
-                if (url != null) {
-                    withLink(LinkAnnotation.Url(url = url)) {
-                        append(contributor.name)
-                    }
-                } else {
-                    append(contributor.name)
-                }
-            }
-        }
-    }
 
 @Composable
 private fun LicenseText() {

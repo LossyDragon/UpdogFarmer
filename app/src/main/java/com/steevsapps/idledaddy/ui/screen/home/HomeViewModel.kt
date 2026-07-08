@@ -1,7 +1,6 @@
 package com.steevsapps.idledaddy.ui.screen.home
 
 import android.annotation.SuppressLint
-import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
@@ -11,7 +10,7 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import androidx.compose.runtime.Immutable
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.steevsapps.idledaddy.steam.SteamService
 import com.steevsapps.idledaddy.steam.model.Game
@@ -32,7 +31,7 @@ data class HomeUiState(
     val customAppDialogVisible: Boolean = false,
 )
 
-class HomeViewModel(application: Application) : AndroidViewModel(application) {
+class HomeViewModel(private val appContext: Context) : ViewModel() {
 
     val uiState: StateFlow<HomeUiState>
         field = MutableStateFlow(HomeUiState())
@@ -89,7 +88,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     init {
-        val app = getApplication<Application>()
+        val app = appContext
         val serviceIntent = SteamService.createIntent(app)
         ContextCompat.startForegroundService(app, serviceIntent)
         app.bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE)
@@ -107,9 +106,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     override fun onCleared() {
-        LocalBroadcastManager.getInstance(getApplication()).unregisterReceiver(receiver)
+        LocalBroadcastManager.getInstance(appContext).unregisterReceiver(receiver)
         if (serviceBound) {
-            getApplication<Application>().unbindService(connection)
+            appContext.unbindService(connection)
             serviceBound = false
         }
     }

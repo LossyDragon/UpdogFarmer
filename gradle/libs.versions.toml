@@ -21,6 +21,7 @@ preferenceVersion = "1.2.1"
 protobufJavaVersion = "4.35.1"
 provVersion = "1.58.0.0"
 retrofitVersion = "3.0.0"
+koin-bom = "4.2.2" # https://mvnrepository.com/artifact/io.insert-koin/koin-core
 
 [libraries]
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
@@ -45,6 +46,8 @@ protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "p
 prov = { module = "com.madgag.spongycastle:prov", version.ref = "provVersion" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofitVersion" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "coreVersion" }
+koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose" }
 
 [bundles]
 javasteam = ["protobuf-java", "javasteam", "prov"]
@@ -56,3 +59,5 @@ network = ["retrofit", "converter-gson", "gson"]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin"}
+

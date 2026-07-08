@@ -1,34 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Base application theme. -->
-    <!-- TODO: parent:"android:Theme.Material.NoActionBar" -->
-    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
-    </style>
-
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Dark" />
-
-    <style name="AppTheme.TextStyle" parent="TextAppearance.AppCompat">
-        <item name="android:textSize">@dimen/text_size_default</item>
-        <item name="android:textColor">@color/white</item>
-        <item name="android:alpha">1.0</item>
-    </style>
-
-    <style name="AppTheme.TextStyle.Small">
-        <item name="android:textSize">@dimen/text_size_small</item>
-    </style>
-
-    <style name="AppTheme.TextStyle.Secondary">
-        <item name="android:alpha">0.7</item>
-    </style>
-
-    <style name="AppTheme.TextStyle.Secondary.Small">
-        <item name="android:textSize">@dimen/text_size_small</item>
-    </style>
-
+    <style name="AppTheme" parent="android:Theme.Material.NoActionBar" />
 </resources>
