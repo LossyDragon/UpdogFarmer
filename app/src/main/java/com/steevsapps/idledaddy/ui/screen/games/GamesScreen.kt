@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Sort
@@ -32,7 +31,6 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Redeem
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SportsEsports
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -45,7 +43,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.ToggleFloatingActionButton
 import androidx.compose.material3.TopAppBar
@@ -65,17 +62,14 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.integerResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -83,6 +77,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.ui.component.GameItem
+import com.steevsapps.idledaddy.ui.component.OreoTextField
 import com.steevsapps.idledaddy.ui.component.dialog.GameOptionsDialog
 import com.steevsapps.idledaddy.ui.component.dialog.RedeemDialog
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
@@ -288,13 +283,13 @@ private fun GamesTopBar(
     TopAppBar(
         title = {
             if (searching) {
-                TextField(
+                OreoTextField(
                     value = query,
                     onValueChange = onQueryChange,
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(focusRequester),
-                    placeholder = { Text(text = stringResource(R.string.search)) },
+                    placeholder = stringResource(R.string.search),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),

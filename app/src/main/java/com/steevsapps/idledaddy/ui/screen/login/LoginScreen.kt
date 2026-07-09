@@ -16,13 +16,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -53,6 +51,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.steevsapps.idledaddy.R
+import com.steevsapps.idledaddy.ui.component.OreoTextField
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 import org.koin.androidx.compose.koinViewModel
 
@@ -198,11 +197,11 @@ private fun CredentialsComponent(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         /* Username Field */
-        OutlinedTextField(
+        OreoTextField(
             value = username,
             onValueChange = { username = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text(text = stringResource(R.string.username)) },
+            placeholder = stringResource(R.string.username),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
                 imeAction = ImeAction.Next,
@@ -210,11 +209,11 @@ private fun CredentialsComponent(
             singleLine = true,
         )
         /* Password Field */
-        OutlinedTextField(
+        OreoTextField(
             value = password,
             onValueChange = { password = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text(text = stringResource(R.string.password)) },
+            placeholder = stringResource(R.string.password),
             isError = passwordError != null,
             supportingText = passwordError?.let { { Text(text = it) } },
             visualTransformation = PasswordVisualTransformation(),
@@ -229,11 +228,11 @@ private fun CredentialsComponent(
         )
         /* Two-Factor Code Field */
         if (twoFactorRequired) {
-            OutlinedTextField(
+            OreoTextField(
                 value = twoFactorCode,
                 onValueChange = { twoFactorCode = it.take(TWO_FACTOR_LENGTH) },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = stringResource(R.string.steamguard)) },
+                label = stringResource(R.string.steamguard),
                 isError = twoFactorError != null,
                 supportingText = twoFactorError?.let { { Text(text = it) } },
                 keyboardOptions = KeyboardOptions(
@@ -244,7 +243,6 @@ private fun CredentialsComponent(
                 keyboardActions = KeyboardActions(
                     onDone = { onLogin(username, password, twoFactorCode) },
                 ),
-                singleLine = true,
             )
         }
         /* Login Button row with ProgressIndicator */

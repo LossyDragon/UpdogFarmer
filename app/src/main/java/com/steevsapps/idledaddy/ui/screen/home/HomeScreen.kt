@@ -30,11 +30,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.preferences.PrefsManager.minimizeData
 import com.steevsapps.idledaddy.steam.model.Game
-import com.steevsapps.idledaddy.ui.component.DropInfoCard
-import com.steevsapps.idledaddy.ui.component.NowPlayingCard
-import com.steevsapps.idledaddy.ui.component.StartCard
-import com.steevsapps.idledaddy.ui.component.StatusCard
-import com.steevsapps.idledaddy.ui.component.StopCard
+import com.steevsapps.idledaddy.ui.component.cards.DropInfoCard
+import com.steevsapps.idledaddy.ui.component.cards.NowPlayingCard
+import com.steevsapps.idledaddy.ui.component.cards.StartCard
+import com.steevsapps.idledaddy.ui.component.cards.StatusCard
+import com.steevsapps.idledaddy.ui.component.cards.StopCard
 import com.steevsapps.idledaddy.ui.component.dialog.CustomAppDialog
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 import org.koin.androidx.compose.koinViewModel
@@ -174,7 +174,6 @@ fun HomeScreenContent(
         }
     }
 }
-
 
 
 /**

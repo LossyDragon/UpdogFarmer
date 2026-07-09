@@ -1,20 +1,20 @@
 package com.steevsapps.idledaddy.ui.component.dialog
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -29,9 +29,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.steevsapps.idledaddy.R
+import com.steevsapps.idledaddy.ui.component.OreoTextField
+import com.steevsapps.idledaddy.ui.theme.IdleTheme
+import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.rememberPreferenceState
 
 @Composable
@@ -54,27 +57,16 @@ fun BlacklistEditDialog(onDismiss: () -> Unit) {
         text = {
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
+                    OreoTextField(
                         value = input,
                         onValueChange = { input = it },
                         modifier = Modifier.weight(1f),
-                        placeholder = {
-                            // autoSize seems neat.
-                            Text(
-                                text = stringResource(R.string.blacklist_hint),
-                                maxLines = 1,
-                                autoSize = TextAutoSize.StepBased(
-                                    minFontSize = 10.sp,
-                                    stepSize = 1.sp,
-                                ),
-                            )
-                        },
+                        placeholder = stringResource(R.string.blacklist_hint),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Done,
                         ),
                         keyboardActions = KeyboardActions(onDone = { addItem() }),
-                        singleLine = true,
                     )
                     IconButton(onClick = { addItem() }) {
                         Icon(
@@ -101,6 +93,7 @@ fun BlacklistEditDialog(onDismiss: () -> Unit) {
         confirmButton = {
             TextButton(
                 onClick = {
+                    addItem()
                     storedValue = ids.joinToString(",")
                     onDismiss()
                 }
@@ -114,4 +107,16 @@ fun BlacklistEditDialog(onDismiss: () -> Unit) {
             }
         },
     )
+}
+
+@Preview
+@Composable
+private fun Preview() {
+    IdleTheme {
+        Box(Modifier.fillMaxSize()) {
+            ProvidePreferenceLocals {
+                BlacklistEditDialog {}
+            }
+        }
+    }
 }

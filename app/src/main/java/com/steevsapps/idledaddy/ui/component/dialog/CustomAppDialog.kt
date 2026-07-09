@@ -20,10 +20,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -40,9 +38,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.steam.model.Game
+import com.steevsapps.idledaddy.ui.component.OreoTextField
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 
 private const val TYPE_APPID = 0
@@ -55,10 +56,11 @@ fun CustomAppDialog(
     onConfirm: (Game) -> Unit,
     onConfirmList: (List<Game>) -> Unit,
     onDismiss: () -> Unit,
+    initialTypeIndex: Int = TYPE_APPID,
 ) {
     val resources = LocalResources.current
     val typeOptions = stringArrayResource(R.array.custom_app_type_options)
-    var typeIndex by rememberSaveable { mutableIntStateOf(TYPE_APPID) }
+    var typeIndex by rememberSaveable { mutableIntStateOf(initialTypeIndex) }
     var typeMenuExpanded by remember { mutableStateOf(false) }
     var input by rememberSaveable { mutableStateOf("") }
 
@@ -109,19 +111,17 @@ fun CustomAppDialog(
                     }
                 }
                 if (typeIndex == TYPE_APPID_LIST) {
-                    // Add app IDs one at a time, like BlacklistEditDialog
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        OutlinedTextField(
+                        OreoTextField(
                             value = input,
                             onValueChange = { input = it },
                             modifier = Modifier.weight(1f),
-                            placeholder = { Text(text = stringResource(R.string.custom_app_list_hint)) },
+                            placeholder = stringResource(R.string.custom_app_list_hint),
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Number,
                                 imeAction = ImeAction.Done,
                             ),
                             keyboardActions = KeyboardActions(onDone = { addAppId() }),
-                            singleLine = true,
                         )
                         IconButton(onClick = { addAppId() }) {
                             Icon(
@@ -144,11 +144,10 @@ fun CustomAppDialog(
                         }
                     }
                 } else {
-                    TextField(
+                    OreoTextField(
                         value = input,
                         onValueChange = { input = it },
-                        placeholder = { Text(text = stringResource(R.string.desc_custom_app)) },
-                        singleLine = true,
+                        placeholder = stringResource(R.string.desc_custom_app),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = if (typeIndex == TYPE_APPID) KeyboardType.Number else KeyboardType.Text,
                         ),
@@ -158,6 +157,7 @@ fun CustomAppDialog(
         },
         confirmButton = {
             TextButton(onClick = {
+                if (typeIndex == TYPE_APPID_LIST) addAppId()
                 val text = input.trim()
                 when (typeIndex) {
                     TYPE_APPID ->
@@ -183,15 +183,32 @@ fun CustomAppDialog(
     )
 }
 
+/**
+ * Preview
+ */
+
+private class CustomAppTypePreview : PreviewParameterProvider<Int> {
+    private val types = listOf(
+        "App ID" to TYPE_APPID,
+        "Custom name" to TYPE_CUSTOM,
+        "App ID list" to TYPE_APPID_LIST,
+    )
+
+    override val values = types.asSequence().map { it.second }
+
+    override fun getDisplayName(index: Int) = types[index].first
+}
+
 @Preview
 @Composable
-private fun Preview() {
+private fun Preview(@PreviewParameter(CustomAppTypePreview::class) typeIndex: Int) {
     IdleTheme {
         Box(Modifier.fillMaxSize()) {
             CustomAppDialog(
                 onConfirm = {},
                 onConfirmList = {},
                 onDismiss = {},
+                initialTypeIndex = typeIndex,
             )
         }
     }
