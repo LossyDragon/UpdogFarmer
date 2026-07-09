@@ -1,41 +1,35 @@
 package com.steevsapps.idledaddy.steam.model
 
-import android.os.Parcel
-import android.os.Parcelable
-import android.os.Parcelable.Creator
-import com.google.gson.annotations.SerializedName
+import androidx.compose.runtime.Immutable
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-class Game : Comparable<Game>, Parcelable {
-    @SerializedName("appid")
-    var appId: Int
+@Immutable
+@Serializable
+data class Game(
+    @SerialName("appid")
+    val appId: Int,
 
-    @SerializedName("name")
-    var name: String = ""
+    @SerialName("name")
+    val name: String = "",
 
-    @SerializedName("img_logo_url")
-    var iconUrl: String = ""
+    @SerialName("img_logo_url")
+    val iconUrl: String = "",
 
-    @SerializedName("playtime_forever")
-    var hoursPlayed: Float
+    @SerialName("playtime_forever")
+    val hoursPlayed: Float = 0f,
 
-    @SerializedName("drops_remaining")
-    var dropsRemaining: Int
+    @SerialName("drops_remaining")
+    val dropsRemaining: Int = 0,
+) : Comparable<Game> {
 
-    constructor(appId: Int, name: String, hoursPlayed: Float, dropsRemaining: Int) {
-        this.appId = appId
-        this.name = name
-        this.iconUrl = "https://cdn.akamai.steamstatic.com/steam/apps/$appId/header_292x136.jpg"
-        this.hoursPlayed = hoursPlayed
-        this.dropsRemaining = dropsRemaining
-    }
-
-    private constructor(parcel: Parcel) {
-        appId = parcel.readInt()
-        name = parcel.readString().orEmpty()
-        iconUrl = parcel.readString().orEmpty()
-        hoursPlayed = parcel.readFloat()
-        dropsRemaining = parcel.readInt()
-    }
+    constructor(appId: Int, name: String, hoursPlayed: Float, dropsRemaining: Int) : this(
+        appId = appId,
+        name = name,
+        iconUrl = "https://cdn.akamai.steamstatic.com/steam/apps/$appId/header_292x136.jpg",
+        hoursPlayed = hoursPlayed,
+        dropsRemaining = dropsRemaining,
+    )
 
     override fun compareTo(other: Game): Int {
         if (hoursPlayed == other.hoursPlayed) {
@@ -60,25 +54,5 @@ class Game : Comparable<Game>, Parcelable {
         // Include a hash for each field
         result = 31 * result + appId
         return result
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    override fun writeToParcel(parcel: Parcel, i: Int) {
-        parcel.writeInt(appId)
-        parcel.writeString(name)
-        parcel.writeString(iconUrl)
-        parcel.writeFloat(hoursPlayed)
-        parcel.writeInt(dropsRemaining)
-    }
-
-    companion object {
-        @JvmField
-        val CREATOR: Creator<Game?> = object : Creator<Game?> {
-            override fun createFromParcel(parcel: Parcel): Game = Game(parcel)
-            override fun newArray(i: Int): Array<Game?> = arrayOfNulls(i)
-        }
     }
 }

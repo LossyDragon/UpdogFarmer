@@ -86,7 +86,7 @@ class GamesViewModel(private val connection: SteamServiceConnection) : ViewModel
     fun saveLastSession() {
         val selected = uiState.value.selected
         if (selected.isNotEmpty()) {
-            PrefsManager.writeLastSession(selected.toMutableList())
+            PrefsManager.writeLastSession(selected)
         }
     }
 
@@ -148,7 +148,7 @@ class GamesViewModel(private val connection: SteamServiceConnection) : ViewModel
         if (uiState.value.tab == TAB_LAST) {
             // Load last idling session
             val games = uiState.value.selected.ifEmpty {
-                PrefsManager.getLastSession().filterNotNull()
+                PrefsManager.getLastSession()
             }
             setGames(games)
         } else {

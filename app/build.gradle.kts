@@ -117,7 +117,6 @@ dependencies {
 
     /** Network & serialization **/
     implementation(libs.bundles.network)
-    implementation(libs.kotlinx.serialization.core)
 
     /** Misc **/
     implementation(libs.jsoup)

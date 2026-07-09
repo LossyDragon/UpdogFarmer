@@ -4,11 +4,12 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.utils.CryptHelper
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import me.zhanghai.compose.preference.Preferences
 import me.zhanghai.compose.preference.createPreferenceFlow
 import kotlin.math.roundToInt
@@ -41,6 +42,7 @@ object PrefsManager {
     private const val CELL_ID = "cell_id"
 
     private lateinit var prefs: SharedPreferences
+    private val json = Json { ignoreUnknownKeys = true }
 
     fun init(c: Context) {
         if (!::prefs.isInitialized) {
@@ -63,7 +65,7 @@ object PrefsManager {
     private fun onUpgrade(oldVersion: Int) {
         if (oldVersion < 2) {
             // Serialized names have changed
-            writeLastSession(ArrayList())
+            writeLastSession(emptyList())
         }
         if (oldVersion < 3) {
             writeRefreshToken("")
@@ -132,24 +134,16 @@ object PrefsManager {
         writePref(BLACKLIST, blacklist.joinToString(","))
     }
 
-    fun getLastSession(): MutableList<Game?> {
-        val json: String = prefs.getString(LAST_SESSION, "")!!
-        val type = object :
-            TypeToken<MutableList<Game?>?>() {}.type
-        val games =
-            Gson().fromJson<MutableList<Game?>?>(
-                json,
-                type
-            )
-        if (games == null) {
-            return ArrayList()
+    fun getLastSession(): List<Game> {
+        val raw = prefs.getString(LAST_SESSION, "")!!
+        if (raw.isEmpty()) {
+            return emptyList()
         }
-        return games
+        return runCatching { json.decodeFromString<List<Game>>(raw) }.getOrDefault(emptyList())
     }
 
-    fun writeLastSession(games: MutableList<Game>) {
-        val json = Gson().toJson(games)
-        writePref(LAST_SESSION, json)
+    fun writeLastSession(games: List<Game>) {
+        writePref(LAST_SESSION, json.encodeToString(games))
     }
 
     fun getPersonaName(): String = prefs.getString(PERSONA_NAME, "")!!

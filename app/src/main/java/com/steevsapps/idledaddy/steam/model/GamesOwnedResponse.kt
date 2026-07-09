@@ -1,11 +1,10 @@
 package com.steevsapps.idledaddy.steam.model
 
-import com.google.gson.annotations.SerializedName
+import com.steevsapps.idledaddy.steam.converter.GamesOwnedResponseSerializer
+import kotlinx.serialization.Serializable
 
-class GamesOwnedResponse {
-    @SerializedName("game_count")
-    val count: Int = 0
-
-    @SerializedName("games")
-    val games: List<Game> = listOf()
-}
+@Serializable(with = GamesOwnedResponseSerializer::class)
+data class GamesOwnedResponse(
+    val count: Int = 0,
+    val games: List<Game> = listOf(),
+)

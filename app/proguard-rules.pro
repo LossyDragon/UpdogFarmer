@@ -18,7 +18,7 @@
 
 # --- Global attributes ---
 # SourceFile/LineNumberTable: line numbers for release stack traces (de-obfuscate via mapping.txt).
-# Signature/Exceptions: generic-type + checked-exception metadata Gson/Retrofit read reflectively.
+# Signature/Exceptions: generic-type + checked-exception metadata Retrofit reads reflectively.
 -keepattributes SourceFile,LineNumberTable,Signature,Exceptions
 # Hide original source file names in stack traces; mapping.txt still retraces them.
 -renamesourcefileattribute SourceFile
@@ -84,6 +84,6 @@
 -keepclassmembernames interface * {
     @retrofit2.http.* <methods>;
 }
-# Gson model classes used as Retrofit response bodies + the custom VDF converter.
+# kotlinx.serialization model classes used as Retrofit response bodies + the custom VDF converter.
 -keep class com.steevsapps.idledaddy.steam.model.** { *; }
 -keep class com.steevsapps.idledaddy.steam.converter.** { *; }

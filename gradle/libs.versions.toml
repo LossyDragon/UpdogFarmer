@@ -9,7 +9,6 @@ composeBom = "2026.06.01"
 composeMaterial3 = "1.5.0-alpha23"
 composePreference = "2.2.0"
 depAnalysis = "3.16.1" # https://mvnrepository.com/artifact/com.autonomousapps.dependency-analysis
-gsonVersion = "2.14.0"
 javaSteam = "1.8.1-SNAPSHOT"
 jsoup = "1.22.2"
 koinBom = "4.2.2" # https://mvnrepository.com/artifact/io.insert-koin/koin-core
@@ -19,6 +18,7 @@ lifecycle = "2.11.0"
 navigation3 = "1.1.4"
 protobufs = "4.35.1"
 retrofitVersion = "3.0.0"
+retrofitKotlinxSerializationConverter = "1.0.0"
 zxing = "3.5.4"
 
 # Testing
@@ -55,9 +55,8 @@ bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "boun
 
 # Network / data
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofitVersion" }
-converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofitVersion" }
-gson = { module = "com.google.code.gson:gson", version.ref = "gsonVersion" }
-kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
+retrofit-kotlinx-serialization-converter = { module = "com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter", version.ref = "retrofitKotlinxSerializationConverter" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 
 # Images
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
@@ -90,7 +89,7 @@ compose = [
 lifecycle = ["lifecycle-viewmodel-compose", "lifecycle-runtime-compose"]
 navigation = ["navigation3-ui", "lifecycle-viewmodel-navigation3"]
 coil = ["coil-compose", "coil-network-okhttp"]
-network = ["retrofit", "converter-gson", "gson"]
+network = ["retrofit", "retrofit-kotlinx-serialization-converter", "kotlinx-serialization-json"]
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

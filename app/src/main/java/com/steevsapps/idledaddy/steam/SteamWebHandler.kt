@@ -1,26 +1,26 @@
 package com.steevsapps.idledaddy.steam
 
 import androidx.annotation.IntDef
-import com.google.gson.GsonBuilder
+import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.steevsapps.idledaddy.BuildConfig
 import com.steevsapps.idledaddy.preferences.PrefsManager.getApiKey
 import com.steevsapps.idledaddy.preferences.PrefsManager.getBlacklist
 import com.steevsapps.idledaddy.preferences.PrefsManager.getParentalPin
 import com.steevsapps.idledaddy.preferences.PrefsManager.includeFreeGames
 import com.steevsapps.idledaddy.preferences.PrefsManager.writeApiKey
-import com.steevsapps.idledaddy.steam.converter.GamesOwnedResponseDeserializer
 import com.steevsapps.idledaddy.steam.converter.VdfConverterFactory.Companion.create
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.steam.model.GamesOwnedResponse
 import com.steevsapps.idledaddy.utils.Utils.isValidKey
 import `in`.dragonbra.javasteam.util.Strings.toHex
 import `in`.dragonbra.javasteam.util.crypto.CryptoHelper
+import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import org.jsoup.Connection
 import org.jsoup.Jsoup
 import retrofit2.Call
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -41,9 +41,7 @@ class SteamWebHandler private constructor() {
     private val api: SteamAPI
 
     init {
-        val gson = GsonBuilder()
-            .registerTypeAdapter(GamesOwnedResponse::class.java, GamesOwnedResponseDeserializer())
-            .create()
+        val json = Json { ignoreUnknownKeys = true }
 
         val client = OkHttpClient.Builder()
             .connectTimeout(TIMEOUT_SECS.toLong(), TimeUnit.SECONDS)
@@ -54,7 +52,7 @@ class SteamWebHandler private constructor() {
         val retrofit = Retrofit.Builder()
             .baseUrl(STEAM_API)
             .addConverterFactory(create())
-            .addConverterFactory(GsonConverterFactory.create(gson))
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .client(client)
             .build()
 
