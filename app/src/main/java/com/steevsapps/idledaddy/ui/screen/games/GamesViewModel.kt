@@ -39,6 +39,7 @@ data class GamesScreenState(
     val optionsBlacklisted: Boolean = false,
     val fabMenuExpanded: Boolean = false,
     val redeemDialogVisible: Boolean = false,
+    val iconOverrides: Map<Int, String> = emptyMap(),
 )
 
 class GamesViewModel(private val connection: SteamServiceConnection) : ViewModel() {
@@ -52,6 +53,10 @@ class GamesViewModel(private val connection: SteamServiceConnection) : ViewModel
 
     // Everything Steam returned; uiState.games holds the tab/query-filtered subset shown on screen
     private var allGames: List<Game> = emptyList()
+
+    // appIds we've already tried to resolve via PICS, so a repeatedly-failing icon
+    // doesn't fire a new request every time the item recomposes
+    private val iconRetries = mutableSetOf<Int>()
 
     private val service: SteamService?
         get() = connection.service.value
@@ -233,6 +238,20 @@ class GamesViewModel(private val connection: SteamServiceConnection) : ViewModel
                 setGames(emptyList())
             }
         })
+    }
+
+    fun onImageError(game: Game) {
+        if (!iconRetries.add(game.appId)) {
+            return
+        }
+        Log.i(TAG, "Retrying for app image for ${game.appId}")
+        viewModelScope.launch {
+            // TODO:  Try and fallback once more for asset images.
+            val hash = service?.onPicsRequest(game.appId) ?: return@launch
+            val url = "https://shared.fastly.steamstatic.com/store_item_assets/" +
+                    "steam/apps/${game.appId}/$hash/library_header.jpg"
+            uiState.update { it.copy(iconOverrides = it.iconOverrides + (game.appId to url)) }
+        }
     }
 
     companion object {

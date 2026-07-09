@@ -47,6 +47,7 @@ import `in`.dragonbra.javasteam.steam.authentication.IAuthenticator
 import `in`.dragonbra.javasteam.steam.authentication.IChallengeUrlChanged
 import `in`.dragonbra.javasteam.steam.authentication.QrAuthSession
 import `in`.dragonbra.javasteam.steam.discovery.FileServerListProvider
+import `in`.dragonbra.javasteam.steam.handlers.steamapps.PICSRequest
 import `in`.dragonbra.javasteam.steam.handlers.steamapps.SteamApps
 import `in`.dragonbra.javasteam.steam.handlers.steamapps.callback.FreeLicenseCallback
 import `in`.dragonbra.javasteam.steam.handlers.steamapps.callback.PurchaseResponseCallback
@@ -1372,6 +1373,14 @@ class SteamService : Service() {
         )
         stopGame.body.addGamesPlayedBuilder().setGameId(0)
         executor.execute { steamClient.send(stopGame) }
+    }
+
+    suspend fun onPicsRequest(appId: Int): String? {
+        val request = PICSRequest(id = appId)
+        val response = steamApps.picsGetProductInfo(request).await()
+        val product = response.results.first().apps[appId] ?: return null
+        val common = product.keyValues["common"]
+        return common["logo_small"].value
     }
 
     companion object {

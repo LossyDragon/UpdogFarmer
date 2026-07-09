@@ -114,6 +114,7 @@ fun GamesScreen(
         onRedeem = viewModel::redeemKey,
         onToggleBlacklist = viewModel::toggleBlacklist,
         onDismissOptions = viewModel::dismissOptions,
+        onImageError = viewModel::onImageError,
     )
 }
 
@@ -132,6 +133,7 @@ fun GamesScreenContent(
     onRedeem: (String) -> Unit,
     onToggleBlacklist: (Game) -> Unit,
     onDismissOptions: () -> Unit,
+    onImageError: (Game) -> Unit,
 ) {
     IdleTheme {
         val gridState = rememberLazyGridState()
@@ -201,8 +203,10 @@ fun GamesScreenContent(
                                 game = game,
                                 selected = state.selected.contains(game),
                                 showIcon = state.showIcons,
+                                iconUrl = state.iconOverrides[game.appId] ?: game.iconUrl,
                                 onClick = { onGameClick(game) },
                                 onLongClick = { onGameLongClick(game) },
+                                onImageError = onImageError,
                             )
                         }
                     }
@@ -519,5 +523,6 @@ private fun Preview(@PreviewParameter(GamesPreview::class) state: GamesScreenSta
         onRedeem = {},
         onToggleBlacklist = {},
         onDismissOptions = {},
+        onImageError = {},
     )
 }
