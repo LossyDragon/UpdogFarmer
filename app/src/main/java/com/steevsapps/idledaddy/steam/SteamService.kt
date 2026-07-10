@@ -31,12 +31,14 @@ import com.steevsapps.idledaddy.listeners.AndroidLogListener
 import com.steevsapps.idledaddy.preferences.PrefsManager
 import com.steevsapps.idledaddy.steam.model.Game
 import `in`.dragonbra.javasteam.base.ClientMsgProtobuf
+import `in`.dragonbra.javasteam.base.IPacketMsg
 import `in`.dragonbra.javasteam.enums.EMsg
 import `in`.dragonbra.javasteam.enums.EOSType
 import `in`.dragonbra.javasteam.enums.EPaymentMethod
 import `in`.dragonbra.javasteam.enums.EPersonaState
 import `in`.dragonbra.javasteam.enums.EPurchaseResultDetail
 import `in`.dragonbra.javasteam.enums.EResult
+import `in`.dragonbra.javasteam.enums.EUIMode
 import `in`.dragonbra.javasteam.protobufs.steamclient.SteammessagesClientserver.CMsgClientGamesPlayed
 import `in`.dragonbra.javasteam.protobufs.steamclient.SteammessagesClientserver2.CMsgClientRegisterKey
 import `in`.dragonbra.javasteam.protobufs.steamclient.SteammessagesParentalSteamclient.CParental_ValidatePassword_Request
@@ -51,6 +53,7 @@ import `in`.dragonbra.javasteam.steam.authentication.IAuthenticator
 import `in`.dragonbra.javasteam.steam.authentication.IChallengeUrlChanged
 import `in`.dragonbra.javasteam.steam.authentication.QrAuthSession
 import `in`.dragonbra.javasteam.steam.discovery.FileServerListProvider
+import `in`.dragonbra.javasteam.steam.handlers.ClientMsgHandler
 import `in`.dragonbra.javasteam.steam.handlers.steamapps.SteamApps
 import `in`.dragonbra.javasteam.steam.handlers.steamapps.callback.FreeLicenseCallback
 import `in`.dragonbra.javasteam.steam.handlers.steamapps.callback.PurchaseResponseCallback
@@ -68,11 +71,13 @@ import `in`.dragonbra.javasteam.steam.handlers.steamnotifications.SteamNotificat
 import `in`.dragonbra.javasteam.steam.handlers.steamnotifications.callback.ItemAnnouncementsCallback
 import `in`.dragonbra.javasteam.steam.handlers.steamscreenshots.SteamScreenshots
 import `in`.dragonbra.javasteam.steam.handlers.steamunifiedmessages.SteamUnifiedMessages
+import `in`.dragonbra.javasteam.steam.handlers.steamuser.ChatMode
 import `in`.dragonbra.javasteam.steam.handlers.steamuser.LogOnDetails
 import `in`.dragonbra.javasteam.steam.handlers.steamuser.SteamUser
 import `in`.dragonbra.javasteam.steam.handlers.steamuser.callback.AccountInfoCallback
 import `in`.dragonbra.javasteam.steam.handlers.steamuser.callback.LoggedOffCallback
 import `in`.dragonbra.javasteam.steam.handlers.steamuser.callback.LoggedOnCallback
+import `in`.dragonbra.javasteam.steam.handlers.steamuser.callback.PlayingSessionStateCallback
 import `in`.dragonbra.javasteam.steam.handlers.steamuserstats.SteamUserStats
 import `in`.dragonbra.javasteam.steam.handlers.steamworkshop.SteamWorkshop
 import `in`.dragonbra.javasteam.steam.steamclient.SteamClient
@@ -83,12 +88,14 @@ import `in`.dragonbra.javasteam.steam.steamclient.configuration.SteamConfigurati
 import `in`.dragonbra.javasteam.types.GameID
 import `in`.dragonbra.javasteam.types.KeyValue
 import `in`.dragonbra.javasteam.types.SteamID
+import `in`.dragonbra.javasteam.util.IDebugNetworkListener
 import `in`.dragonbra.javasteam.util.NetHelpers.getIPAddress
 import `in`.dragonbra.javasteam.util.Strings
-import `in`.dragonbra.javasteam.util.log.LogManager.addListener
+import `in`.dragonbra.javasteam.util.log.LogManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import org.koin.android.ext.android.inject
 import java.io.Closeable
 import java.io.File
 import java.util.LinkedList
@@ -119,6 +126,8 @@ data class SteamServiceState(
     val gameCount: Int = 0,
     val cardCount: Int = 0,
     val personaState: EPersonaState = EPersonaState.Offline,
+    val blockedIdle: Boolean = false,
+    val nextRetryAtMillis: Long = 0L,
 )
 
 class SteamService : Service() {
@@ -131,7 +140,8 @@ class SteamService : Service() {
     private lateinit var steamUnifiedMessages: SteamUnifiedMessages
     private lateinit var player: Player
     private lateinit var parental: Parental
-    private val webHandler: SteamWebHandler = SteamWebHandler.instance
+
+    private val webHandler: SteamWebHandler by inject()
     private val subscriptions: MutableList<Closeable> = mutableListOf()
 
     // Session state
@@ -168,8 +178,22 @@ class SteamService : Service() {
     private val isPaused: Boolean
         get() = state.value.paused
 
+    // Currently blocked from idling because the account is playing on another device.
+    // Reset optimistically on each logon; set by PlayingSessionStateCallback or a
+    // LoggedInElsewhere kick.
     @Volatile
-    private var waiting = false // Waiting for user to stop playing
+    private var blocked = false
+
+    // Sticky "we were blocked recently" flag. Used to delay resuming after a block so
+    // we don't hammer Steam with re-idle attempts and get repeatedly kicked. Modelled
+    // on ArchiSteamFarm's PlayingWasBlocked + MinFarmingDelayAfterBlock.
+    @Volatile
+    private var playingWasBlocked = false
+
+    // Number of consecutive failed resume attempts, used to grow the retry delay
+    // exponentially. Reset once we resume successfully (or the user stops).
+    @Volatile
+    private var blockRetryCount = 0
 
     // Key redemption
     private var keyToRedeem: String? = null
@@ -179,7 +203,8 @@ class SteamService : Service() {
     private val executor: ExecutorService = Executors.newCachedThreadPool()
     private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(8)
     private var farmHandle: ScheduledFuture<*>? = null
-    private var waitHandle: ScheduledFuture<*>? = null
+    private var resumeHandle: ScheduledFuture<*>? = null
+    private var backoffResetHandle: ScheduledFuture<*>? = null
     private var wakeLock: WakeLock? = null
 
     /**
@@ -236,27 +261,6 @@ class SteamService : Service() {
         }
     }
 
-    /**
-     * Wait for user to NOT be in-game so we can resume idling
-     */
-    private val waitTask: Runnable = Runnable {
-        try {
-            Log.i(TAG, "Checking if we can resume idling...")
-            val notInGame = webHandler.checkIfNotInGame()
-            if (notInGame == null) {
-                Log.i(TAG, "Invalid cookie data or no internet, reconnecting...")
-                steamClient.disconnect()
-            } else if (notInGame) {
-                Log.i(TAG, "Resuming...")
-                waiting = false
-                steamClient.disconnect()
-                waitHandle?.cancel(false)
-            }
-        } catch (e: Exception) {
-            Log.i(TAG, "WaitTask failed", e)
-        }
-    }
-
     fun startFarming() {
         if (!isFarming) {
             state.update { it.copy(farming = true, paused = false) }
@@ -277,7 +281,7 @@ class SteamService : Service() {
      * Resume farming/idling
      */
     private fun resumeFarming() {
-        if (isPaused || waiting) {
+        if (isPaused || blocked) {
             return
         }
 
@@ -294,7 +298,7 @@ class SteamService : Service() {
     }
 
     private fun farm() {
-        if (isPaused || waiting) {
+        if (isPaused || blocked) {
             return
         }
         Log.i(TAG, "Checking remaining card drops")
@@ -372,6 +376,11 @@ class SteamService : Service() {
 
     fun stopGame() {
         state.update { it.copy(paused = false) }
+        playingWasBlocked = false
+        blockRetryCount = 0
+        backoffResetHandle?.cancel(false)
+        unscheduleResume()
+        setBlocked(false)
         stopPlaying()
         stopFarming()
         updateNotification(getString(R.string.stopped))
@@ -379,6 +388,7 @@ class SteamService : Service() {
 
     fun pauseGame() {
         state.update { it.copy(paused = true) }
+        unscheduleResume()
         stopPlaying()
         showPausedNotification()
     }
@@ -413,11 +423,88 @@ class SteamService : Service() {
         }
     }
 
+    /**
+     * Update the blocked state and let the notification and UI know.
+     * @param value whether the account is currently being played on another device
+     * @param appId the app being played on the other device, or 0 if unknown
+     */
+    private fun setBlocked(value: Boolean, appId: Int = 0) {
+        blocked = value
+        publishOccupied()
+        if (value) {
+            unscheduleFarmTask()
+            unscheduleResume()
+            // A block cancels a pending "resume succeeded" reset so the backoff keeps growing.
+            backoffResetHandle?.cancel(false)
+            val text = if (appId > 0) {
+                getString(R.string.steam_in_use_app, appId)
+            } else {
+                getString(R.string.logged_in_elsewhere)
+            }
+            updateNotification(text)
+        }
+    }
+
+    /**
+     * Publish the "occupied" state to the UI. Occupied means we can't idle right now
+     * because the account is playing elsewhere ([blocked]) or we're waiting out the
+     * post-block delay before retrying ([playingWasBlocked]).
+     */
+    private fun publishOccupied() {
+        val occupied = blocked || playingWasBlocked
+        state.update { it.copy(blockedIdle = occupied) }
+    }
+
+    /**
+     * Schedule a delayed attempt to resume idling after being blocked. The delay grows
+     * exponentially with each consecutive failed attempt (capped) so we don't hammer
+     * Steam with re-idle attempts and get repeatedly kicked, and so we back off while the
+     * user keeps playing. Modelled on ArchiSteamFarm's MinFarmingDelayAfterBlock.
+     */
+    private fun scheduleResumeAfterBlock() {
+        unscheduleResume()
+        val exp = blockRetryCount.coerceAtMost(16)
+        val delaySecs = (RESUME_BACKOFF_BASE_SECS shl exp).coerceAtMost(RESUME_BACKOFF_MAX_SECS)
+        blockRetryCount++
+
+        val nextAt = System.currentTimeMillis() + delaySecs * 1000L
+        state.update { it.copy(nextRetryAtMillis = nextAt) }
+        Log.i(TAG, "Will attempt to resume idling in ${delaySecs}s (attempt $blockRetryCount)")
+
+        resumeHandle = scheduler.schedule({
+            playingWasBlocked = false
+            state.update { it.copy(nextRetryAtMillis = 0L) }
+            publishOccupied()
+            resumeFarming()
+            // If we stay unblocked for a grace period, treat the resume as successful and
+            // reset the backoff.
+            scheduleBackoffReset()
+        }, delaySecs, TimeUnit.SECONDS)
+    }
+
+    private fun scheduleBackoffReset() {
+        backoffResetHandle?.cancel(false)
+        backoffResetHandle = scheduler.schedule({
+            Log.i(TAG, "Resume looks stable, resetting backoff")
+            blockRetryCount = 0
+        }, BACKOFF_RESET_GRACE_SECS, TimeUnit.SECONDS)
+    }
+
+    private fun unscheduleResume() {
+        resumeHandle?.cancel(false)
+        resumeHandle = null
+        state.update { it.copy(nextRetryAtMillis = 0L) }
+    }
+
     override fun onBind(intent: Intent): IBinder = binder
 
     override fun onCreate() {
         Log.i(TAG, "Service created")
         super.onCreate()
+
+        if (BuildConfig.DEBUG) {
+            LogManager.addListener(AndroidLogListener())
+        }
 
         val cellId = PrefsManager.getCellId()
         val servers = File(filesDir, "servers.bin")
@@ -429,6 +516,24 @@ class SteamService : Service() {
         }
         steamClient = SteamClient(config)
 
+        if (BuildConfig.DEBUG) {
+            // Debug: log every incoming/outgoing EMsg so we can see exactly what Steam
+            // sends when the account is played elsewhere (e.g. whether ClientPlayingSessionState
+            // is ever pushed, or if we only ever get ClientLoggedOff/LoggedInElsewhere).
+            // Skip high-volume chatter so the interesting messages (Playing/GamesPlayed/
+            // LoggedOff) are readable.
+            val noisy = setOf(EMsg.ClientPersonaState, EMsg.ClientClanState, EMsg.ClientHeartBeat)
+            steamClient.debugNetworkListener = object : IDebugNetworkListener {
+                override fun onIncomingNetworkMessage(msgType: EMsg, data: ByteArray) {
+                    if (msgType !in noisy) Log.d(TAG, "<< $msgType (${data.size}b)")
+                }
+
+                override fun onOutgoingNetworkMessage(msgType: EMsg, data: ByteArray) {
+                    if (msgType !in noisy) Log.d(TAG, ">> $msgType")
+                }
+            }
+        }
+
         steamUser = requireNotNull(steamClient.getHandler())
         steamFriends = requireNotNull(steamClient.getHandler())
         steamApps = requireNotNull(steamClient.getHandler())
@@ -437,17 +542,21 @@ class SteamService : Service() {
         player = steamUnifiedMessages.createService()
         parental = steamUnifiedMessages.createService()
 
+        // Catch ClientPlayingSessionState ourselves (see PlayingSessionMsgHandler / SteamKit #418).
+        steamClient.addHandler(PlayingSessionMsgHandler())
+
         // Subscribe to callbacks
         manager = CallbackManager(steamClient)
-        subscriptions.add(manager.subscribe<ConnectedCallback>(::onConnected))
-        subscriptions.add(manager.subscribe<DisconnectedCallback>(::onDisconnected))
-        subscriptions.add(manager.subscribe<LoggedOffCallback>(::onLoggedOff))
-        subscriptions.add(manager.subscribe<LoggedOnCallback>(::onLoggedOn))
-        subscriptions.add(manager.subscribe<PersonaStateCallback>(::onPersonaState))
-        subscriptions.add(manager.subscribe<FreeLicenseCallback>(::onFreeLicense))
-        subscriptions.add(manager.subscribe<AccountInfoCallback>(::onAccountInfo))
-        subscriptions.add(manager.subscribe<ItemAnnouncementsCallback>(::onItemAnnouncements))
-        subscriptions.add(manager.subscribe<PurchaseResponseCallback>(::onPurchaseResponse))
+        subscriptions.add(manager.subscribe(::onConnected))
+        subscriptions.add(manager.subscribe(::onDisconnected))
+        subscriptions.add(manager.subscribe(::onLoggedOff))
+        subscriptions.add(manager.subscribe(::onLoggedOn))
+        subscriptions.add(manager.subscribe(::onPlayingSessionState))
+        subscriptions.add(manager.subscribe(::onPersonaState))
+        subscriptions.add(manager.subscribe(::onFreeLicense))
+        subscriptions.add(manager.subscribe(::onAccountInfo))
+        subscriptions.add(manager.subscribe(::onItemAnnouncements))
+        subscriptions.add(manager.subscribe(::onPurchaseResponse))
 
         // Unregister handlers we have no use for.
         steamClient.removeHandler<SteamGameCoordinator>()
@@ -468,10 +577,6 @@ class SteamService : Service() {
         }
 
         createChannel()
-
-        if (BuildConfig.DEBUG) {
-            addListener(AndroidLogListener())
-        }
 
         startForeground(NOTIF_ID, buildNotification(getString(R.string.service_started)))
     }
@@ -1021,7 +1126,9 @@ class SteamService : Service() {
             accessToken = refreshToken,
             clientOSType = EOSType.AndroidUnknown,
             machineName = FRIENDLY_NAME,
-            shouldRememberPassword = true
+            shouldRememberPassword = true,
+            // chatMode = ChatMode.NEW_STEAM_CHAT,
+            // uiMode = EUIMode.DesktopUI
         )
         if (PrefsManager.useCustomLoginId()) {
             val localIP = steamClient.localIP
@@ -1054,7 +1161,13 @@ class SteamService : Service() {
                 val tokens = steamClient.authentication
                     .generateAccessTokenForApp(clientSteamId, refreshToken, true)
                     .get()
-                if (webHandler.authenticate(clientSteamId.convertToUInt64(), tokens.accessToken, parentalToken)) {
+
+                val authenticated = webHandler.authenticate(
+                    clientSteamId.convertToUInt64(),
+                    tokens.accessToken,
+                    parentalToken
+                )
+                if (authenticated) {
                     Log.i(TAG, "Authenticated!")
                     return true
                 }
@@ -1215,15 +1328,67 @@ class SteamService : Service() {
     private fun onLoggedOff(callback: LoggedOffCallback) {
         Log.i(TAG, "Logoff result ${callback.result}")
         if (callback.result == EResult.LoggedInElsewhere) {
-            updateNotification(getString(R.string.logged_in_elsewhere))
-            unscheduleFarmTask()
-            if (!waiting) {
-                waiting = true
-                waitHandle = scheduler.scheduleWithFixedDelay(waitTask, 0, 30, TimeUnit.SECONDS)
-            }
+            // Steam kicked us because the account started playing on another device.
+            // (Steam does NOT proactively push PlayingSessionState in this ordering, it
+            // just kicks us when we send ClientGamesPlayed.) Remember we were blocked so
+            // that after reconnecting we delay before retrying instead of tight-looping.
+            playingWasBlocked = true
+            setBlocked(true)
+        }
+        // Reconnect
+        steamClient.disconnect()
+    }
+
+    // Received via JavaSteam's normal callback dispatch. NOTE: this currently never fires
+    // because EMsg.ClientPlayingSessionState (9600) collides with ClientConcurrentSessionsBase
+    // (also 9600), and EMsg.from(9600) resolves to the latter, so SteamUser's dispatch never
+    // matches the ClientPlayingSessionState branch (SteamKit issue #418). We instead catch it
+    // ourselves in PlayingSessionMsgHandler. Kept subscribed in case JavaSteam fixes the routing.
+    private fun onPlayingSessionState(callback: PlayingSessionStateCallback) {
+        handlePlayingSessionState(callback.isPlayingBlocked, callback.playingAppID)
+    }
+
+    /**
+     * Handle a playing-session-state update: the account started or stopped playing a game
+     * on another device while we're connected. Fires in the "we're idling first, user then
+     * launches a game" ordering; in the reverse ordering Steam kicks us with LoggedInElsewhere
+     * instead. While blocked, sending ClientGamesPlayed would get us kicked, so we stop idling
+     * here and resume (after a delay) once the block clears.
+     */
+    private fun handlePlayingSessionState(isBlocked: Boolean, appId: Int) {
+        Log.i(TAG, "PlayingSessionState blocked=$isBlocked appId=$appId")
+        if (isBlocked == blocked) {
+            return
+        }
+        if (isBlocked) {
+            // The user started playing on another device. Stop idling (keep currentGames
+            // so we can resume the same games later). setBlocked handles notification/UI.
+            playingWasBlocked = true
+            setBlocked(true, appId)
         } else {
-            // Reconnect
-            steamClient.disconnect()
+            // Steam explicitly told us the other device stopped, so this isn't a failed
+            // retry: reset the backoff and resume from the base delay.
+            blockRetryCount = 0
+            setBlocked(false)
+            if (!isPaused) {
+                updateNotification(getString(R.string.logged_in))
+                scheduleResumeAfterBlock()
+            }
+        }
+    }
+
+    /**
+     * Custom handler that catches ClientPlayingSessionState. Every registered handler sees
+     * every incoming packet, so we match by numeric EMsg code (9600) to work around the
+     * ClientConcurrentSessionsBase collision that prevents the normal callback from firing.
+     */
+    private inner class PlayingSessionMsgHandler : ClientMsgHandler() {
+        override fun handleMsg(packetMsg: IPacketMsg) {
+            if (packetMsg.msgType.code() != EMsg.ClientPlayingSessionState.code()) {
+                return
+            }
+            val cb = PlayingSessionStateCallback(packetMsg)
+            handlePlayingSessionState(cb.isPlayingBlocked, cb.playingAppID)
         }
     }
 
@@ -1250,9 +1415,13 @@ class SteamService : Service() {
                     )
                 }
 
+                // Optimistically assume we're free to play again. If we're still blocked
+                // Steam will tell us (PlayingSessionState) or kick us (LoggedInElsewhere).
+                setBlocked(false)
+
                 if (isPaused) {
                     showPausedNotification()
-                } else if (waiting) {
+                } else if (playingWasBlocked) {
                     updateNotification(getString(R.string.logged_in_elsewhere))
                 } else {
                     updateNotification(getString(R.string.logged_in))
@@ -1261,7 +1430,13 @@ class SteamService : Service() {
                 executor.execute {
                     val gotAuth = attemptWebAuthentication(clientSteamId, refreshToken)
                     if (gotAuth) {
-                        resumeFarming()
+                        // If we were just blocked, wait out the delay before retrying so
+                        // we don't immediately get kicked again; otherwise resume now.
+                        if (playingWasBlocked) {
+                            scheduleResumeAfterBlock()
+                        } else {
+                            resumeFarming()
+                        }
                         registerApiKey()
                     } else {
                         updateNotification(getString(R.string.web_login_failed))
@@ -1433,6 +1608,13 @@ class SteamService : Service() {
         private val TAG: String = SteamService::class.java.simpleName
         private const val NOTIF_ID = 6896 // Ongoing notification ID
         private const val CHANNEL_ID = "idle_channel" // Notification channel
+
+        // Exponential backoff for retrying to idle after being blocked by the account
+        // playing elsewhere. Avoids a tight kick/reconnect loop. Base matches ASF's 60s
+        // default; the delay doubles each consecutive failed attempt up to the cap.
+        private const val RESUME_BACKOFF_BASE_SECS = 60L
+        private const val RESUME_BACKOFF_MAX_SECS = 1800L
+        private const val BACKOFF_RESET_GRACE_SECS = 120L
 
         // Some Huawei phones reportedly kill apps when they hold a WakeLock for a long time.
         // This can be prevented by using a WakeLock tag from the PowerGenie whitelist.

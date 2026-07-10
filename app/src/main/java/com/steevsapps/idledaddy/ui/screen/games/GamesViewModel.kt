@@ -38,12 +38,14 @@ data class GamesScreenState(
     val iconOverrides: Map<Int, String> = emptyMap(),
 )
 
-class GamesViewModel(private val connection: SteamServiceConnection) : ViewModel() {
+class GamesViewModel(
+    private val connection: SteamServiceConnection,
+    private val webHandler: SteamWebHandler,
+) : ViewModel() {
 
     val uiState: StateFlow<GamesScreenState>
         field = MutableStateFlow(GamesScreenState())
 
-    private val webHandler: SteamWebHandler = SteamWebHandler.instance
     private var sortId: Int = PrefsManager.getSortValue()
     private var steamId: Long = 0
 

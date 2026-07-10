@@ -1,6 +1,7 @@
 package com.steevsapps.idledaddy.di
 
 import com.steevsapps.idledaddy.steam.SteamServiceConnection
+import com.steevsapps.idledaddy.steam.SteamWebHandler
 import com.steevsapps.idledaddy.ui.screen.games.GamesViewModel
 import com.steevsapps.idledaddy.ui.screen.home.HomeViewModel
 import com.steevsapps.idledaddy.ui.screen.login.LoginViewModel
@@ -16,4 +17,5 @@ val viewModelModule = module {
 
 val appModule = module {
     single { SteamServiceConnection(androidContext()) }
+    single { SteamWebHandler() }
 }

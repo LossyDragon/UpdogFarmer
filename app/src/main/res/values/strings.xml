@@ -83,6 +83,8 @@
         <item quantity="other">%.1f hrs on record</item>
     </plurals>
     <string name="logged_in_elsewhere">Steam in use. Will resume when possible.</string>
+    <string name="steam_in_use_app">Playing app %1$d elsewhere. Will resume when possible.</string>
+    <string name="status_retry_countdown">Retrying in %1$s</string>
     <string name="web_login_failed">Failed to log in to Steam website!</string>
     <string name="login_key_expired">Login key expired!</string>
     <string name="stopped">Stopped</string>

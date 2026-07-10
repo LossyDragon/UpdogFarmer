@@ -24,7 +24,7 @@ import java.util.regex.Pattern
 /**
  * Scrapes card drop info from Steam website
  */
-class SteamWebHandler private constructor() {
+class SteamWebHandler {
     private var authenticated = false
     private var steamId: Long = 0
     private var sessionId: String? = null
@@ -194,29 +194,6 @@ class SteamWebHandler private constructor() {
         ?.ifEmpty { null }
 
     /**
-     * Check if user is currently NOT in-game, so we can resume farming.
-     */
-    fun checkIfNotInGame(): Boolean? {
-        val url = STEAM_COMMUNITY + "my/profile?l=english"
-        val doc = try {
-            Jsoup.connect(url)
-                .followRedirects(true)
-                .cookies(generateWebCookies())
-                .get()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return null
-        }
-
-        if (doc.select("a.user_avatar").first() == null) {
-            // Invalid cookie data
-            return null
-        }
-
-        return doc.select("div.profile_in_game_name").first() == null
-    }
-
-    /**
      * Add a free license to your account
      *
      * @param subId subscription id
@@ -337,7 +314,5 @@ class SteamWebHandler private constructor() {
 
         // Pattern to match play time
         private val timePattern: Pattern = Pattern.compile("([0-9.]+) hrs on record")
-
-        val instance: SteamWebHandler = SteamWebHandler()
     }
 }

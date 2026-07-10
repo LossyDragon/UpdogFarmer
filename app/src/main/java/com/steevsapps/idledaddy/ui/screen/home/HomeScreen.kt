@@ -121,6 +121,8 @@ fun HomeScreenContent(
                     StatusCard(
                         isLoggedIn = state.loggedIn,
                         isParentalControlled = state.parentalStatus,
+                        isBlocked = state.blocked,
+                        nextRetryAtMillis = state.nextRetryAtMillis,
                         onClick = onStatusClick,
                     )
                 }
