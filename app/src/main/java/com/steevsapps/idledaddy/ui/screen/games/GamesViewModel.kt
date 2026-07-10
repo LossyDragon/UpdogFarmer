@@ -54,8 +54,8 @@ class GamesViewModel(private val connection: SteamServiceConnection) : ViewModel
     // Everything Steam returned; uiState.games holds the tab/query-filtered subset shown on screen
     private var allGames: List<Game> = emptyList()
 
-    // appIds we've already tried to resolve via PICS, so a repeatedly-failing icon
-    // doesn't fire a new request every time the item recomposes
+    // appIds we've already tried to resolve via the store appdetails API, so a
+    // repeatedly-failing icon doesn't fire a new request every time the item recomposes
     private val iconRetries = mutableSetOf<Int>()
 
     private val service: SteamService?
@@ -246,10 +246,9 @@ class GamesViewModel(private val connection: SteamServiceConnection) : ViewModel
         }
         Log.i(TAG, "Retrying for app image for ${game.appId}")
         viewModelScope.launch {
-            // TODO:  Try and fallback once more for asset images.
-            val hash = service?.onPicsRequest(game.appId) ?: return@launch
-            val url = "https://shared.fastly.steamstatic.com/store_item_assets/" +
-                    "steam/apps/${game.appId}/$hash/library_header.jpg"
+            val url = runCatching { webHandler.getHeaderImage(game.appId) }
+                .onFailure { Log.i(TAG, "Failed to fetch app details for ${game.appId}", it) }
+                .getOrNull() ?: return@launch
             uiState.update { it.copy(iconOverrides = it.iconOverrides + (game.appId to url)) }
         }
     }

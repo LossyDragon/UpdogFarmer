@@ -227,6 +227,15 @@ class SteamWebHandler private constructor() {
     }
 
     /**
+     * Get the store header image url for an app, used as a fallback when the icon fails to load
+     */
+    suspend fun getHeaderImage(appId: Int): String? = api.getAppDetails(appId)[appId.toString()]
+        ?.takeIf { it.success }
+        ?.data
+        ?.headerImage
+        ?.ifEmpty { null }
+
+    /**
      * Check if user is currently NOT in-game, so we can resume farming.
      */
     fun checkIfNotInGame(): Boolean? {
