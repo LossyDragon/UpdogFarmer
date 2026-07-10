@@ -5,21 +5,15 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.steevsapps.idledaddy.BuildConfig
 import com.steevsapps.idledaddy.preferences.PrefsManager.getApiKey
 import com.steevsapps.idledaddy.preferences.PrefsManager.getBlacklist
-import com.steevsapps.idledaddy.preferences.PrefsManager.getParentalPin
-import com.steevsapps.idledaddy.preferences.PrefsManager.includeFreeGames
 import com.steevsapps.idledaddy.preferences.PrefsManager.writeApiKey
-import com.steevsapps.idledaddy.steam.converter.VdfConverterFactory.Companion.create
 import com.steevsapps.idledaddy.steam.model.Game
-import com.steevsapps.idledaddy.steam.model.GamesOwnedResponse
 import com.steevsapps.idledaddy.utils.Utils.isValidKey
 import `in`.dragonbra.javasteam.util.Strings.toHex
 import `in`.dragonbra.javasteam.util.crypto.CryptoHelper
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
-import org.jsoup.Connection
 import org.jsoup.Jsoup
-import retrofit2.Call
 import retrofit2.Retrofit
 import java.io.IOException
 import java.util.Locale
@@ -51,7 +45,6 @@ class SteamWebHandler private constructor() {
 
         val retrofit = Retrofit.Builder()
             .baseUrl(STEAM_API)
-            .addConverterFactory(create())
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .client(client)
             .build()
@@ -70,19 +63,15 @@ class SteamWebHandler private constructor() {
      *
      * @param steamId the logged on user's SteamID
      * @param accessToken a short-lived JWT access token, see SteamAuthentication#generateAccessTokenForApp
+     * @param parentalToken family view unlock token, used as the steamparental cookie
      * @return true if authenticated
      */
-    fun authenticate(steamId: Long, accessToken: String?): Boolean {
+    fun authenticate(steamId: Long, accessToken: String?, parentalToken: String? = null): Boolean {
         this.steamId = steamId
         this.accessToken = accessToken
         this.sessionId = toHex(CryptoHelper.generateRandomBlock(4))
         this.authenticated = true
-
-        val pin = getParentalPin().trim()
-        if (pin.isNotEmpty()) {
-            // Unlock family view
-            steamParental = unlockParental(pin)
-        }
+        this.steamParental = parentalToken
 
         return true
     }
@@ -194,37 +183,6 @@ class SteamWebHandler private constructor() {
 
             return badgeList
         }
-
-    /**
-     * Unlock Steam parental controls with a pin
-     */
-    private fun unlockParental(pin: String): String? {
-        val url = STEAM_STORE + "parental/ajaxunlock"
-        return try {
-            Jsoup.connect(url)
-                .referrer(STEAM_STORE)
-                .followRedirects(true)
-                .ignoreContentType(true)
-                .cookies(generateWebCookies())
-                .data("pin", pin)
-                .method(Connection.Method.POST)
-                .execute()
-                .cookies()["steamparental"]
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    fun getGamesOwned(steamId: Long): Call<GamesOwnedResponse> {
-        val args: MutableMap<String, String> = mutableMapOf()
-        args["key"] = apiKey
-        args["steamid"] = steamId.toString()
-        if (includeFreeGames()) {
-            args["include_played_free_games"] = "1"
-        }
-        return api.getGamesOwned(args)
-    }
 
     /**
      * Get the store header image url for an app, used as a fallback when the icon fails to load

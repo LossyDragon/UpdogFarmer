@@ -1,25 +1,15 @@
 package com.steevsapps.idledaddy.steam.model
 
 import androidx.compose.runtime.Immutable
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Immutable
 @Serializable
 data class Game(
-    @SerialName("appid")
     val appId: Int,
-
-    @SerialName("name")
     val name: String = "",
-
-    @SerialName("img_logo_url")
     val iconUrl: String = "",
-
-    @SerialName("playtime_forever")
     val hoursPlayed: Float = 0f,
-
-    @SerialName("drops_remaining")
     val dropsRemaining: Int = 0,
 ) : Comparable<Game> {
 

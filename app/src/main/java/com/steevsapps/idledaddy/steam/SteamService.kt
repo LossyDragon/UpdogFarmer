@@ -39,6 +39,10 @@ import `in`.dragonbra.javasteam.enums.EPurchaseResultDetail
 import `in`.dragonbra.javasteam.enums.EResult
 import `in`.dragonbra.javasteam.protobufs.steamclient.SteammessagesClientserver.CMsgClientGamesPlayed
 import `in`.dragonbra.javasteam.protobufs.steamclient.SteammessagesClientserver2.CMsgClientRegisterKey
+import `in`.dragonbra.javasteam.protobufs.steamclient.SteammessagesParentalSteamclient.CParental_ValidatePassword_Request
+import `in`.dragonbra.javasteam.protobufs.steamclient.SteammessagesPlayerSteamclient.CPlayer_GetOwnedGames_Request
+import `in`.dragonbra.javasteam.rpc.service.Parental
+import `in`.dragonbra.javasteam.rpc.service.Player
 import `in`.dragonbra.javasteam.steam.authentication.AuthPollResult
 import `in`.dragonbra.javasteam.steam.authentication.AuthSessionDetails
 import `in`.dragonbra.javasteam.steam.authentication.AuthenticationException
@@ -47,7 +51,6 @@ import `in`.dragonbra.javasteam.steam.authentication.IAuthenticator
 import `in`.dragonbra.javasteam.steam.authentication.IChallengeUrlChanged
 import `in`.dragonbra.javasteam.steam.authentication.QrAuthSession
 import `in`.dragonbra.javasteam.steam.discovery.FileServerListProvider
-import `in`.dragonbra.javasteam.steam.handlers.steamapps.PICSRequest
 import `in`.dragonbra.javasteam.steam.handlers.steamapps.SteamApps
 import `in`.dragonbra.javasteam.steam.handlers.steamapps.callback.FreeLicenseCallback
 import `in`.dragonbra.javasteam.steam.handlers.steamapps.callback.PurchaseResponseCallback
@@ -64,6 +67,7 @@ import `in`.dragonbra.javasteam.steam.handlers.steamnetworking.SteamNetworking
 import `in`.dragonbra.javasteam.steam.handlers.steamnotifications.SteamNotifications
 import `in`.dragonbra.javasteam.steam.handlers.steamnotifications.callback.ItemAnnouncementsCallback
 import `in`.dragonbra.javasteam.steam.handlers.steamscreenshots.SteamScreenshots
+import `in`.dragonbra.javasteam.steam.handlers.steamunifiedmessages.SteamUnifiedMessages
 import `in`.dragonbra.javasteam.steam.handlers.steamuser.LogOnDetails
 import `in`.dragonbra.javasteam.steam.handlers.steamuser.SteamUser
 import `in`.dragonbra.javasteam.steam.handlers.steamuser.callback.AccountInfoCallback
@@ -124,6 +128,9 @@ class SteamService : Service() {
     private lateinit var steamUser: SteamUser
     private lateinit var steamFriends: SteamFriends
     private lateinit var steamApps: SteamApps
+    private lateinit var steamUnifiedMessages: SteamUnifiedMessages
+    private lateinit var player: Player
+    private lateinit var parental: Parental
     private val webHandler: SteamWebHandler = SteamWebHandler.instance
     private val subscriptions: MutableList<Closeable> = mutableListOf()
 
@@ -422,9 +429,13 @@ class SteamService : Service() {
         }
         steamClient = SteamClient(config)
 
-        steamUser = requireNotNull(steamClient.getHandler<SteamUser>())
-        steamFriends = requireNotNull(steamClient.getHandler<SteamFriends>())
-        steamApps = requireNotNull(steamClient.getHandler<SteamApps>())
+        steamUser = requireNotNull(steamClient.getHandler())
+        steamFriends = requireNotNull(steamClient.getHandler())
+        steamApps = requireNotNull(steamClient.getHandler())
+
+        steamUnifiedMessages = requireNotNull(steamClient.getHandler())
+        player = steamUnifiedMessages.createService()
+        parental = steamUnifiedMessages.createService()
 
         // Subscribe to callbacks
         manager = CallbackManager(steamClient)
@@ -1037,12 +1048,13 @@ class SteamService : Service() {
      */
     private fun attemptWebAuthentication(clientSteamId: SteamID, refreshToken: String): Boolean {
         Log.i(TAG, "Attempting SteamWeb authentication")
+        val parentalToken = unlockParental()
         for (i in 0..2) {
             try {
                 val tokens = steamClient.authentication
                     .generateAccessTokenForApp(clientSteamId, refreshToken, true)
                     .get()
-                if (webHandler.authenticate(clientSteamId.convertToUInt64(), tokens.accessToken)) {
+                if (webHandler.authenticate(clientSteamId.convertToUInt64(), tokens.accessToken, parentalToken)) {
                     Log.i(TAG, "Authenticated!")
                     return true
                 }
@@ -1061,6 +1073,30 @@ class SteamService : Service() {
             }
         }
         return false
+    }
+
+    /**
+     * Unlock family view with the saved PIN, returns the unlock token
+     */
+    private fun unlockParental(): String? {
+        val pin = PrefsManager.getParentalPin().trim()
+        if (pin.isEmpty()) {
+            return null
+        }
+        val request = CParental_ValidatePassword_Request.newBuilder().apply {
+            password = pin
+        }.build()
+        return try {
+            val response = parental.validatePassword(request).runBlock()
+            if (response.result != EResult.OK) {
+                Log.i(TAG, "Parental unlock failed: ${response.result}")
+                return null
+            }
+            response.body.token.ifEmpty { null }
+        } catch (e: Exception) {
+            Log.i(TAG, "Parental unlock failed", e)
+            null
+        }
     }
 
     /**
@@ -1375,12 +1411,22 @@ class SteamService : Service() {
         executor.execute { steamClient.send(stopGame) }
     }
 
-    suspend fun onPicsRequest(appId: Int): String? {
-        val request = PICSRequest(id = appId)
-        val response = steamApps.picsGetProductInfo(request).await()
-        val product = response.results.first().apps[appId] ?: return null
-        val common = product.keyValues["common"]
-        return common["logo_small"].value
+    suspend fun getOwnedGames(): Pair<Int, List<Game>> {
+        val request = CPlayer_GetOwnedGames_Request.newBuilder().apply {
+            steamid = state.value.steamId
+            includePlayedFreeGames = PrefsManager.includeFreeGames()
+            includeAppinfo = true
+        }.build()
+        val result = player.getOwnedGames(request).await().body
+        return result.gameCount to result.gamesList.map {
+            Game(
+                appId = it.appid,
+                name = it.name,
+                iconUrl = "https://shared.fastly.steamstatic.com/store_item_assets/" +
+                        "steam/apps/${it.appid}/header.jpg",
+                hoursPlayed = it.playtimeForever / 60f,
+            )
+        }
     }
 
     companion object {

@@ -9,16 +9,12 @@ import com.steevsapps.idledaddy.steam.SteamService
 import com.steevsapps.idledaddy.steam.SteamServiceConnection
 import com.steevsapps.idledaddy.steam.SteamWebHandler
 import com.steevsapps.idledaddy.steam.model.Game
-import com.steevsapps.idledaddy.steam.model.GamesOwnedResponse
 import com.steevsapps.idledaddy.ui.screen.games.GamesViewModel.Companion.MAX_GAMES
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.util.Locale
 
 const val TAB_GAMES: Int = 0
@@ -219,25 +215,11 @@ class GamesViewModel(private val connection: SteamServiceConnection) : ViewModel
 
     private fun fetchGames() {
         Log.i(TAG, "Fetching games...")
-        webHandler.getGamesOwned(steamId).enqueue(object : Callback<GamesOwnedResponse> {
-            override fun onResponse(
-                call: Call<GamesOwnedResponse>,
-                response: Response<GamesOwnedResponse>
-            ) {
-                if (response.isSuccessful) {
-                    Log.i(TAG, "Success!")
-                    setGames(response.body()!!.games)
-                } else {
-                    Log.i(TAG, "Got error code: ${response.code()}")
-                    setGames(emptyList())
-                }
-            }
-
-            override fun onFailure(call: Call<GamesOwnedResponse>, t: Throwable) {
-                Log.i(TAG, "Got error", t)
-                setGames(emptyList())
-            }
-        })
+        viewModelScope.launch {
+            val ownedGames = service!!.getOwnedGames()
+            Log.i(TAG, "Got ${ownedGames.first} games!")
+            setGames(ownedGames.second)
+        }
     }
 
     fun onImageError(game: Game) {
