@@ -87,6 +87,7 @@
     <string name="status_retry_countdown">Повтор через %1$ сек</string>
     <string name="web_login_failed">Не удалось войти на сайт Steam!</string>
     <string name="login_key_expired">Срок действия ключа входа истёк!</string>
+    <string name="login_revoked">Доступ к Steam отозван. Пожалуйста, войдите снова.</string>
     <string name="stopped">Остановлено</string>
     <string name="paused">На паузе</string>
     <string name="idling_multiple">Фармится несколько игр</string>
