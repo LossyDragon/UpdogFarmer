@@ -1,7 +1,7 @@
 package com.steevsapps.idledaddy.steam
 
 import androidx.annotation.IntDef
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.steevsapps.idledaddy.BuildConfig
 import com.steevsapps.idledaddy.preferences.PrefsManager.getApiKey
 import com.steevsapps.idledaddy.preferences.PrefsManager.getBlacklist
