@@ -40,11 +40,11 @@ android {
         minSdk = 26 // Android 8
         targetSdk = 36 // Android 16
 
-        versionCode = 103
-        versionName = "3.0.0"
+        versionCode = 104
+        versionName = "3.0.1"
 
-        val apiKey = providers.gradleProperty("steamApiKey").get()
-        buildConfigField("String", "STEAM_API_KEY", apiKey)
+        // val apiKey = providers.gradleProperty("steamApiKey").get()
+        // buildConfigField("String", "STEAM_API_KEY", apiKey)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

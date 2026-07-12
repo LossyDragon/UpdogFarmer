@@ -38,7 +38,6 @@ import `in`.dragonbra.javasteam.enums.EPaymentMethod
 import `in`.dragonbra.javasteam.enums.EPersonaState
 import `in`.dragonbra.javasteam.enums.EPurchaseResultDetail
 import `in`.dragonbra.javasteam.enums.EResult
-import `in`.dragonbra.javasteam.enums.EUIMode
 import `in`.dragonbra.javasteam.protobufs.steamclient.SteammessagesClientserver.CMsgClientGamesPlayed
 import `in`.dragonbra.javasteam.protobufs.steamclient.SteammessagesClientserver2.CMsgClientRegisterKey
 import `in`.dragonbra.javasteam.protobufs.steamclient.SteammessagesParentalSteamclient.CParental_ValidatePassword_Request
@@ -71,7 +70,6 @@ import `in`.dragonbra.javasteam.steam.handlers.steamnotifications.SteamNotificat
 import `in`.dragonbra.javasteam.steam.handlers.steamnotifications.callback.ItemAnnouncementsCallback
 import `in`.dragonbra.javasteam.steam.handlers.steamscreenshots.SteamScreenshots
 import `in`.dragonbra.javasteam.steam.handlers.steamunifiedmessages.SteamUnifiedMessages
-import `in`.dragonbra.javasteam.steam.handlers.steamuser.ChatMode
 import `in`.dragonbra.javasteam.steam.handlers.steamuser.LogOnDetails
 import `in`.dragonbra.javasteam.steam.handlers.steamuser.SteamUser
 import `in`.dragonbra.javasteam.steam.handlers.steamuser.callback.AccountInfoCallback
@@ -1271,19 +1269,6 @@ class SteamService : Service() {
         return (cause as? AuthenticationException)?.result ?: EResult.Fail
     }
 
-    private fun registerApiKey() {
-        Log.i(TAG, "Registering API key")
-        val result = webHandler.updateApiKey()
-        Log.i(TAG, "API key result: $result")
-        when (result) {
-            SteamWebHandler.ApiKeyState.REGISTERED -> {}
-            SteamWebHandler.ApiKeyState.ACCESS_DENIED -> showToast(getString(R.string.apikey_access_denied))
-            // Call updateApiKey once more to actually update it
-            SteamWebHandler.ApiKeyState.UNREGISTERED -> webHandler.updateApiKey()
-            SteamWebHandler.ApiKeyState.ERROR -> showToast(getString(R.string.apikey_register_failed))
-        }
-    }
-
     private fun showToast(message: String) {
         Handler(Looper.getMainLooper()).post {
             Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show()
@@ -1444,7 +1429,6 @@ class SteamService : Service() {
                         } else {
                             resumeFarming()
                         }
-                        registerApiKey()
                     } else {
                         updateNotification(getString(R.string.web_login_failed))
                     }
