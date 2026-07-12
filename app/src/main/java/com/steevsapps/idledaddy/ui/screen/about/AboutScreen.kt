@@ -140,6 +140,7 @@ private val translators = listOf(
     TranslatorEntry(
         "Russian",
         listOf(
+            Contributor("tnka", "https://steamcommunity.com/id/tnka/"),
             Contributor("Nikita Sychev"),
             Contributor("EgoruOfficial"),
             Contributor("Andrei Fedoruk", "https://steamcommunity.com/id/AndreiFedorukKZ"),
