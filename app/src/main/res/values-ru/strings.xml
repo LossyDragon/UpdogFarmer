@@ -10,10 +10,10 @@
     <string name="login">Войти</string>
     <string name="login_with_qr">Войти с помощью QR-кода</string>
     <string name="login_with_password">Войти с помощью пароля</string>
-    <string name="qr_login_instructions">Отсканируйте этот код с помощью мобильного приложения Steam, чтобы войти</string>
+    <string name="qr_login_instructions">Используйте мобильное приложение Steam, чтобы войти с помощью QR-кода</string>
     <string name="qr_login_failed">Не удалось войти с помощью QR-кода. Пожалуйста, попробуйте снова</string>
     <string name="retry">Повтор</string>
-    <string name="device_confirmation_prompt">Проверьте своё мобильное приложение Steam, чтобы подтвердить вход</string>
+    <string name="device_confirmation_prompt">Используйте мобильное приложение Steam, чтобы подтвердить вход...</string>
     <string name="start_idling">Запустить фарм</string>
     <string name="desc_start">Начать фарм, пока не выпадут все карточки.</string>
     <string name="stop_idling">Остановить работу</string>
@@ -48,7 +48,7 @@
     <string name="pref_use_custom_loginid">Использовать Пользовательский Login ID</string>
     <string name="sum_use_custom_loginid">Включение этой опции позволит вам запускать другие SteamKit приложения (например, Ice Client) одновременно с Idle Daddy. Если не уверены, оставьте по умолчанию. (Требуется перезапуск)</string>
     <string name="gdpr_consent_not_needed">Нет необходимости. Idle Daddy Premium не отображает рекламу.</string>
-    <string name="blacklist_hint">Введите appid и нажмите +</string>
+    <string name="blacklist_hint">Введите appid</string>
     <string name="add_to_blacklist">Внести игру в чёрный список</string>
     <string name="added_to_blacklist">Игра внесена в чёрный список</string>
     <string name="remove_from_blacklist">Исключить игру из чёрного списка</string>
@@ -87,6 +87,7 @@
     <string name="status_retry_countdown">Повтор через %1$ сек</string>
     <string name="web_login_failed">Не удалось войти на сайт Steam!</string>
     <string name="login_key_expired">Срок действия ключа входа истёк!</string>
+    <string name="login_revoked">Доступ к Steam отозван. Пожалуйста, войдите снова.</string>
     <string name="stopped">Остановлено</string>
     <string name="paused">На паузе</string>
     <string name="idling_multiple">Фармится несколько игр</string>
@@ -150,10 +151,10 @@
     <string name="serbian">Сербский</string>
     <string name="language_changed">Перезапустите приложение для смены языка.</string>
     <string name="service_started">Запущено Обслуживание Steam</string>
-    <string name="idle_custom_app">Пуск Скрытой/Не-Steam Игры</string>
+    <string name="idle_custom_app">Пуск Игры</string>
     <string name="hidden_appid">Скрытый appid</string>
-    <string name="hidden_appid_list">Список скрытых appid</string>
-    <string name="custom_app_list_hint">Введите appid и нажмите +</string>
+    <string name="hidden_appid_list">Список appid</string>
+    <string name="custom_app_list_hint">Введите appid</string>
     <string name="add_app_id">Добавить app ID</string>
     <string name="remove_app_id">Удалить app ID</string>
     <string name="non_steam_game">Не-Steam игра</string>
@@ -180,7 +181,7 @@
     <string name="desc_shared_secret">Введите свой Shared Secret</string>
     <string name="desc_drawer_toggle">Развернуть Меню Навигации</string>
     <string name="desc_drawer_avatar">Аватар пользователя</string>
-    <string name="desc_custom_app">Пользовательское приложение</string>
+    <string name="desc_custom_app">Введите собственное имя приложения</string>
     <string name="desc_blacklist_remove">Исключить элемент из Чёрного списка</string>
     <string name="license">Лицензия</string>
     <string name="translations">Переводчики</string>
