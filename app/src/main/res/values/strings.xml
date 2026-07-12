@@ -10,10 +10,10 @@
     <string name="login">Login</string>
     <string name="login_with_qr">Sign in with QR code</string>
     <string name="login_with_password">Sign in with password</string>
-    <string name="qr_login_instructions">Scan this code with the Steam Mobile App to sign in</string>
+    <string name="qr_login_instructions">Use the Steam Mobile App to sign in via QR Code</string>
     <string name="qr_login_failed">QR sign in failed. Please try again</string>
     <string name="retry">Retry</string>
-    <string name="device_confirmation_prompt">Check your Steam Mobile App to approve the login</string>
+    <string name="device_confirmation_prompt">Use the Steam Mobile App to confirm your sign in...</string>
     <string name="start_idling">Start farming</string>
     <string name="desc_start">Idle your games until all trading cards have dropped.</string>
     <string name="stop_idling">Stop Service</string>
@@ -48,7 +48,7 @@
     <string name="pref_use_custom_loginid">Use Custom Login ID</string>
     <string name="sum_use_custom_loginid">Enabling this option will allow you to run other SteamKit apps (such as Ice Client) at the same time as Idle Daddy. If unsure, leave this off. (Requires restart)</string>
     <string name="gdpr_consent_not_needed">Not needed. Idle Daddy Premium doesn\'t display ads.</string>
-    <string name="blacklist_hint">Enter an appid and click +</string>
+    <string name="blacklist_hint">Enter an appid</string>
     <string name="add_to_blacklist">Add game to blacklist</string>
     <string name="added_to_blacklist">Game added to blacklist</string>
     <string name="remove_from_blacklist">Remove game from blacklist</string>
@@ -150,10 +150,10 @@
     <string name="serbian">Serbian</string>
     <string name="language_changed">You must restart the application for the language to be updated.</string>
     <string name="service_started">Steam Service Started</string>
-    <string name="idle_custom_app">Idle Hidden/Non-Steam Game</string>
+    <string name="idle_custom_app">Idle Game</string>
     <string name="hidden_appid">Hidden appid</string>
-    <string name="hidden_appid_list">Hidden appid list</string>
-    <string name="custom_app_list_hint">Enter an appid and click +</string>
+    <string name="hidden_appid_list">appid list</string>
+    <string name="custom_app_list_hint">Enter an appid</string>
     <string name="add_app_id">Add app ID</string>
     <string name="remove_app_id">Remove app ID</string>
     <string name="non_steam_game">Non-Steam game</string>
@@ -179,8 +179,8 @@
     <string name="next_button">Next Button</string>
     <string name="desc_shared_secret">Enter your Shared Secret</string>
     <string name="desc_drawer_toggle">Expand Nav Menu</string>
-    <string name="desc_drawer_avatar">Logged in avatar</string>
-    <string name="desc_custom_app">Custom App</string>
+    <string name="desc_drawer_avatar">User avatar</string>
+    <string name="desc_custom_app">Enter custom app name</string>
     <string name="desc_blacklist_remove">Remove Blacklisted Item</string>
     <string name="license">License</string>
     <string name="translations">Translations</string>
