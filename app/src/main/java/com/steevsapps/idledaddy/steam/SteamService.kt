@@ -1334,7 +1334,14 @@ class SteamService : Service() {
             // that after reconnecting we delay before retrying instead of tight-looping.
             playingWasBlocked = true
             setBlocked(true)
+        } else if (callback.result == EResult.Revoked) {
+            // Our authentication has been revoked by the user.
+            // Clear the session instead of reconnecting.
+            showToast(getString(R.string.login_revoked))
+            logoff()
+            return
         }
+
         // Reconnect
         steamClient.disconnect()
     }

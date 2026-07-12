@@ -87,6 +87,7 @@
     <string name="status_retry_countdown">Retrying in %1$s</string>
     <string name="web_login_failed">Failed to log in to Steam website!</string>
     <string name="login_key_expired">Login key expired!</string>
+    <string name="login_revoked">Steam access revoked. Please log in again.</string>
     <string name="stopped">Stopped</string>
     <string name="paused">Paused</string>
     <string name="idling_multiple">Idling multiple</string>
