@@ -210,7 +210,7 @@ private fun MainScreen(
                     Row(
                         modifier = Modifier
                             .matchParentSize()
-                            .padding(start = 16.dp),
+                            .padding(start = 16.dp, top = 32.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         AsyncImage(
@@ -349,6 +349,7 @@ private fun OreoDrawerItem(
 
 @OptIn(ExperimentalCoilApi::class)
 @Preview
+@Preview(showSystemUi = true, device = "id:pixel_9_pro_xl")
 @Composable
 private fun Preview() {
     val backStack = rememberNavBackStack(NavKeyRoot.About)
