@@ -64,7 +64,7 @@
     <string name="steamguard_required">Введите код Steam Guard</string>
     <string name="invalid_code">Неверный код</string>
     <string name="timeout_error">Истекло время ожидания соединения. Пожалуйста, попробуйте снова</string>
-    <string name="login_failed">Login failed. Ошибка входа. Пожалуйста, попробуйте снова</string>
+    <string name="login_failed">Ошибка входа. Пожалуйста, попробуйте снова</string>
     <string name="channel_name">Уведомления Idle Daddy</string>
     <string name="now_playing2">Играет %s</string>
     <string name="product_already_owned">Продукт уже в наличии</string>
@@ -84,7 +84,7 @@
     </plurals>
     <string name="logged_in_elsewhere">Steam используется. Возобновится, когда станет возможно.</string>
     <string name="steam_in_use_app">Приложение %1$d запущено в другом месте. Возобновится, когда станет возможно.</string>
-    <string name="status_retry_countdown">Повтор через %1$ сек</string>
+    <string name="status_retry_countdown">Повтор через %1$s</string>
     <string name="web_login_failed">Не удалось войти на сайт Steam!</string>
     <string name="login_key_expired">Срок действия ключа входа истёк!</string>
     <string name="login_revoked">Доступ к Steam отозван. Пожалуйста, войдите снова.</string>
@@ -95,7 +95,7 @@
     <string name="about">О приложении</string>
     <string name="source_code">Исходный код (fork)</string>
     <string name="steam_group">Steam группа</string>
-    <string name="about_license">Idle Daddy\nCopyright © 2017-2018  Steev\'s apps\n\nThis program is free software: you can redistribute it and/or modify\nit under the terms of the GNU General Public License as published by\nthe Free Software Foundation, either version 3 of the License, or\n(at your option) any later version.\n\nThis program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this program.  If not, see &lt;http://www.gnu.org/licenses&gt;.</string>
+    <string name="about_license">Idle Daddy\nCopyright © 2017-2018  Steev\'s apps\n\nЭто свободная программа: вы можете перераспространять её и/или изменять\nеё на условиях Стандартной Общественной Лицензии GNU в том виде, в каком\nона была опубликована Фондом свободного программного обеспечения; либо\nверсии 3 лицензии, либо (по вашему выбору) любой более поздней версии.\n\nЭта программа распространяется в надежде, что она будет полезной,\nно БЕЗО ВСЯКИХ ГАРАНТИЙ; даже без неявной гарантии ТОВАРНОГО ВИДА\nили ПРИГОДНОСТИ ДЛЯ ОПРЕДЕЛЕННЫХ ЦЕЛЕЙ. Подробнее см. в Стандартной\nОбщественной Лицензии GNU.\n\nВы должны были получить копию Стандартной Общественной Лицензии GNU\nвместе с этой программой. Если нет, см. &lt;http://www.gnu.org/licenses&gt;.</string>
     <string name="stop">Стоп</string>
     <string name="skip">Пропустить</string>
     <string name="pause">Пауза</string>
@@ -152,7 +152,7 @@
     <string name="language_changed">Перезапустите приложение для смены языка.</string>
     <string name="service_started">Запущено Обслуживание Steam</string>
     <string name="idle_custom_app">Пуск Игры</string>
-    <string name="hidden_appid">Скрытый appid</string>
+    <string name="hidden_appid">appid</string>
     <string name="hidden_appid_list">Список appid</string>
     <string name="custom_app_list_hint">Введите appid</string>
     <string name="add_app_id">Добавить app ID</string>
@@ -184,6 +184,6 @@
     <string name="desc_custom_app">Введите собственное имя приложения</string>
     <string name="desc_blacklist_remove">Исключить элемент из Чёрного списка</string>
     <string name="license">Лицензия</string>
-    <string name="translations">Переводчики</string>
+    <string name="translations">Переводы</string>
     <string name="status_parental">Родительский статус: %b</string>
 </resources>
