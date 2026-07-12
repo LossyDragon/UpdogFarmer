@@ -30,6 +30,7 @@ import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.listeners.AndroidLogListener
 import com.steevsapps.idledaddy.preferences.PrefsManager
 import com.steevsapps.idledaddy.steam.model.Game
+import com.steevsapps.idledaddy.utils.LocaleManager
 import `in`.dragonbra.javasteam.base.ClientMsgProtobuf
 import `in`.dragonbra.javasteam.base.IPacketMsg
 import `in`.dragonbra.javasteam.enums.EMsg
@@ -497,6 +498,10 @@ class SteamService : Service() {
     }
 
     override fun onBind(intent: Intent): IBinder = binder
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleManager.setLocale(newBase))
+    }
 
     override fun onCreate() {
         Log.i(TAG, "Service created")
