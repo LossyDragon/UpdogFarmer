@@ -31,6 +31,7 @@ import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.preferences.PrefsManager.minimizeData
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.ui.component.cards.DropInfoCard
+import com.steevsapps.idledaddy.ui.component.cards.ItemAnnouncementsCard
 import com.steevsapps.idledaddy.ui.component.cards.NowPlayingCard
 import com.steevsapps.idledaddy.ui.component.cards.StartCard
 import com.steevsapps.idledaddy.ui.component.cards.StatusCard
@@ -43,6 +44,7 @@ import org.koin.androidx.compose.koinViewModel
 fun HomeScreen(
     onMenuClick: () -> Unit,
     onLoginClick: () -> Unit,
+    onInventoryClick: () -> Unit,
     onStopSteam: () -> Unit,
 ) {
     val viewModel = koinViewModel<HomeViewModel>()
@@ -53,6 +55,7 @@ fun HomeScreen(
         showIcon = !minimizeData(),
         onMenuClick = onMenuClick,
         onStatusClick = onLoginClick,
+        onInventoryClick = onInventoryClick,
         onStartFarming = viewModel::startFarming,
         onStopGame = viewModel::stopGame,
         onPauseResume = viewModel::pauseOrResume,
@@ -70,6 +73,7 @@ fun HomeScreenContent(
     showIcon: Boolean,
     onMenuClick: () -> Unit,
     onStatusClick: () -> Unit,
+    onInventoryClick: () -> Unit,
     onStartFarming: () -> Unit,
     onStopGame: () -> Unit,
     onPauseResume: () -> Unit,
@@ -125,6 +129,14 @@ fun HomeScreenContent(
                         nextRetryAtMillis = state.nextRetryAtMillis,
                         onClick = onStatusClick,
                     )
+                }
+                if (state.itemAnnouncements > 0) {
+                    item {
+                        ItemAnnouncementsCard(
+                            count = state.itemAnnouncements,
+                            onClick = onInventoryClick,
+                        )
+                    }
                 }
                 if (game != null) {
                     item {
@@ -192,6 +204,7 @@ private class HomePreview : PreviewParameterProvider<HomeUiState> {
             cardCount = 68,
             farming = true,
             showDropInfo = true,
+            itemAnnouncements = 2,
         ),
         "Paused with parental" to HomeUiState(
             loggedIn = true,
@@ -218,6 +231,7 @@ private fun Preview(@PreviewParameter(HomePreview::class) state: HomeUiState) {
         showIcon = true,
         onMenuClick = {},
         onStatusClick = {},
+        onInventoryClick = {},
         onStartFarming = {},
         onStopGame = {},
         onPauseResume = {},

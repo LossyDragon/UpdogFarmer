@@ -79,6 +79,7 @@ import com.steevsapps.idledaddy.ui.compat.setEdgeToEdgeConfig
 import com.steevsapps.idledaddy.ui.screen.about.AboutScreen
 import com.steevsapps.idledaddy.ui.screen.games.GamesScreen
 import com.steevsapps.idledaddy.ui.screen.home.HomeScreen
+import com.steevsapps.idledaddy.ui.screen.inventory.InventoryScreen
 import com.steevsapps.idledaddy.ui.screen.login.LoginScreen
 import com.steevsapps.idledaddy.ui.screen.settings.SettingsScreen
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
@@ -107,6 +108,9 @@ private sealed class NavKeyRoot : NavKey {
 
     @Serializable
     data object Login : NavKeyRoot()
+
+    @Serializable
+    data object Inventory : NavKeyRoot()
 
     @Serializable
     data object Games : NavKeyRoot()
@@ -287,8 +291,12 @@ private fun MainScreen(
                     HomeScreen(
                         onMenuClick = toggleDrawer,
                         onLoginClick = { backStack.add(NavKeyRoot.Login) },
+                        onInventoryClick = { backStack.add(NavKeyRoot.Inventory) },
                         onStopSteam = onStopSteam,
                     )
+                }
+                entry<NavKeyRoot.Inventory> {
+                    InventoryScreen(onBack = backStack::removeLastOrNull)
                 }
                 entry<NavKeyRoot.Login> {
                     LoginScreen(

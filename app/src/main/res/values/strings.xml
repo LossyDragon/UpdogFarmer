@@ -88,6 +88,12 @@
     <string name="web_login_failed">Failed to log in to Steam website!</string>
     <string name="login_key_expired">Login key expired!</string>
     <string name="login_revoked">Steam access revoked. Please log in again.</string>
+    <string name="inventory">Inventory</string>
+    <string name="new_items">New items</string>
+    <plurals name="new_items_received">
+        <item quantity="one">You received %d new item</item>
+        <item quantity="other">You received %d new items</item>
+    </plurals>
     <string name="stopped">Stopped</string>
     <string name="paused">Paused</string>
     <string name="idling_multiple">Idling multiple</string>

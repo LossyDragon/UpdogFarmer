@@ -126,6 +126,7 @@ data class SteamServiceState(
     val personaState: EPersonaState = EPersonaState.Offline,
     val blockedIdle: Boolean = false,
     val nextRetryAtMillis: Long = 0L,
+    val itemAnnouncements: Int = 0,
 )
 
 class SteamService : Service() {
@@ -135,6 +136,7 @@ class SteamService : Service() {
     private lateinit var steamUser: SteamUser
     private lateinit var steamFriends: SteamFriends
     private lateinit var steamApps: SteamApps
+    private lateinit var notifications: SteamNotifications
     private lateinit var steamUnifiedMessages: SteamUnifiedMessages
     private lateinit var player: Player
     private lateinit var parental: Parental
@@ -535,6 +537,7 @@ class SteamService : Service() {
         steamUser = requireNotNull(steamClient.getHandler())
         steamFriends = requireNotNull(steamClient.getHandler())
         steamApps = requireNotNull(steamClient.getHandler())
+        notifications = requireNotNull(steamClient.getHandler())
 
         steamUnifiedMessages = requireNotNull(steamClient.getHandler())
         player = steamUnifiedMessages.createService()
@@ -568,7 +571,6 @@ class SteamService : Service() {
         steamClient.removeHandler<SteamNetworking>()
         steamClient.removeHandler<SteamContent>()
         steamClient.removeHandler<SteamAuthTicket>()
-        steamClient.removeHandler<SteamNotifications>()
 
         if (PrefsManager.stayAwake()) {
             setWakeLock(true)
@@ -991,6 +993,7 @@ class SteamService : Service() {
                 personaName = "",
                 avatarHash = "",
                 currentGames = emptyList(),
+                itemAnnouncements = 0,
             )
         }
         executor.execute {
@@ -1438,6 +1441,8 @@ class SteamService : Service() {
                     redeemKey(it)
                     keyToRedeem = null
                 }
+
+                notifications.requestItemAnnouncements()
             }
 
             EResult.InvalidPassword if PrefsManager.getRefreshToken().isNotEmpty() -> {
@@ -1528,9 +1533,14 @@ class SteamService : Service() {
 
     private fun onItemAnnouncements(callback: ItemAnnouncementsCallback) {
         Log.i(TAG, "New item notification ${callback.count}")
+        state.update { it.copy(itemAnnouncements = callback.count) }
 
         // Possible card drop
         if (callback.count > 0 && isFarming) executor.execute(farmTask)
+    }
+
+    fun clearItemAnnouncements() {
+        state.update { it.copy(itemAnnouncements = 0) }
     }
 
     /**

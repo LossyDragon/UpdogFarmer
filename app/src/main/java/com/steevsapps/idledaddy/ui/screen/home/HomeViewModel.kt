@@ -25,6 +25,7 @@ data class HomeUiState(
     val cardCount: Int = 0,
     val showDropInfo: Boolean = false,
     val customAppDialogVisible: Boolean = false,
+    val itemAnnouncements: Int = 0,
 )
 
 class HomeViewModel(private val connection: SteamServiceConnection) : ViewModel() {
@@ -53,6 +54,7 @@ class HomeViewModel(private val connection: SteamServiceConnection) : ViewModel(
                         gameCount = state.gameCount,
                         cardCount = state.cardCount,
                         showDropInfo = state.farming,
+                        itemAnnouncements = state.itemAnnouncements,
                     )
                 }
             }

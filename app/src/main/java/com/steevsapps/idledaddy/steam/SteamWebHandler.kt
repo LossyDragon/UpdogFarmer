@@ -70,7 +70,7 @@ class SteamWebHandler {
      * Generate Steam web cookies
      * @return Map of the cookies
      */
-    private fun generateWebCookies(): MutableMap<String, String> {
+    fun generateWebCookies(): MutableMap<String, String> {
         if (!authenticated) {
             return mutableMapOf()
         }
@@ -211,7 +211,7 @@ class SteamWebHandler {
         private const val TIMEOUT_SECS = 30
 
         private const val STEAM_STORE = "https://store.steampowered.com/"
-        private const val STEAM_COMMUNITY = "https://steamcommunity.com/"
+        const val STEAM_COMMUNITY = "https://steamcommunity.com/"
         private const val STEAM_API = "https://api.steampowered.com/"
 
         // Pattern to match app ID
