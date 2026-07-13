@@ -148,6 +148,10 @@ class GamesViewModel(
     }
 
     fun refresh() {
+        if (service == null || !service!!.state.value.loggedIn) {
+            return
+        }
+
         if (uiState.value.tab == TAB_LAST) {
             // Load last idling session
             val games = uiState.value.selected.ifEmpty {
