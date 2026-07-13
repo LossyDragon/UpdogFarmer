@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -28,15 +29,17 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.steevsapps.idledaddy.BuildConfig
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.ui.component.LinkText
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 
 private const val SOURCE_CODE_URL = "https://github.com/LossyDragon/UpdogFarmer"
 private const val STEAM_GROUP_URL = "https://steamcommunity.com/groups/idledaddy"
+private const val STEAM_COMMUNITY_URL = "https://steamcommunity.com/id/"
+private const val STEAM_COMMUNITY_PROFILE = "https://steamcommunity.com/profiles/"
 
-private data class Contributor(val name: String, val url: String? = null)
-private data class TranslatorEntry(val language: String, val contributors: List<Contributor>)
+private data class TranslatorEntry(val language: String, val contributors: Map<String, String?>)
 
 @Composable
 fun AboutScreen(onBack: () -> Unit) {
@@ -72,11 +75,6 @@ fun AboutScreen(onBack: () -> Unit) {
 }
 
 @Composable
-private fun SectionHeader(text: String) {
-    Text(text = text, style = MaterialTheme.typography.headlineSmall)
-}
-
-@Composable
 private fun GeneralInfoText() {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         SectionHeader(stringResource(R.string.app_name))
@@ -84,6 +82,15 @@ private fun GeneralInfoText() {
             modifier = Modifier.padding(start = 4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
+            ProvideTextStyle(
+                value = MaterialTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
+                content = {
+                    Text(text = "Version Name: " + BuildConfig.VERSION_NAME)
+                    Text(text = "Version Code: " + BuildConfig.VERSION_CODE)
+                },
+            )
             LinkText(text = stringResource(R.string.source_code), url = SOURCE_CODE_URL)
             LinkText(text = stringResource(R.string.steam_group), url = STEAM_GROUP_URL)
         }
@@ -115,125 +122,6 @@ private fun TranslatorsText() {
     }
 }
 
-private fun contributorsText(contributors: List<Contributor>, nameStyle: SpanStyle) =
-    buildAnnotatedString {
-        contributors.forEachIndexed { index, contributor ->
-            withStyle(nameStyle) {
-                if (index > 0) append(", ")
-                val url = contributor.url
-                if (url != null) {
-                    withLink(LinkAnnotation.Url(url = url)) {
-                        append(contributor.name)
-                    }
-                } else {
-                    append(contributor.name)
-                }
-            }
-        }
-    }
-
-private val translators = listOf(
-    TranslatorEntry(
-        "German",
-        listOf(Contributor("Schokoladeneis", "https://steamcommunity.com/id/Schokoladeneis/")),
-    ),
-    TranslatorEntry(
-        "Russian",
-        listOf(
-            Contributor("tnka", "https://steamcommunity.com/id/tnka/"),
-            Contributor("Nikita Sychev"),
-            Contributor("EgoruOfficial"),
-            Contributor("Andrei Fedoruk", "https://steamcommunity.com/id/AndreiFedorukKZ"),
-            Contributor("Павел Соснин"),
-        ),
-    ),
-    TranslatorEntry("Portuguese (European)", listOf(Contributor("ZIGS_ARE_WINNER"))),
-    TranslatorEntry(
-        "Portuguese (Brazilian)",
-        listOf(
-            Contributor("Eustress", "https://steamcommunity.com/id/rodrigo_dev/"),
-            Contributor("FallcoN"),
-        ),
-    ),
-    TranslatorEntry(
-        "Ukrainian",
-        listOf(
-            Contributor("Lacki23"),
-            Contributor("younsiamed", "https://steamcommunity.com/profiles/76561198042448346/"),
-        ),
-    ),
-    TranslatorEntry("Czech", listOf(Contributor("David from CZPortal4Gamers"))),
-    TranslatorEntry(
-        "Polish",
-        listOf(Contributor("Grzegorz Królikowski", "https://steamcommunity.com/id/ffecjaz/")),
-    ),
-    TranslatorEntry(
-        "Turkish",
-        listOf(
-            Contributor("Bilal Bağcıoğlu", "https://steamcommunity.com/id/Lasfe"),
-            Contributor("Abdulkerim Köse"),
-        ),
-    ),
-    TranslatorEntry("Thai", listOf(Contributor("Anit Boonlue"), Contributor("Pohui Somnam"))),
-    TranslatorEntry(
-        "Chinese (Simplified)",
-        listOf(
-            Contributor("Zomby7e", "https://steamcommunity.com/id/zomby7e"),
-            Contributor("deluxghost", "https://steamcommunity.com/id/deluxghost"),
-        ),
-    ),
-    TranslatorEntry(
-        "Chinese (Traditional)",
-        listOf(Contributor("Zomby7e", "https://steamcommunity.com/id/zomby7e")),
-    ),
-    TranslatorEntry(
-        "Bulgarian",
-        listOf(Contributor("psydex", "https://steamcommunity.com/profiles/76561197990087627/")),
-    ),
-    TranslatorEntry(
-        "Slovenian",
-        listOf(Contributor("Game Explorer", "https://steamcommunity.com/id/RoninHunteer1337/")),
-    ),
-    TranslatorEntry(
-        "French",
-        listOf(Contributor("Saltyman", "https://steamcommunity.com/id/Saltymanfr/"))
-    ),
-    TranslatorEntry(
-        "Romanian",
-        listOf(
-            Contributor("ediXedi", "https://steamcommunity.com/id/ediXedi/"),
-            Contributor("Pakake"),
-        ),
-    ),
-    TranslatorEntry("Spanish", listOf(Contributor("Lucas Bengualid"))),
-    TranslatorEntry(
-        "Arabic",
-        listOf(
-            Contributor(
-                "Saif Jadalla (€ CrAz¥ €)",
-                "https://steamcommunity.com/id/saifjadalla"
-            )
-        ),
-    ),
-    TranslatorEntry("Hebrew", listOf(Contributor("eyal100", "https://steamcommunity.com/id/KF8"))),
-    TranslatorEntry(
-        "Indonesian",
-        listOf(Contributor("Steinmetz", "https://steamcommunity.com/id/Ghozizzz"))
-    ),
-    TranslatorEntry(
-        "Vietnamese",
-        listOf(Contributor("Catou", "https://steamcommunity.com/id/catouofficial/"))
-    ),
-    TranslatorEntry(
-        "Persian",
-        listOf(Contributor("Amir.P", "https://steamcommunity.com/id/amircry/"))
-    ),
-    TranslatorEntry(
-        "Bosnian, Croatian, Serbian",
-        listOf(Contributor("Eldin", "https://steamcommunity.com/id/eldinturkic")),
-    ),
-)
-
 @Composable
 private fun LicenseText() {
     Column {
@@ -245,7 +133,7 @@ private fun LicenseText() {
         ) {
             Text(
                 text = stringResource(R.string.about_license),
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(all = 16.dp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontFamily = FontFamily.Monospace,
                 style = MaterialTheme.typography.bodySmall,
@@ -253,6 +141,172 @@ private fun LicenseText() {
         }
     }
 }
+
+@Composable
+private fun SectionHeader(text: String) {
+    Text(text = text, style = MaterialTheme.typography.headlineSmall)
+}
+
+private fun contributorsText(contributors: Map<String, String?>, nameStyle: SpanStyle) =
+    buildAnnotatedString {
+        contributors.entries.forEachIndexed { index, (name, url) ->
+            withStyle(nameStyle) {
+                if (index > 0) append(", ")
+                if (url != null) {
+                    withLink(LinkAnnotation.Url(url = url)) {
+                        append(name)
+                    }
+                } else {
+                    append(name)
+                }
+            }
+        }
+    }
+
+private val translators = listOf(
+    TranslatorEntry(
+        language = "German",
+        contributors = mapOf(
+            "Schokoladeneis" to STEAM_COMMUNITY_URL + "Schokoladeneis"
+        ),
+    ),
+    TranslatorEntry(
+        language = "Russian",
+        contributors = mapOf(
+            "tnka" to STEAM_COMMUNITY_URL + "tnka",
+            "Nikita Sychev" to null,
+            "EgoruOfficial" to null,
+            "Andrei Fedoruk" to STEAM_COMMUNITY_URL + "AndreiFedorukKZ",
+            "Павел Соснин" to null,
+        ),
+    ),
+    TranslatorEntry(
+        language = "Portuguese (European)",
+        contributors = mapOf(
+            "ZIGS_ARE_WINNER" to null
+        ),
+    ),
+    TranslatorEntry(
+        language = "Portuguese (Brazilian)",
+        contributors = mapOf(
+            "Eustress" to STEAM_COMMUNITY_URL + "rodrigo_dev",
+            "FallcoN" to null,
+        ),
+    ),
+    TranslatorEntry(
+        language = "Ukrainian",
+        contributors = mapOf(
+            "Lacki23" to null,
+            "younsiamed" to STEAM_COMMUNITY_PROFILE + "76561198042448346",
+        ),
+    ),
+    TranslatorEntry(
+        language = "Czech",
+        contributors = mapOf(
+            "David from CZPortal4Gamers" to null
+        ),
+    ),
+    TranslatorEntry(
+        language = "Polish",
+        contributors = mapOf(
+            "Grzegorz Królikowski" to STEAM_COMMUNITY_URL + "ffecjaz"
+        ),
+    ),
+    TranslatorEntry(
+        language = "Turkish",
+        contributors = mapOf(
+            "Bilal Bağcıoğlu" to STEAM_COMMUNITY_URL + "Lasfe",
+            "Abdulkerim Köse" to null,
+        ),
+    ),
+    TranslatorEntry(
+        language = "Thai",
+        contributors = mapOf(
+            "Anit Boonlue" to null,
+            "Pohui Somnam" to null
+        ),
+    ),
+    TranslatorEntry(
+        language = "Chinese (Simplified)",
+        contributors = mapOf(
+            "Zomby7e" to STEAM_COMMUNITY_URL + "zomby7e",
+            "deluxghost" to STEAM_COMMUNITY_URL + "deluxghost",
+        ),
+    ),
+    TranslatorEntry(
+        language = "Chinese (Traditional)",
+        contributors = mapOf(
+            "Zomby7e" to STEAM_COMMUNITY_URL + "zomby7e"
+        ),
+    ),
+    TranslatorEntry(
+        language = "Bulgarian",
+        contributors = mapOf(
+            "psydex" to STEAM_COMMUNITY_PROFILE + "76561197990087627"
+        ),
+    ),
+    TranslatorEntry(
+        language = "Slovenian",
+        contributors = mapOf(
+            "Game Explorer" to STEAM_COMMUNITY_URL + "RoninHunteer1337"
+        ),
+    ),
+    TranslatorEntry(
+        language = "French",
+        contributors = mapOf(
+            "Saltyman" to STEAM_COMMUNITY_URL + "Saltymanfr"
+        ),
+    ),
+    TranslatorEntry(
+        language = "Romanian",
+        contributors = mapOf(
+            "ediXedi" to STEAM_COMMUNITY_URL + "ediXedi",
+            "Pakake" to null,
+        ),
+    ),
+    TranslatorEntry(
+        language = "Spanish",
+        contributors = mapOf(
+            "Lucas Bengualid" to null
+        )
+    ),
+    TranslatorEntry(
+        language = "Arabic",
+        contributors = mapOf(
+            "Saif Jadalla (€ CrAz¥ €)" to STEAM_COMMUNITY_URL + "saifjadalla"
+        ),
+    ),
+    TranslatorEntry(
+        language = "Hebrew",
+        contributors = mapOf(
+            "eyal100" to STEAM_COMMUNITY_URL + "KF8"
+        ),
+    ),
+    TranslatorEntry(
+        language = "Indonesian",
+        contributors = mapOf(
+            "Steinmetz" to STEAM_COMMUNITY_URL + "Ghozizzz"
+        ),
+    ),
+    TranslatorEntry(
+        language = "Vietnamese",
+        contributors = mapOf(
+            "Catou" to STEAM_COMMUNITY_URL + "catouofficial"
+        ),
+    ),
+    TranslatorEntry(
+        language = "Persian",
+        contributors = mapOf(
+            "Amir.P" to STEAM_COMMUNITY_URL + "amircry"
+        ),
+    ),
+    TranslatorEntry(
+        language = "Bosnian, Croatian, Serbian",
+        contributors = mapOf(
+            "Eldin" to STEAM_COMMUNITY_URL + "eldinturkic"
+        ),
+    ),
+)
 
 /**
  * Preview

@@ -57,8 +57,21 @@ private fun <T> OnPreferenceChanged(value: T, onChanged: (T) -> Unit) {
 
 @Composable
 fun SettingsScreen(onBack: () -> Unit = {}) {
-    val context = LocalContext.current
     val serviceConnection = koinInject<SteamServiceConnection>()
+    SettingsScreenContent(
+        onBack = onBack,
+        onStayAwakeChanged = { serviceConnection.service.value?.setWakeLock() },
+        onOfflineChanged = { serviceConnection.service.value?.changeStatus() },
+    )
+}
+
+@Composable
+private fun SettingsScreenContent(
+    onBack: () -> Unit = {},
+    onStayAwakeChanged: () -> Unit = {},
+    onOfflineChanged: () -> Unit = {},
+) {
+    val context = LocalContext.current
 
     // entryValues + entries from arrays.xml, keyed so valueToText can look up the label
     val languageValues = stringArrayResource(R.array.language_option_values).toList()
@@ -79,10 +92,10 @@ fun SettingsScreen(onBack: () -> Unit = {}) {
             }
 
             val stayAwake by rememberPreferenceState("stay_awake", false)
-            OnPreferenceChanged(stayAwake) { serviceConnection.service.value?.setWakeLock() }
+            OnPreferenceChanged(stayAwake) { onStayAwakeChanged() }
 
             val offline by rememberPreferenceState("offline", false)
-            OnPreferenceChanged(offline) { serviceConnection.service.value?.changeStatus() }
+            OnPreferenceChanged(offline) { onOfflineChanged() }
 
             val language by rememberPreferenceState("language", "")
             OnPreferenceChanged(language) {
@@ -177,17 +190,6 @@ fun SettingsScreen(onBack: () -> Unit = {}) {
                         summary = { Text(text = stringResource(R.string.sum_blacklist)) },
                         onClick = { showBlacklist = true },
                     )
-                    item { HorizontalDivider(modifier = Modifier.fillMaxWidth()) }
-                    footerPreference(
-                        key = "cat_footer",
-                        summary = {
-                            Column {
-                                Text(text = stringResource(R.string.app_name) + ", maintained by @LossyDragon")
-                                Text(text = "Version Name: " + BuildConfig.VERSION_NAME)
-                                Text(text = "Version Code: " + BuildConfig.VERSION_CODE)
-                            }
-                        }
-                    )
                 }
             }
         }
@@ -197,5 +199,5 @@ fun SettingsScreen(onBack: () -> Unit = {}) {
 @Preview
 @Composable
 private fun Preview() {
-    SettingsScreen()
+    SettingsScreenContent()
 }
