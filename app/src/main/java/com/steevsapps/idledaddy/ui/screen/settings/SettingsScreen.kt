@@ -1,19 +1,11 @@
 package com.steevsapps.idledaddy.ui.screen.settings
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,15 +20,14 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
-import com.steevsapps.idledaddy.BuildConfig
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.preferences.PrefsManager
 import com.steevsapps.idledaddy.steam.SteamServiceConnection
+import com.steevsapps.idledaddy.ui.component.IdleTopAppBar
 import com.steevsapps.idledaddy.ui.component.dialog.BlacklistEditDialog
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.createDefaultPreferenceFlow
-import me.zhanghai.compose.preference.footerPreference
 import me.zhanghai.compose.preference.listPreference
 import me.zhanghai.compose.preference.preference
 import me.zhanghai.compose.preference.preferenceCategory
@@ -104,16 +95,9 @@ private fun SettingsScreenContent(
 
             Scaffold(
                 topBar = {
-                    TopAppBar(
-                        title = { Text(text = stringResource(R.string.settings)) },
-                        navigationIcon = {
-                            IconButton(onClick = onBack) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = null,
-                                )
-                            }
-                        }
+                    IdleTopAppBar(
+                        title = stringResource(R.string.settings),
+                        onNavClick = onBack
                     )
                 }
             ) { paddingValues ->

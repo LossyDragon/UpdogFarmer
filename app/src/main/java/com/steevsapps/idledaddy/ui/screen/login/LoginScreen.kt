@@ -14,12 +14,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -27,7 +23,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -51,6 +46,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.steevsapps.idledaddy.R
+import com.steevsapps.idledaddy.ui.component.IdleTopAppBar
 import com.steevsapps.idledaddy.ui.component.OreoTextField
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 import org.koin.androidx.compose.koinViewModel
@@ -125,16 +121,9 @@ private fun LoginScreenComponent(
         Scaffold(
             modifier = Modifier.imePadding(),
             topBar = {
-                TopAppBar(
-                    title = { Text(text = stringResource(R.string.login)) },
-                    navigationIcon = {
-                        IconButton(onClick = onBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = null
-                            )
-                        }
-                    }
+                IdleTopAppBar(
+                    title = stringResource(R.string.login),
+                    onNavClick = onBack
                 )
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },
