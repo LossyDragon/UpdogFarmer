@@ -10,9 +10,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Binder
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import android.os.PowerManager
 import android.os.PowerManager.WakeLock
 import android.util.Log
@@ -91,22 +89,30 @@ import `in`.dragonbra.javasteam.util.IDebugNetworkListener
 import `in`.dragonbra.javasteam.util.NetHelpers.getIPAddress
 import `in`.dragonbra.javasteam.util.Strings
 import `in`.dragonbra.javasteam.util.log.LogManager
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import java.io.Closeable
 import java.io.File
-import java.util.LinkedList
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.TimeUnit
 import java.util.zip.CRC32
 import kotlin.concurrent.Volatile
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 /** UI-facing snapshot of the service, published to [SteamService.state]. */
 @Immutable
@@ -195,24 +201,14 @@ class SteamService : Service() {
 
     // Key redemption
     private var keyToRedeem: String? = null
-    private val pendingFreeLicenses = LinkedList<Int>()
+    private val pendingFreeLicenses = ArrayDeque<Int>()
 
     // Background work
-    private val executor: ExecutorService = Executors.newCachedThreadPool()
-    private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(8)
-    private val mainHandler = Handler(Looper.getMainLooper())
-    private var farmHandle: ScheduledFuture<*>? = null
-    private var resumeHandle: ScheduledFuture<*>? = null
-    private var backoffResetHandle: ScheduledFuture<*>? = null
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var farmHandle: Job? = null
+    private var resumeHandle: Job? = null
+    private var backoffResetHandle: Job? = null
     private var wakeLock: WakeLock? = null
-
-    private val farmTask = Runnable {
-        try {
-            farm()
-        } catch (e: Exception) {
-            Log.i(TAG, "FarmTask failed", e)
-        }
-    }
 
     /** Binder giving in-process clients direct access to the service. */
     inner class LocalBinder : Binder() {
@@ -360,8 +356,7 @@ class SteamService : Service() {
         stopForeground(STOP_FOREGROUND_REMOVE)
         running = false
         stopFarming()
-        executor.shutdownNow()
-        scheduler.shutdownNow()
+        scope.cancel()
         setWakeLock(false)
         unregisterReceiver(receiver)
 
@@ -375,15 +370,17 @@ class SteamService : Service() {
         running = true
         if (PrefsManager.getRefreshToken().isNotEmpty()) {
             // We can log in using saved credentials
-            executor.execute { steamClient.connect() }
+            scope.launch { steamClient.connect() }
         }
-        // Run the callback handler
-        executor.execute {
-            while (running) {
+        // Run the callback pump
+        scope.launch {
+            while (isActive) {
                 try {
-                    manager.runWaitCallbacks(1000L)
+                    manager.runWaitCallbackAsync()
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
-                    Log.i(TAG, "update() failed", e)
+                    Log.i(TAG, "Callback pump failed", e)
                 }
             }
         }
@@ -407,7 +404,7 @@ class SteamService : Service() {
         }
 
         pendingAuthDetails = details
-        executor.execute { steamClient.connect() }
+        scope.launch { steamClient.connect() }
     }
 
     /**
@@ -423,7 +420,7 @@ class SteamService : Service() {
             doQrLogin()
         } else {
             pendingQrLogin = true
-            executor.execute { steamClient.connect() }
+            scope.launch { steamClient.connect() }
         }
     }
 
@@ -453,7 +450,7 @@ class SteamService : Service() {
                 itemAnnouncements = 0,
             )
         }
-        executor.execute {
+        scope.launch {
             steamUser.logOff()
             steamClient.disconnect()
         }
@@ -462,19 +459,21 @@ class SteamService : Service() {
     }
 
     /**
-     * Run the blocking credentials auth session off-thread, then log on with the resulting
+     * Run the credentials auth session on the service scope, then log on with the resulting
      * refresh token. Must start right after connecting.
      */
     private fun doCredentialsLogin(details: AuthSessionDetails) {
-        executor.execute {
+        scope.launch {
             try {
                 val authSession: CredentialsAuthSession = steamClient.authentication
                     .beginAuthSessionViaCredentials(details)
-                    .get()
-                val pollResult: AuthPollResult = authSession.pollingWaitForResult().get()
+                    .await()
+                val pollResult: AuthPollResult = authSession.pollingWaitForResult().await()
 
                 pollResult.newGuardData?.let { PrefsManager.writeGuardData(it) }
                 performLogOn(pollResult.accountName, pollResult.refreshToken)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.i(TAG, "Credentials login failed", e)
                 cancelPendingGuardCode()
@@ -485,9 +484,9 @@ class SteamService : Service() {
         }
     }
 
-    /** Run the blocking QR auth session off-thread, then log on once the user approves. */
+    /** Run the QR auth session on the service scope, then log on once the user approves. */
     private fun doQrLogin() {
-        executor.execute {
+        scope.launch {
             try {
                 val details = AuthSessionDetails().apply {
                     clientOSType = EOSType.AndroidUnknown
@@ -497,15 +496,17 @@ class SteamService : Service() {
 
                 val authSession: QrAuthSession = steamClient.authentication
                     .beginAuthSessionViaQR(details)
-                    .get()
+                    .await()
                 authSession.challengeUrlChanged = IChallengeUrlChanged { session ->
                     session?.let { sendQrChallengeUrl(it.challengeUrl) }
                 }
                 sendQrChallengeUrl(authSession.challengeUrl)
 
-                val pollResult: AuthPollResult = authSession.pollingWaitForResult().get()
+                val pollResult: AuthPollResult = authSession.pollingWaitForResult().await()
 
                 performLogOn(pollResult.accountName, pollResult.refreshToken)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.i(TAG, "QR login failed", e)
                 keyToRedeem = null
@@ -549,19 +550,24 @@ class SteamService : Service() {
     }
 
     /** Mint a web access token and authenticate on the Steam website. */
-    private fun attemptWebAuthentication(clientSteamId: SteamID, refreshToken: String): Boolean {
+    private suspend fun attemptWebAuthentication(
+        clientSteamId: SteamID,
+        refreshToken: String,
+    ): Boolean {
         Log.i(TAG, "Attempting SteamWeb authentication")
         val parentalToken = unlockParental()
-        val authenticated = withRetries(delayMs = 1000) {
+        val authenticated = withRetries(retryDelay = 1.seconds) {
             try {
                 val tokens = steamClient.authentication
                     .generateAccessTokenForApp(clientSteamId, refreshToken, true)
-                    .get()
+                    .await()
                 webHandler.authenticate(
                     clientSteamId.convertToUInt64(),
                     tokens.accessToken,
                     parentalToken
                 ).takeIf { it }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.i(TAG, "Failed to generate a web access token", e)
                 null
@@ -574,7 +580,7 @@ class SteamService : Service() {
     }
 
     /** Unlock family view with the saved PIN, returning the unlock token. */
-    private fun unlockParental(): String? {
+    private suspend fun unlockParental(): String? {
         val pin = PrefsManager.getParentalPin().trim()
         if (pin.isEmpty()) {
             return null
@@ -583,12 +589,14 @@ class SteamService : Service() {
             password = pin
         }.build()
         return try {
-            val response = parental.validatePassword(request).runBlock()
+            val response = parental.validatePassword(request).await()
             if (response.result != EResult.OK) {
                 Log.i(TAG, "Parental unlock failed: ${response.result}")
                 return null
             }
             response.body.token.ifEmpty { null }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.i(TAG, "Parental unlock failed", e)
             null
@@ -647,7 +655,7 @@ class SteamService : Service() {
 
     /** Deliver a login event to the current listener on the main thread. */
     private fun notifyLoginListener(block: (LoginEventListener) -> Unit) {
-        mainHandler.post {
+        scope.launch(Dispatchers.Main) {
             loginEventListener?.let(block)
         }
     }
@@ -664,8 +672,8 @@ class SteamService : Service() {
 
     /** Map a login exception to the [EResult] shown to the UI. */
     private fun resolveFailureResult(e: Exception): EResult {
-        val cause = (e as? ExecutionException)?.cause ?: e
-        return (cause as? AuthenticationException)?.result ?: EResult.Fail
+        val auth = e as? AuthenticationException ?: e.cause as? AuthenticationException
+        return auth?.result ?: EResult.Fail
     }
 
     // Farming/idling controls
@@ -674,7 +682,7 @@ class SteamService : Service() {
     fun startFarming() {
         if (!isFarming) {
             state.update { it.copy(farming = true, paused = false) }
-            executor.execute(farmTask)
+            launchFarm()
         }
     }
 
@@ -708,7 +716,7 @@ class SteamService : Service() {
         state.update { it.copy(paused = false) }
         playingWasBlocked = false
         blockRetryCount = 0
-        backoffResetHandle?.cancel(false)
+        backoffResetHandle?.cancel()
         unscheduleResume()
         setBlocked(false)
         stopPlaying()
@@ -732,7 +740,7 @@ class SteamService : Service() {
         if (isFarming) {
             Log.i(TAG, "Resume farming")
             state.update { it.copy(paused = false) }
-            executor.execute(farmTask)
+            launchFarm()
         }
     }
 
@@ -755,12 +763,12 @@ class SteamService : Service() {
     }
 
     /** One farming pass: fetch remaining card drops and choose what to idle. */
-    private fun farm() {
+    private suspend fun farm() {
         if (isPaused || blocked) {
             return
         }
         Log.i(TAG, "Checking remaining card drops")
-        val games = withRetries(delayMs = 500) { webHandler.remainingGames }
+        val games = withRetries(retryDelay = 500.milliseconds) { webHandler.remainingGames }
         if (games == null) {
             Log.i(TAG, "Invalid cookie data or no internet, reconnecting")
             steamClient.disconnect()
@@ -792,13 +800,29 @@ class SteamService : Service() {
         // TODO: Steam only updates play time every half hour, so maybe we should keep track of it ourselves
         if (game.hoursPlayed >= PrefsManager.getHoursUntilDrops() || games.size == 1 || farmIndex > 0) {
             // Idle a single game
-            mainHandler.post { idleSingle(game) }
+            withContext(Dispatchers.Main) { idleSingle(game) }
             unscheduleFarmTask()
         } else {
             // Idle multiple games (max 32) until one has reached 2 hrs
             idleMultiple(games)
             scheduleFarmTask()
         }
+    }
+
+    /** Run [farm], logging failures so periodic runs keep going. */
+    private suspend fun farmSafely() {
+        try {
+            farm()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.i(TAG, "FarmTask failed", e)
+        }
+    }
+
+    /** Launch a one-off [farm] pass on the service scope. */
+    private fun launchFarm() {
+        scope.launch { farmSafely() }
     }
 
     /** Resume farming or idling unless paused or blocked. */
@@ -808,7 +832,7 @@ class SteamService : Service() {
         }
         if (isFarming) {
             Log.i(TAG, "Resume farming")
-            executor.execute(farmTask)
+            launchFarm()
         } else {
             resumeCurrentGames()
         }
@@ -818,7 +842,7 @@ class SteamService : Service() {
     private fun resumeCurrentGames(): Boolean {
         if (currentGames.size == 1) {
             Log.i(TAG, "Resume playing")
-            mainHandler.post { idleSingle(currentGames[0]) }
+            scope.launch(Dispatchers.Main) { idleSingle(currentGames[0]) }
             return true
         }
         if (currentGames.size > 1) {
@@ -857,19 +881,22 @@ class SteamService : Service() {
 
     /** Schedule the periodic drop check. */
     private fun scheduleFarmTask() {
-        val handle = farmHandle
-        if (handle == null || handle.isCancelled) {
+        if (farmHandle?.isActive != true) {
             Log.i(TAG, "Starting farmtask")
-            farmHandle = scheduler.scheduleWithFixedDelay(farmTask, 10, 10, TimeUnit.MINUTES)
+            farmHandle = scope.launch {
+                while (isActive) {
+                    delay(10.minutes)
+                    farmSafely()
+                }
+            }
         }
     }
 
     /** Cancel the periodic drop check. */
     private fun unscheduleFarmTask() {
-        val handle = farmHandle
-        if (handle != null) {
+        farmHandle?.let {
             Log.i(TAG, "Stopping farmtask")
-            handle.cancel(true)
+            it.cancel()
         }
     }
 
@@ -914,7 +941,7 @@ class SteamService : Service() {
             EMsg.ClientGamesPlayed
         )
         gamesPlayed.body.configure()
-        executor.execute { steamClient.send(gamesPlayed) }
+        scope.launch { steamClient.send(gamesPlayed) }
     }
 
     // Blocked-idle handling (account playing on another device)
@@ -927,7 +954,7 @@ class SteamService : Service() {
             unscheduleFarmTask()
             unscheduleResume()
             // A block cancels a pending "resume succeeded" reset so the backoff keeps growing.
-            backoffResetHandle?.cancel(false)
+            backoffResetHandle?.cancel()
             val text = if (appId > 0) {
                 getString(R.string.steam_in_use_app, appId)
             } else {
@@ -954,7 +981,8 @@ class SteamService : Service() {
         state.update { it.copy(nextRetryAtMillis = nextAt) }
         Log.i(TAG, "Will attempt to resume idling in ${delaySecs}s (attempt $blockRetryCount)")
 
-        resumeHandle = scheduler.schedule({
+        resumeHandle = scope.launch {
+            delay(delaySecs.seconds)
             playingWasBlocked = false
             state.update { it.copy(nextRetryAtMillis = 0L) }
             publishOccupied()
@@ -962,21 +990,22 @@ class SteamService : Service() {
             // If we stay unblocked for a grace period, treat the resume as successful and
             // reset the backoff.
             scheduleBackoffReset()
-        }, delaySecs, TimeUnit.SECONDS)
+        }
     }
 
     /** Reset the backoff once we stay unblocked for a grace period. */
     private fun scheduleBackoffReset() {
-        backoffResetHandle?.cancel(false)
-        backoffResetHandle = scheduler.schedule({
+        backoffResetHandle?.cancel()
+        backoffResetHandle = scope.launch {
+            delay(BACKOFF_RESET_GRACE_SECS.seconds)
             Log.i(TAG, "Resume looks stable, resetting backoff")
             blockRetryCount = 0
-        }, BACKOFF_RESET_GRACE_SECS, TimeUnit.SECONDS)
+        }
     }
 
     /** Cancel any pending resume attempt. */
     private fun unscheduleResume() {
-        resumeHandle?.cancel(false)
+        resumeHandle?.cancel()
         resumeHandle = null
         state.update { it.copy(nextRetryAtMillis = 0L) }
     }
@@ -1031,7 +1060,7 @@ class SteamService : Service() {
             return
         }
         Log.i(TAG, "Redeeming key...")
-        if (key.matches("\\d+".toRegex())) {
+        if (key.isNotEmpty() && key.all(Char::isDigit)) {
             // Request a free license
             val freeLicense = key.toIntOrNull()
             if (freeLicense != null) {
@@ -1048,7 +1077,7 @@ class SteamService : Service() {
     /** Request a free license by app id. */
     private fun addFreeLicense(freeLicense: Int) {
         pendingFreeLicenses.add(freeLicense)
-        executor.execute { steamApps.requestFreeLicense(freeLicense) }
+        scope.launch { steamApps.requestFreeLicense(freeLicense) }
     }
 
     /** Send a product key to Steam for activation. */
@@ -1058,7 +1087,7 @@ class SteamService : Service() {
             EMsg.ClientRegisterKey
         )
         registerKey.body.key = productKey
-        executor.execute { steamClient.send(registerKey) }
+        scope.launch { steamClient.send(registerKey) }
     }
 
     // Misc public API
@@ -1068,7 +1097,7 @@ class SteamService : Service() {
         val personaState =
             if (PrefsManager.getOffline()) EPersonaState.Offline else EPersonaState.Online
         if (isLoggedIn) {
-            executor.execute { steamFriends.setPersonaState(personaState) }
+            scope.launch { steamFriends.setPersonaState(personaState) }
             state.update { it.copy(personaState = personaState) }
         }
     }
@@ -1145,10 +1174,11 @@ class SteamService : Service() {
 
         if (!loginInProgress) {
             // Try to reconnect after a 5-second delay
-            scheduler.schedule({
+            scope.launch {
+                delay(5.seconds)
                 Log.i(TAG, "Reconnecting")
                 steamClient.connect()
-            }, 5, TimeUnit.SECONDS)
+            }
         } else {
             // SteamKit may disconnect us while logging on (if already connected),
             // but since it reconnects immediately after we do not have to reconnect here.
@@ -1213,7 +1243,7 @@ class SteamService : Service() {
                     updateNotification(getString(R.string.logged_in))
                 }
 
-                executor.execute {
+                scope.launch {
                     val gotAuth = attemptWebAuthentication(clientSteamId, refreshToken)
                     if (gotAuth) {
                         // If we were just blocked, wait out the delay before retrying so
@@ -1287,7 +1317,7 @@ class SteamService : Service() {
             showToast(getString(R.string.activated, callback.grantedPackages[0].toString()))
         } else {
             // Try activating it with the web handler
-            executor.execute {
+            scope.launch {
                 val msg = if (webHandler.addFreeLicense(freeLicense)) {
                     getString(R.string.activated, freeLicense.toString())
                 } else {
@@ -1340,7 +1370,7 @@ class SteamService : Service() {
         state.update { it.copy(itemAnnouncements = callback.count) }
 
         // Possible card drop
-        if (callback.count > 0 && isFarming) executor.execute(farmTask)
+        if (callback.count > 0 && isFarming) launchFarm()
     }
 
     // Notifications
@@ -1492,23 +1522,22 @@ class SteamService : Service() {
 
     /** Show a toast from any thread. */
     private fun showToast(message: String) {
-        mainHandler.post {
+        scope.launch(Dispatchers.Main) {
             Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show()
         }
     }
 
-    /** Run [block] up to [attempts] times, sleeping [delayMs] between tries, until non-null. */
-    private fun <T : Any> withRetries(delayMs: Long, attempts: Int = 3, block: () -> T?): T? {
+    /** Run [block] up to [attempts] times, delaying [retryDelay] between tries, until non-null. */
+    private suspend fun <T : Any> withRetries(
+        retryDelay: Duration,
+        attempts: Int = 3,
+        block: suspend () -> T?,
+    ): T? {
         repeat(attempts) { attempt ->
             block()?.let { return it }
             if (attempt + 1 < attempts) {
                 Log.i(TAG, "Retrying...")
-                try {
-                    Thread.sleep(delayMs)
-                } catch (_: InterruptedException) {
-                    Thread.currentThread().interrupt()
-                    return null
-                }
+                delay(retryDelay)
             }
         }
         return null
