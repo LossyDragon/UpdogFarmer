@@ -12,13 +12,14 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import me.zhanghai.compose.preference.Preferences
 import me.zhanghai.compose.preference.createPreferenceFlow
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
  * SharedPreferences manager
  */
 object PrefsManager {
-    private const val CURRENT_VERSION = 4
+    private const val CURRENT_VERSION = 5
 
     private const val USERNAME = "username"
     private const val PASSWORD = "password"
@@ -40,6 +41,16 @@ object PrefsManager {
     private const val VERSION = "version"
     private const val SORT_VALUE = "sort_value"
     private const val CELL_ID = "cell_id"
+
+    /**
+     * The slider stores an INDEX into this list, not the hour count itself.
+     * [Int.MAX_VALUE] is the "unlimited" (∞) stop: the farm loop never crosses it, so it always
+     * idles games in parallel (up to 32) instead of switching to single-game idling. Games past
+     * Steam's ~2h threshold still drop cards while multi-idling - Steam just throttles the rate -
+     * so unlimited trades drop speed for idling everything at once.
+     */
+    val HOURS_UNTIL_DROPS_OPTIONS = listOf(0, 2, 3, 5, 20, Int.MAX_VALUE)
+    val HOURS_UNTIL_DROPS_DEFAULT_INDEX = HOURS_UNTIL_DROPS_OPTIONS.indexOf(3)
 
     private lateinit var prefs: SharedPreferences
     private val json = Json { ignoreUnknownKeys = true }
@@ -75,6 +86,15 @@ object PrefsManager {
             // hours_until_drops is now stored as Float (Compose slider); convert old Int values
             (prefs.all[HOURS_UNTIL_DROPS] as? Int)?.let {
                 prefs.edit { putFloat(HOURS_UNTIL_DROPS, it.toFloat()) }
+            }
+        }
+        if (oldVersion < 5) {
+            // hours_until_drops now stores an INDEX into HOURS_UNTIL_DROPS_OPTIONS, not the hour
+            // count; map any old hour value to the nearest option.
+            (prefs.all[HOURS_UNTIL_DROPS] as? Float)?.let { oldHours ->
+                val nearest = HOURS_UNTIL_DROPS_OPTIONS.minByOrNull { abs(it.toFloat() - oldHours) }!!
+                val index = HOURS_UNTIL_DROPS_OPTIONS.indexOf(nearest)
+                prefs.edit { putFloat(HOURS_UNTIL_DROPS, index.toFloat()) }
             }
         }
         writeVersion(CURRENT_VERSION)
@@ -192,7 +212,12 @@ object PrefsManager {
     @JvmStatic
     fun getParentalPin(): String = prefs.getString(PARENTAL_PIN, "")!!
 
-    fun getHoursUntilDrops(): Int = prefs.getFloat(HOURS_UNTIL_DROPS, 3f).roundToInt()
+    fun getHoursUntilDrops(): Int {
+        val index = prefs.getFloat(HOURS_UNTIL_DROPS, HOURS_UNTIL_DROPS_DEFAULT_INDEX.toFloat())
+            .roundToInt()
+            .coerceIn(HOURS_UNTIL_DROPS_OPTIONS.indices)
+        return HOURS_UNTIL_DROPS_OPTIONS[index]
+    }
 
     @JvmStatic
     fun includeFreeGames(): Boolean = prefs.getBoolean(INCLUDE_FREE_GAMES, false)

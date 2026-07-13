@@ -159,14 +159,19 @@ private fun SettingsScreenContent(
                         title = { Text(text = stringResource(R.string.pref_offline)) },
                         summary = { Text(text = stringResource(R.string.sum_offline)) },
                     )
+                    // The slider value is an INDEX into HOURS_UNTIL_DROPS_OPTIONS, not the hours.
+                    val hoursOptions = PrefsManager.HOURS_UNTIL_DROPS_OPTIONS
                     sliderPreference(
                         key = "hours_until_drops",
-                        defaultValue = 3f,
+                        defaultValue = PrefsManager.HOURS_UNTIL_DROPS_DEFAULT_INDEX.toFloat(),
                         title = { Text(text = stringResource(R.string.pref_hours_until)) },
                         summary = { Text(text = stringResource(R.string.sum_hours_until)) },
-                        valueRange = 0f..5f,
-                        valueSteps = 4,
-                        valueText = { Text(text = it.roundToInt().toString()) },
+                        valueRange = 0f..(hoursOptions.size - 1).toFloat(),
+                        valueSteps = hoursOptions.size - 2,
+                        valueText = {
+                            val hours = hoursOptions[it.roundToInt()]
+                            Text(text = if (hours == Int.MAX_VALUE) "∞" else hours.toString())
+                        },
                     )
                     preference(
                         key = "blacklist",

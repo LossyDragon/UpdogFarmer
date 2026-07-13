@@ -102,7 +102,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import java.io.Closeable
 import java.io.File
@@ -797,10 +796,13 @@ class SteamService : Service() {
         }
         val game = games[farmIndex]
 
+        val hoursUntilDrop = PrefsManager.getHoursUntilDrops()
+        Log.i(TAG, "Hours until Drop: $hoursUntilDrop")
+
         // TODO: Steam only updates play time every half hour, so maybe we should keep track of it ourselves
-        if (game.hoursPlayed >= PrefsManager.getHoursUntilDrops() || games.size == 1 || farmIndex > 0) {
+        if (game.hoursPlayed >= hoursUntilDrop || games.size == 1 || farmIndex > 0) {
             // Idle a single game
-            withContext(Dispatchers.Main) { idleSingle(game) }
+            idleSingle(game)
             unscheduleFarmTask()
         } else {
             // Idle multiple games (max 32) until one has reached 2 hrs
@@ -842,7 +844,7 @@ class SteamService : Service() {
     private fun resumeCurrentGames(): Boolean {
         if (currentGames.size == 1) {
             Log.i(TAG, "Resume playing")
-            scope.launch(Dispatchers.Main) { idleSingle(currentGames[0]) }
+            idleSingle(currentGames[0])
             return true
         }
         if (currentGames.size > 1) {
@@ -862,12 +864,17 @@ class SteamService : Service() {
         }
     }
 
-    /** Idle a single game and show its notification. */
+    /**
+     * Idle a single game and show its notification. Runs on the main thread because
+     * [showIdleNotification] enqueues a Coil image request for the game icon.
+     */
     private fun idleSingle(game: Game) {
-        Log.i(TAG, "Now playing ${game.name}")
-        state.update { it.copy(paused = false, currentGames = listOf(game)) }
-        playGames(listOf(game))
-        showIdleNotification(game)
+        scope.launch(Dispatchers.Main) {
+            Log.i(TAG, "Now playing ${game.name}")
+            state.update { it.copy(paused = false, currentGames = listOf(game)) }
+            playGames(listOf(game))
+            showIdleNotification(game)
+        }
     }
 
     /** Idle up to 32 games at once and show the big-text notification. */
