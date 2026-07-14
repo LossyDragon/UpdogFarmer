@@ -23,6 +23,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.preferences.PrefsManager
 import com.steevsapps.idledaddy.steam.SteamServiceConnection
+import com.steevsapps.idledaddy.ui.compat.requestIgnoreBatteryOptimizations
+import com.steevsapps.idledaddy.ui.compat.restoreBatteryOptimizations
 import com.steevsapps.idledaddy.ui.component.IdleTopAppBar
 import com.steevsapps.idledaddy.ui.component.dialog.BlacklistEditDialog
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
@@ -49,9 +51,19 @@ private fun <T> OnPreferenceChanged(value: T, onChanged: (T) -> Unit) {
 @Composable
 fun SettingsScreen(onBack: () -> Unit = {}) {
     val serviceConnection = koinInject<SteamServiceConnection>()
+    val context = LocalContext.current
     SettingsScreenContent(
         onBack = onBack,
-        onStayAwakeChanged = { serviceConnection.service.value?.setWakeLock() },
+        onStayAwakeChanged = { enabled ->
+            serviceConnection.service.value?.setWakeLock()
+            // Doze ignores wake locks, so also ask for a battery-optimization exemption.
+            // The exemption can't be revoked in code, so on disable point the user at settings.
+            if (enabled) {
+                context.requestIgnoreBatteryOptimizations()
+            } else {
+                context.restoreBatteryOptimizations()
+            }
+        },
         onOfflineChanged = { serviceConnection.service.value?.changeStatus() },
     )
 }
@@ -59,7 +71,7 @@ fun SettingsScreen(onBack: () -> Unit = {}) {
 @Composable
 private fun SettingsScreenContent(
     onBack: () -> Unit = {},
-    onStayAwakeChanged: () -> Unit = {},
+    onStayAwakeChanged: (Boolean) -> Unit = {},
     onOfflineChanged: () -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -83,7 +95,7 @@ private fun SettingsScreenContent(
             }
 
             val stayAwake by rememberPreferenceState("stay_awake", false)
-            OnPreferenceChanged(stayAwake) { onStayAwakeChanged() }
+            OnPreferenceChanged(stayAwake) { onStayAwakeChanged(it) }
 
             val offline by rememberPreferenceState("offline", false)
             OnPreferenceChanged(offline) { onOfflineChanged() }

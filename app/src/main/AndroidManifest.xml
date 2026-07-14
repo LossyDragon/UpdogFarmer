@@ -9,7 +9,10 @@
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="18" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- specialUse instead of dataSync: Android 15+ kills dataSync services after 6h per day. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- Lets "Keep Device Awake" ask for a Doze exemption, otherwise the connection dies when the screen is off. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
@@ -34,7 +37,12 @@
 
         <service
             android:name="com.steevsapps.idledaddy.steam.SteamService"
-            android:foregroundServiceType="dataSync" />
+            android:foregroundServiceType="specialUse">
+            <!-- Mandatory explanation for the specialUse type (Android 14+). -->
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Maintains a persistent Steam connection to idle games for card drops" />
+        </service>
 
         <activity
             android:name="com.steevsapps.idledaddy.MainActivity"

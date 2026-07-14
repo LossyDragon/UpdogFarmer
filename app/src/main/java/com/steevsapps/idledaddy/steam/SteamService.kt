@@ -1,5 +1,6 @@
 package com.steevsapps.idledaddy.steam
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -381,6 +382,19 @@ class SteamService : Service() {
                 } catch (e: Exception) {
                     Log.i(TAG, "Callback pump failed", e)
                 }
+            }
+        }
+        // Heartbeat
+        scope.launch {
+            val pm = getSystemService(POWER_SERVICE) as PowerManager
+            while (isActive) {
+                Log.i(
+                    TAG,
+                    "Heartbeat: connected=$connected loggedIn=$isLoggedIn " +
+                        "wakeLockHeld=${wakeLock?.isHeld == true} " +
+                        "dozeExempt=${pm.isIgnoringBatteryOptimizations(packageName)}"
+                )
+                delay(10.minutes)
             }
         }
     }
@@ -1110,13 +1124,14 @@ class SteamService : Service() {
     }
 
     /** Acquire or release the CPU wake lock. */
+    @SuppressLint("WakelockTimeout") // Held for the service's whole lifetime, released in onDestroy()
     fun setWakeLock(acquire: Boolean = PrefsManager.stayAwake()) {
         if (acquire) {
             if (wakeLock == null) {
                 Log.i(TAG, "Acquiring WakeLock")
                 val pm = getSystemService(POWER_SERVICE) as PowerManager
                 val lock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG)
-                lock.acquire(60 * 60 * 1000L) // 60 Minutes
+                lock.acquire() // No timeout. a timed lock silently expires mid-idle and never renews
                 wakeLock = lock
             }
         } else {
