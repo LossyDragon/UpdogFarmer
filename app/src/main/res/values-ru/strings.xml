@@ -23,7 +23,7 @@
     <string name="settings">Настройки</string>
     <string name="logout">Выйти из аккаунта</string>
     <string name="redeem">Активировать продукт</string>
-    <string name="redeem_msg">Введите ключ продукта или appid бесплатного приложения/string>
+    <string name="redeem_msg">Введите ключ продукта или appid бесплатного приложения</string>
     <string name="ok">OK</string>
     <string name="cat_idle">Фарм Карточек</string>
     <string name="cat_general">Общие</string>
