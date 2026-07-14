@@ -31,6 +31,7 @@
     <string name="sum_offline">Устанавливает статус \'Не в сети\', чтобы ваши друзья не видели фарм.</string>
     <string name="pref_stay_awake">Держать экран включенным</string>
     <string name="sum_stay_awake">Включите эту функцию, если Idle Daddy прекращает работать, когда гаснет экран. ПРЕДУПРЕЖДЕНИЕ: Некоторые устройства могут автоматически убить приложение спустя некоторое время.</string>
+    <string name="battery_optimization_restore_hint">Чтобы восстановить оптимизацию батареи, установите для %1$s обратно значение \'Cбалансировано\'</string>
     <string name="pref_minimize_data">Минимизировать использование данных</string>
     <string name="sum_minimize_data">Отключить загрузку изображений.</string>
     <string name="pref_parental_pin">Родительский ПИН-код</string>
