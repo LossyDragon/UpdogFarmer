@@ -13,7 +13,7 @@
     <string name="qr_login_instructions">Use the Steam Mobile App to sign in via QR Code</string>
     <string name="qr_login_failed">QR sign in failed. Please try again</string>
     <string name="retry">Retry</string>
-    <string name="device_confirmation_prompt">Use the Steam Mobile App to confirm your sign in...</string>
+    <string name="device_confirmation_prompt">Use the Steam Mobile App to confirm your sign in…</string>
     <string name="start_idling">Start farming</string>
     <string name="desc_start">Idle your games until all trading cards have dropped.</string>
     <string name="stop_idling">Exit</string>
@@ -102,7 +102,7 @@
     <string name="about">About</string>
     <string name="source_code">Source code (fork)</string>
     <string name="steam_group">Steam group</string>
-    <string name="about_license">Idle Daddy\nCopyright © 2017-2018  Steev\'s apps\n\nThis program is free software: you can redistribute it and/or modify\nit under the terms of the GNU General Public License as published by\nthe Free Software Foundation, either version 3 of the License, or\n(at your option) any later version.\n\nThis program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this program. If not, see &lt;http://www.gnu.org/licenses&gt;.</string>
+    <string name="about_license">Idle Daddy\nCopyright © 2017–2018  Steev\'s apps\n\nThis program is free software: you can redistribute it and/or modify\nit under the terms of the GNU General Public License as published by\nthe Free Software Foundation, either version 3 of the License, or\n(at your option) any later version.\n\nThis program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this program. If not, see &lt;http://www.gnu.org/licenses&gt;.</string>
     <string name="stop">Stop</string>
     <string name="skip">Skip</string>
     <string name="pause">Pause</string>

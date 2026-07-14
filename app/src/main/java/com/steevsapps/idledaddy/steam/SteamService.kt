@@ -189,7 +189,7 @@ class SteamService : Service() {
     private var blocked = false
 
     // Sticky "we were blocked recently" flag. Used to delay resuming after a block so
-    // we don't hammer Steam with re-idle attempts and get repeatedly kicked. Modelled
+    // we don't hammer Steam with re-idle attempts and get repeatedly kicked. Modeled
     // on ArchiSteamFarm's PlayingWasBlocked + MinFarmingDelayAfterBlock.
     @Volatile
     private var playingWasBlocked = false
