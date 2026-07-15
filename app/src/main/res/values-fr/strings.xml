@@ -39,16 +39,11 @@
     <string name="sum_language">Changer la langue de l\'application (cela requiert un redémarrage de l\'application).</string>
     <string name="blacklist_hint">Entrer l\'ID d\'une application et cliquer sur +</string>
     <string name="add_to_blacklist">Ajouter un jeu à la liste noire</string>
-    <string name="added_to_blacklist">Jeu ajouté à la liste noire</string>
     <string name="remove_from_blacklist">Enlever le jeu de la liste noire.</string>
-    <string name="removed_from_blacklist">Jeu enlevé de la liste noire</string>
     <string name="open_drawer">Ouvrir le drawer</string>
-    <string name="close_drawer">Fermer le drawer</string>
     <string name="home">Accueil</string>
     <string name="games">Jeux</string>
     <string name="no_games_found">Impossible de trouver votre liste de jeux. Vérifier que votre profile est public</string>
-    <string name="now_playing">En jeux</string>
-    <string name="error_not_logged_in">Vous devez être connecté à Steam</string>
     <string name="invalid_password">Mot de passe invalide</string>
     <string name="steamguard_required">Code Steam Guard requit</string>
     <string name="invalid_code">Code invalide</string>
@@ -83,16 +78,11 @@
     <string name="pause">Pause</string>
     <string name="resume">Reprendre</string>
     <string name="activated">Activé: %s</string>
-    <string name="refresh">Rafraîchir</string>
     <string name="last_session">Dernière session</string>
     <string name="play_all">Tout jouer</string>
-    <string name="remove_ads">Enlever les publicités</string>
-    <string name="logcat">Envoyer un log</string>
     <string name="sort">Trier</string>
     <string name="sort_alphabetically">Dans l\'ordre alphabétique</string>
     <string name="sort_hours_played">Heures jouées</string>
-    <string name="vote_successful">Vote réussi !</string>
-    <string name="vote_failed">Vote échoué!</string>
     <string name="english">Anglais</string>
     <string name="german">Allemand</string>
     <string name="russian">Russe</string>
@@ -109,21 +99,8 @@
     <string name="slovenian">Slovaque</string>
     <string name="french">Français</string>
     <string name="language_changed">Vous devez redémarrez l\'application pour que la langue se mette à jour.</string>
-    <string name="pref_gdpr_consent">Révoquer le consentement GDPR</string>
-    <string name="sum_gdpr_consent">En dehors des EU, le GDPR (General Data Protection Regulation), le consentement de l\'utilisateur est requis avant d\'afficher des publicités. Cliquez ici pour révoquer ce consentement.</string>
     <string name="pref_use_custom_loginid">Utiliser un nom d\'utilisateur customisé.</string>
     <string name="sum_use_custom_loginid">Activez cette option vous permettra d\'utiliser d\'autres applications SteamKit (comme Ice Client) au même moment que Idle Daddy. Si vous n\'êtes pas sûr, laissez cela éteint. (Requit un redémarrage)</string>
-    <string name="gdpr_consent_not_needed">Pas besoin. Idle Daddy Premium n\'affiche pas de pubs.</string>
-    <string name="summer_event">Evénement de l\'été</string>
-    <string name="play_saliens">Play Saliens (Just get trading cards)</string>
-    <string name="play_saliens_indefinitely">Play Saliens Indefinitely</string>
-    <string name="play_saliens_desc">You can earn up to 3 trading cards each day by playing the Summer Salien game. This event ends on July 5th.</string>
-    <string name="playing_saliens">Playing Saliens (%d/%d)</string>
-    <string name="playing_saliens_indefinitely">Playing Saliens\nScore: %s/%s\nLevel: %s</string>
-    <string name="success_check_inventory">Fini ! Vérifier votre inventaire pour voir vos nouvelles cartes.</string>
-    <string name="play_saliens_failed">Unable to auto play Saliens right now. Try again later.</string>
-    <string name="apikey_access_denied">Accès à la clé Steam API refusée, utilisant une clé intégrée.</string>
-    <string name="apikey_register_failed">Enregistrement de la clé API a échoué, utilisant une clé intégrée.</string>
     <string name="romanian">Roumain</string>
     <string name="spanish">Espagnol</string>
     <string name="arabic">Arabe</string>
@@ -139,24 +116,7 @@
     <string name="non_steam_game">Jeux non-Steam</string>
     <string name="playing_unknown_app">Application inconnue: %d</string>
     <string name="playing_non_steam_game">Jeu non-Steam: %s</string>
-    <string name="complete_daily_tasks">Compléter les tâches quotidiennes</string>
-    <string name="complete_projects">Compléter les tâches du projet</string>
-    <string name="daily_tasks_completed">Tâches quotidiennes complétées. Revenez demain.</string>
-    <string name="project_tasks_completed">Tâches du projet complétées. Vous n\'avez besoin de faire ses tâches qu\'une fois.</string>
-    <string name="shared_secret_desc">Importez le \'shared_secret\' code depuis ton authentificateur mobile. Cela permet à Idle Daddy de se connecter automatiquement quand la clé de connexion expire.</string>
-    <string name="import_shared_secret">Importez shared_secret</string>
-    <string name="enter_manually">Entrez manuellement</string>
-    <string name="enter_shared_secret">Entrez votre shared_secret:</string>
-    <string name="device_not_rooted">Votre appareil doit être rooté pour utiliser cette option.</string>
-    <string name="your_shared_secret">Votre shared_secret: %s</string>
-    <string name="import_shared_secret_failed">Importation du shared_secret échoué! Soyez sûr que vous utilisez l\'authentificateur mobile Steam.</string>
-    <string name="next_round_countdown">Prochain round: %02d:%02d</string>
-    <string name="reporting_score">Score en cours d\'importation</string>
-    <string name="boss_hp">Vie du Boss: %d</string>
     <string name="sort_hours_played_reversed">Hours Played (reversed)</string>
     <!-- Untranslated strings: -->
-    <string name="door_open">Open Cottage Door (Winter Sale 2018)</string>
-    <string name="door_success">Door opened!</string>
-    <string name="door_fail">Unable to open any doors. Try again tomorrow</string>
     <!-- End untranslated strings -->
 </resources>

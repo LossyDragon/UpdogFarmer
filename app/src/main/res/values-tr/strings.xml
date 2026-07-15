@@ -33,16 +33,11 @@
     <string name="sum_blacklist">Karalistedeki oyunlar çalıştırılmayacaktır.</string>
     <string name="blacklist_hint">Bir uygulama ID\'si girin ve +\'ya basın</string>
     <string name="add_to_blacklist">Oyunu Karalisteye ekle</string>
-    <string name="added_to_blacklist">Oyun Karalisteye eklendi</string>
     <string name="remove_from_blacklist">Oyunu Karalisteden çıkart</string>
-    <string name="removed_from_blacklist">Oyun Karalisteden çıkartıldı</string>
     <string name="open_drawer">Yan menüyü aç</string>
-    <string name="close_drawer">Yan menüyü kapat</string>
     <string name="home">Giriş</string>
     <string name="games">Oyunlar</string>
     <string name="no_games_found">Oyunlarınıza ulaşılamadı. Profilinizin Herkese Açık olduğundan emin olun.</string>
-    <string name="now_playing">Şu anda oynanan</string>
-    <string name="error_not_logged_in">Steam ile giriş yapmalısınız</string>
     <string name="invalid_password">Geçersiz parola</string>
     <string name="steamguard_required">Steam Guard kodu gerekli</string>
     <string name="invalid_code">Geçersiz kod</string>
@@ -77,7 +72,6 @@
     <string name="pause">Duraklat</string>
     <string name="resume">Devam et</string>
     <string name="activated">Aktive edildi: %s</string>
-    <string name="refresh">Yenile</string>
     <string name="last_session">Son Oturum</string>
     <string name="pref_hours_until">Kartların düşmeye başlaması için gereken süre</string>
     <string name="sum_hours_until">Kartların düşmesi için gerekli süreyi ifade eder. Kart düşürürken, Idle Daddy seçilen saate kadar oyunları birlikte rölantide çalıştırır. Çoğu kullanıcı için, 3 saat iyi bir seçenektir.</string>
@@ -85,30 +79,13 @@
     <string name="sum_include_free_games">Varsayılan olarak, Team Fortress 2 gibi oynaması ücretsiz oyunlar dahil değildir (teknik olarak herkes onlara sahiptir). Bu seçeneği seçerseniz ve bu tür oyunları daha önce oynamış iseniz listeye dahil edilir.</string>
     <string name="pref_language">Dil</string>
     <string name="sum_language">Uygulama\'nın dilini değiştir (Yeniden  başlatma gerektirir).</string>
-    <string name="pref_gdpr_consent">GDPR iznini ver</string>
-    <string name="sum_gdpr_consent">AB\'nin Genel Veri Koruma Tüzüğü (GDPR) gereğince, reklamların gösterilebilmesi için kullanıcı\'nın izin vermesi gerekiyor. Buraya dokunarak izninizi verebilirsiniz.</string>
     <string name="pref_use_custom_loginid">Giriş yapmak için Custom ID kullan</string>
     <string name="sum_use_custom_loginid">Idle Daddy ile diğer SteamKit uygulamalarını (Ice Client gibi) beraber çalıştırabilmek için bu ayarı açın. Eğer emin değilseniz, bu ayarı kapalı tutun. (Yeniden başlatma gerektirir)</string>
-    <string name="gdpr_consent_not_needed">Gerekli değil. Idle Daddy Premium reklam içermez.</string>
     <string name="play_all">Hepsini çalıştır</string>
-    <string name="remove_ads">Reklamları Kaldır</string>
-    <string name="logcat">Log kayıtlarını gönder</string>
     <string name="sort">Sırala</string>
     <string name="sort_alphabetically">Alfabetik</string>
     <string name="sort_hours_played">Oynama süresine göre (Azalan)</string>
     <string name="sort_hours_played_reversed">Oynama süresine göre (Artan)</string>
-    <string name="vote_successful">Oy verme tamamlandı!</string>
-    <string name="vote_failed">Oy verme başarısız!</string>
-    <string name="summer_event">Yaz Etkinliği</string>
-    <string name="play_saliens">İndirin Canavarları (Saliens) oyna (Yalnızca takas kartlarını almak için)</string>
-    <string name="play_saliens_indefinitely">Saliens oyna (Puan kazanıp seviye atlamak için)</string>
-    <string name="play_saliens_desc">Her gün Saliens oynayarak 3 takas kartı kazanabilirsin. Bu etkinlik 5 Temmuz\'da bitecek.</string>
-    <string name="playing_saliens">Saliens oynanıyor (%d/%d)</string>
-    <string name="playing_saliens_indefinitely">Saliens oynanıyor\nPuan: %s/%s\nSeviye: %s</string>
-    <string name="success_check_inventory">Başarılı! Yeni takas kartlarını Envanterinden kontrol et.</string>
-    <string name="play_saliens_failed">Şu anda Saliens oynanamadı. Daha sonra tekrar dene.</string>
-    <string name="apikey_access_denied">Steam API kodu erişimi engellendi, dahili anahtarı kullanın.</string>
-    <string name="apikey_register_failed">API kodu kaydı başarısız, dahili anahtarı kullanın.</string>
     <string name="english">İngilizce</string>
     <string name="german">Almanca</string>
     <string name="russian">Rusça</string>
@@ -140,21 +117,4 @@
     <string name="non_steam_game">Steam Dışı oyun</string>
     <string name="playing_unknown_app">Bilinmeyen Uygulama: %d</string>
     <string name="playing_non_steam_game">Steam Dışı Oyunda: %s</string>
-    <string name="complete_daily_tasks">Günlük Görevleri Tamamla</string>
-    <string name="complete_projects">Proje Görevlerini Tamamla</string>
-    <string name="daily_tasks_completed">Günlük Görevler tamamlandı. Yarın tekrar yapmayı unutma.</string>
-    <string name="project_tasks_completed">Proje Görevleri tamamlandı. Bunu bir kere yapman yeterli.</string>
-    <string name="shared_secret_desc">Mobil Kimlik Doğrulayıcıdan \'shared_secret\' kodunu al. Bu sayede Idle Daddy giriş anahtarının süresi dolduğu zaman otomatik olarak tekrar giriş yapar.</string>
-    <string name="import_shared_secret">Doğrulayıcıdan shared_secret kodunu al</string>
-    <string name="enter_manually">El ile gir</string>
-    <string name="enter_shared_secret">shared_secret kodunu gir:</string>
-    <string name="device_not_rooted">Bu iş için cihazınızın mutlaka Rootlu olması gerekiyor.</string>
-    <string name="your_shared_secret">shared_secret Kodunuz: %s</string>
-    <string name="import_shared_secret_failed">shared_secret kodu alınamadı! Steam Mobil Kimlik Doğrulayıcı kullandığınızdan emin olun.</string>
-    <string name="next_round_countdown">Bir sonraki raund: %02d:%02d</string>
-    <string name="reporting_score">Skor hesaplanıyor</string>
-    <string name="boss_hp">Boss\'un canı: %d</string>
-    <string name="door_open">Kır Evi Kapısını Aç (Kış Indirimleri 2018)</string>
-    <string name="door_success">Kapı Açıldı!</string>
-    <string name="door_fail">Şu anda açılabilecek bir kapı yok.Yarın tekrar dene</string>
 </resources>
