@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -17,17 +18,19 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
+import com.steevsapps.idledaddy.ui.theme.LocalAmoled
 
 @Composable
 fun DropInfoCard(
+    modifier: Modifier = Modifier,
     gameCount: Int,
     cardCount: Int,
-    modifier: Modifier = Modifier,
 ) {
+    val amoled = LocalAmoled.current
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            containerColor = if (amoled) Color(0xFF101010) else MaterialTheme.colorScheme.surfaceContainerHigh,
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
@@ -60,16 +63,22 @@ fun DropInfoCard(
  * Preview
  */
 
-private class DropInfoPreview : PreviewParameterProvider<Pair<Int, Int>> {
-    override val values = sequenceOf(1 to 1, 24 to 57)
+private class DropInfoPreview : PreviewParameterProvider<Triple<Boolean, Int, Int>> {
+    override val values = sequenceOf(Triple(false, 1, 1), Triple(true, 24, 57))
+
+    override fun getDisplayName(index: Int) =
+        if (values.elementAt(index).first) "AMOLED" else "Default"
 }
 
-@Preview
+@Preview(showBackground = false)
 @Composable
 private fun Preview(
-    @PreviewParameter(DropInfoPreview::class) counts: Pair<Int, Int>,
+    @PreviewParameter(DropInfoPreview::class) values: Triple<Boolean, Int, Int>,
 ) {
-    IdleTheme {
-        DropInfoCard(gameCount = counts.first, cardCount = counts.second)
+    IdleTheme(amoled = values.first) {
+        DropInfoCard(
+            gameCount = values.second,
+            cardCount = values.third,
+        )
     }
 }

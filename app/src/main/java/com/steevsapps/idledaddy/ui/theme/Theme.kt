@@ -6,6 +6,8 @@ import androidx.compose.material3.Shapes
 import androidx.compose.material3.Surface
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.steevsapps.idledaddy.ui.compat.darken
@@ -76,18 +78,22 @@ private val OreoShapes = Shapes(
     extraLarge = RoundedCornerShape(2.dp),
 )
 
+val LocalAmoled = staticCompositionLocalOf { false }
+
 @Composable
 fun IdleTheme(
     amoled: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    MaterialTheme(
-        colorScheme = if (amoled) AmoledColorScheme else OreoColorScheme,
-        shapes = OreoShapes,
-    ) {
-        Surface(
-            color = MaterialTheme.colorScheme.background,
-            content = content,
-        )
+    CompositionLocalProvider(LocalAmoled provides amoled) {
+        MaterialTheme(
+            colorScheme = if (amoled) AmoledColorScheme else OreoColorScheme,
+            shapes = OreoShapes,
+        ) {
+            Surface(
+                color = MaterialTheme.colorScheme.background,
+                content = content,
+            )
+        }
     }
 }

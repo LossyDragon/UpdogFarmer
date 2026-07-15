@@ -15,11 +15,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,7 +30,9 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
+import com.steevsapps.idledaddy.ui.theme.LocalAmoled
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun StatusCard(
@@ -41,16 +43,17 @@ fun StatusCard(
     modifier: Modifier = Modifier,
     nextRetryAtMillis: Long = 0L,
 ) {
+    val amoled = LocalAmoled.current
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        // Only offer "tap to login" when genuinely logged out, not mid-retry reconnect.
         enabled = !isLoggedIn && !isBlocked,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            containerColor = if (amoled) Color(0xFF101010) else MaterialTheme.colorScheme.surfaceContainerHigh,
+            disabledContainerColor = if (amoled) Color(0xFF101010) else MaterialTheme.colorScheme.surfaceContainerHigh,
             disabledContentColor = MaterialTheme.colorScheme.onSurface,
         ),
+
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
         Row(
@@ -80,12 +83,15 @@ fun StatusCard(
                     LaunchedEffect(nextRetryAtMillis) {
                         while (true) {
                             now = System.currentTimeMillis()
-                            delay(1000L)
+                            delay(1.seconds)
                         }
                     }
                     val remaining = ((nextRetryAtMillis - now) / 1000L).coerceAtLeast(0L)
                     Text(
-                        text = stringResource(R.string.status_retry_countdown, formatCountdown(remaining)),
+                        text = stringResource(
+                            R.string.status_retry_countdown,
+                            formatCountdown(remaining)
+                        ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
@@ -127,6 +133,7 @@ private data class StatusPreviewState(
     val isParentalControlled: Boolean,
     val isBlocked: Boolean = false,
     val nextRetryAtMillis: Long = 0L,
+    val amoled: Boolean = false,
 )
 
 private class StatusPreview : PreviewParameterProvider<StatusPreviewState> {
@@ -141,6 +148,8 @@ private class StatusPreview : PreviewParameterProvider<StatusPreviewState> {
             isBlocked = true,
             nextRetryAtMillis = System.currentTimeMillis() + 125_000L,
         ),
+        StatusPreviewState(loggedIn = false, isParentalControlled = false, amoled = true),
+        StatusPreviewState(loggedIn = true, isParentalControlled = false, amoled = true),
     )
 }
 
@@ -149,7 +158,7 @@ private class StatusPreview : PreviewParameterProvider<StatusPreviewState> {
 private fun Preview(
     @PreviewParameter(StatusPreview::class) state: StatusPreviewState,
 ) {
-    IdleTheme {
+    IdleTheme(amoled = state.amoled) {
         StatusCard(
             isLoggedIn = state.loggedIn,
             isParentalControlled = state.isParentalControlled,

@@ -15,6 +15,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -22,6 +23,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
+import com.steevsapps.idledaddy.ui.theme.LocalAmoled
 
 @Composable
 fun StartCard(
@@ -29,10 +31,11 @@ fun StartCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val amoled = LocalAmoled.current
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            containerColor = if (amoled) Color(0xFF101010) else MaterialTheme.colorScheme.surfaceContainerHigh,
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
@@ -72,16 +75,30 @@ fun StartCard(
  * Preview
  */
 
-private class StartPreview : PreviewParameterProvider<Boolean> {
-    override val values = sequenceOf(true, false)
+private class StartPreview : PreviewParameterProvider<Pair<Boolean, Boolean>> {
+    override val values = sequenceOf(
+        true to false,
+        false to false,
+        true to true,
+    )
+
+    override fun getDisplayName(index: Int): String {
+        val (enabled, amoled) = values.elementAt(index)
+        return when {
+            amoled -> "AMOLED"
+            enabled -> "Enabled"
+            else -> "Disabled"
+        }
+    }
 }
 
 @Preview
 @Composable
 private fun Preview(
-    @PreviewParameter(StartPreview::class) enabled: Boolean,
+    @PreviewParameter(StartPreview::class) values: Pair<Boolean, Boolean>,
 ) {
-    IdleTheme {
+    val (enabled, amoled) = values
+    IdleTheme(amoled = amoled) {
         StartCard(enabled = enabled, onClick = {})
     }
 }

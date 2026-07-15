@@ -74,7 +74,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.steam.model.Game
-import com.steevsapps.idledaddy.ui.component.GameItem
+import com.steevsapps.idledaddy.ui.component.cards.GameCard
 import com.steevsapps.idledaddy.ui.component.OreoTextField
 import com.steevsapps.idledaddy.ui.component.dialog.GameOptionsDialog
 import com.steevsapps.idledaddy.ui.component.scrollbar
@@ -193,7 +193,7 @@ fun GamesScreenContent(
                             }
                         }
                         items(items = state.games, key = { it.appId }) { game ->
-                            GameItem(
+                            GameCard(
                                 game = game,
                                 selected = state.selected.contains(game),
                                 showIcon = state.showIcons,

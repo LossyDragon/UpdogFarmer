@@ -15,21 +15,26 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
+import com.steevsapps.idledaddy.ui.theme.LocalAmoled
 
 @Composable
 fun StopCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val amoled = LocalAmoled.current
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            containerColor = if (amoled) Color(0xFF101010) else MaterialTheme.colorScheme.surfaceContainerHigh,
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
@@ -68,10 +73,19 @@ fun StopCard(
  * Preview
  */
 
+private class StopPreview : PreviewParameterProvider<Boolean> {
+    override val values = sequenceOf(false, true)
+
+    override fun getDisplayName(index: Int) =
+        if (values.elementAt(index)) "AMOLED" else "Default"
+}
+
 @Preview
 @Composable
-private fun Preview() {
-    IdleTheme {
+private fun Preview(
+    @PreviewParameter(StopPreview::class) amoled: Boolean,
+) {
+    IdleTheme(amoled = amoled) {
         StopCard(onClick = {})
     }
 }

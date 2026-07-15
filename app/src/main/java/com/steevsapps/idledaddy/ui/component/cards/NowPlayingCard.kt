@@ -36,6 +36,7 @@ import coil3.compose.SubcomposeAsyncImage
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
+import com.steevsapps.idledaddy.ui.theme.LocalAmoled
 import kotlin.math.ceil
 
 @Composable
@@ -49,10 +50,11 @@ fun NowPlayingCard(
     onNext: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val amoled = LocalAmoled.current
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            containerColor = if (amoled) Color(0xFF101010) else MaterialTheme.colorScheme.surfaceContainerHigh,
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
@@ -155,19 +157,26 @@ private fun PlaceholderIcon() {
  * Preview
  */
 
-private class NowPlayingPreview : PreviewParameterProvider<Game> {
+private class NowPlayingPreview : PreviewParameterProvider<Pair<Boolean, Game>> {
     override val values = sequenceOf(
-        Game(440, "Team Fortress 2", 12.3f, 3),
-        Game(0, "Idle Daddy", 0.5f, 0),
+        false to Game(440, "Team Fortress 2", 12.3f, 3),
+        false to Game(0, "Idle Daddy", 0.5f, 0),
+        true to Game(440, "Team Fortress 2", 12.3f, 3),
     )
+
+    override fun getDisplayName(index: Int): String {
+        val (amoled, game) = values.elementAt(index)
+        return if (amoled) "AMOLED ${game.name}" else game.name
+    }
 }
 
 @Preview
 @Composable
 private fun Preview(
-    @PreviewParameter(NowPlayingPreview::class) game: Game,
+    @PreviewParameter(NowPlayingPreview::class) values: Pair<Boolean, Game>,
 ) {
-    IdleTheme {
+    val (amoled, game) = values
+    IdleTheme(amoled = amoled) {
         NowPlayingCard(
             game = game,
             isPaused = game.appId == 0,

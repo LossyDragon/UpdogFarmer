@@ -20,21 +20,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
+import com.steevsapps.idledaddy.ui.theme.LocalAmoled
 
 @Composable
 fun ItemAnnouncementsCard(
+    modifier: Modifier = Modifier,
     count: Int,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
+    val amoled = LocalAmoled.current
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            containerColor = if (amoled) Color(0xFF101010) else MaterialTheme.colorScheme.surfaceContainerHigh,
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
@@ -66,10 +70,19 @@ fun ItemAnnouncementsCard(
  * Preview
  */
 
+private class ItemAnnouncementsPreview : PreviewParameterProvider<Boolean> {
+    override val values = sequenceOf(false, true)
+
+    override fun getDisplayName(index: Int) =
+        if (values.elementAt(index)) "AMOLED" else "Default"
+}
+
 @Preview
 @Composable
-private fun Preview() {
-    IdleTheme {
+private fun Preview(
+    @PreviewParameter(ItemAnnouncementsPreview::class) amoled: Boolean,
+) {
+    IdleTheme(amoled = amoled) {
         ItemAnnouncementsCard(count = 3, onClick = {})
     }
 }

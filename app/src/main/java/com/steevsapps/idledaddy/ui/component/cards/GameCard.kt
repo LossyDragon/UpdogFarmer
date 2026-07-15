@@ -1,4 +1,4 @@
-package com.steevsapps.idledaddy.ui.component
+package com.steevsapps.idledaddy.ui.component.cards
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.combinedClickable
@@ -40,10 +40,11 @@ import coil3.compose.SubcomposeAsyncImage
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
+import com.steevsapps.idledaddy.ui.theme.LocalAmoled
 import kotlin.math.ceil
 
 @Composable
-fun GameItem(
+fun GameCard(
     game: Game,
     selected: Boolean,
     showIcon: Boolean,
@@ -53,10 +54,11 @@ fun GameItem(
     iconUrl: String = game.iconUrl,
     onImageError: (Game) -> Unit,
 ) {
+    val amoled = LocalAmoled.current
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            containerColor = if (amoled) Color(0xFF101010) else MaterialTheme.colorScheme.surfaceContainerHigh,
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         border = if (selected) BorderStroke(2.dp, Color(0xFF90BA3C)) else null,
@@ -131,7 +133,7 @@ private fun Preview(
     @PreviewParameter(GameItemPreview::class) selected: Boolean,
 ) {
     IdleTheme {
-        GameItem(
+        GameCard(
             game = Game(440, "Team Fortress 2", 12.3f, 3),
             selected = selected,
             showIcon = true,
@@ -151,7 +153,7 @@ private fun LoadingPreview() {
     }
     CompositionLocalProvider(LocalAsyncImagePreviewHandler provides previewHandler) {
         IdleTheme {
-            GameItem(
+            GameCard(
                 game = Game(440, "Portal 2", 12.3f, 3),
                 selected = false,
                 showIcon = true,

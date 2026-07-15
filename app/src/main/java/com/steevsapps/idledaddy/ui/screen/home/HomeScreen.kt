@@ -91,115 +91,115 @@ fun HomeScreenContent(
     var customAppDialogVisible by rememberSaveable { mutableStateOf(state.customAppDialogVisible) }
     var redeemAppDialogVisible by rememberSaveable { mutableStateOf(state.redeemAppDialogVisible) }
 
-        Scaffold(
-            topBar = {
-                IdleTopAppBar(
-                    title = stringResource(R.string.app_name),
-                    onNavClick = onMenuClick,
-                    navIcon = NavIcon.Menu,
-                    actions = {
-                        if (state.loggedIn) {
-                            IconButton(onClick = { redeemAppDialogVisible = true }) {
-                                Icon(
-                                    imageVector = Icons.Default.Redeem,
-                                    contentDescription = stringResource(R.string.redeem),
-                                )
-                            }
-                            IconButton(onClick = { customAppDialogVisible = true }) {
-                                Icon(
-                                    imageVector = Icons.Default.MoreTime,
-                                    contentDescription = stringResource(R.string.idle_custom_app),
-                                )
-                            }
+    Scaffold(
+        topBar = {
+            IdleTopAppBar(
+                title = stringResource(R.string.app_name),
+                onNavClick = onMenuClick,
+                navIcon = NavIcon.Menu,
+                actions = {
+                    if (state.loggedIn) {
+                        IconButton(onClick = { redeemAppDialogVisible = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Redeem,
+                                contentDescription = stringResource(R.string.redeem),
+                            )
+                        }
+                        IconButton(onClick = { customAppDialogVisible = true }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreTime,
+                                contentDescription = stringResource(R.string.idle_custom_app),
+                            )
                         }
                     }
+                }
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize(),
+            state = rememberLazyListState(),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            item {
+                StatusCard(
+                    isLoggedIn = state.loggedIn,
+                    isParentalControlled = state.parentalStatus,
+                    isBlocked = state.blocked,
+                    nextRetryAtMillis = state.nextRetryAtMillis,
+                    onClick = onStatusClick,
                 )
             }
-        ) { paddingValues ->
-            LazyColumn(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize(),
-                state = rememberLazyListState(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
+            if (state.itemAnnouncements > 0) {
                 item {
-                    StatusCard(
-                        isLoggedIn = state.loggedIn,
-                        isParentalControlled = state.parentalStatus,
-                        isBlocked = state.blocked,
-                        nextRetryAtMillis = state.nextRetryAtMillis,
-                        onClick = onStatusClick,
-                    )
-                }
-                if (state.itemAnnouncements > 0) {
-                    item {
-                        ItemAnnouncementsCard(
-                            count = state.itemAnnouncements,
-                            onClick = onInventoryClick,
-                        )
-                    }
-                }
-                if (game != null) {
-                    item {
-                        NowPlayingCard(
-                            game = game,
-                            isPaused = state.paused,
-                            showNext = showNext,
-                            showIcon = showIcon,
-                            onStop = onStopGame,
-                            onPauseResume = onPauseResume,
-                            onNext = onNextGame,
-                        )
-                    }
-                }
-                if (state.showDropInfo) {
-                    item {
-                        DropInfoCard(
-                            gameCount = state.gameCount,
-                            cardCount = state.cardCount
-                        )
-                    }
-                }
-                item {
-                    StartCard(
-                        enabled = state.loggedIn && !state.farming,
-                        onClick = onStartFarming,
-                    )
-                }
-                item {
-                    StopCard(
-                        onClick = onStopSteam,
+                    ItemAnnouncementsCard(
+                        count = state.itemAnnouncements,
+                        onClick = onInventoryClick,
                     )
                 }
             }
-        }
-
-        if (redeemAppDialogVisible) {
-            RedeemDialog(
-                onConfirm = { key ->
-                    onRedeem(key)
-                    redeemAppDialogVisible = false
-                },
-                onDismiss = { redeemAppDialogVisible = false },
-            )
-        }
-
-        if (customAppDialogVisible) {
-            CustomAppDialog(
-                onConfirm = { customGame ->
-                    onIdleCustomApp(customGame)
-                    customAppDialogVisible = false
-                },
-                onConfirmList = { customGames ->
-                    onIdleCustomApps(customGames)
-                    customAppDialogVisible = false
-                },
-                onDismiss = { customAppDialogVisible = false },
-            )
+            if (game != null) {
+                item {
+                    NowPlayingCard(
+                        game = game,
+                        isPaused = state.paused,
+                        showNext = showNext,
+                        showIcon = showIcon,
+                        onStop = onStopGame,
+                        onPauseResume = onPauseResume,
+                        onNext = onNextGame,
+                    )
+                }
+            }
+            if (state.showDropInfo) {
+                item {
+                    DropInfoCard(
+                        gameCount = state.gameCount,
+                        cardCount = state.cardCount
+                    )
+                }
+            }
+            item {
+                StartCard(
+                    enabled = state.loggedIn && !state.farming,
+                    onClick = onStartFarming,
+                )
+            }
+            item {
+                StopCard(
+                    onClick = onStopSteam,
+                )
+            }
         }
     }
+
+    if (redeemAppDialogVisible) {
+        RedeemDialog(
+            onConfirm = { key ->
+                onRedeem(key)
+                redeemAppDialogVisible = false
+            },
+            onDismiss = { redeemAppDialogVisible = false },
+        )
+    }
+
+    if (customAppDialogVisible) {
+        CustomAppDialog(
+            onConfirm = { customGame ->
+                onIdleCustomApp(customGame)
+                customAppDialogVisible = false
+            },
+            onConfirmList = { customGames ->
+                onIdleCustomApps(customGames)
+                customAppDialogVisible = false
+            },
+            onDismiss = { customAppDialogVisible = false },
+        )
+    }
+}
 
 
 /**
@@ -239,6 +239,28 @@ private class HomePreview : PreviewParameterProvider<HomeUiState> {
 @Composable
 private fun Preview(@PreviewParameter(HomePreview::class) state: HomeUiState) {
     IdleTheme {
+        HomeScreenContent(
+            state = state,
+            showIcon = true,
+            onMenuClick = {},
+            onStatusClick = {},
+            onInventoryClick = {},
+            onStartFarming = {},
+            onStopGame = {},
+            onPauseResume = {},
+            onNextGame = {},
+            onStopSteam = {},
+            onIdleCustomApp = {},
+            onIdleCustomApps = {},
+            onRedeem = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewDark(@PreviewParameter(HomePreview::class) state: HomeUiState) {
+    IdleTheme(amoled = true) {
         HomeScreenContent(
             state = state,
             showIcon = true,
