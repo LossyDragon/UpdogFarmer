@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Block
@@ -28,7 +27,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Redeem
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material3.ButtonDefaults
@@ -79,7 +77,6 @@ import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.ui.component.GameItem
 import com.steevsapps.idledaddy.ui.component.OreoTextField
 import com.steevsapps.idledaddy.ui.component.dialog.GameOptionsDialog
-import com.steevsapps.idledaddy.ui.component.dialog.RedeemDialog
 import com.steevsapps.idledaddy.ui.component.scrollbar
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 import org.koin.androidx.compose.koinViewModel
@@ -112,7 +109,6 @@ fun GamesScreen(
         onGameClick = viewModel::toggleGame,
         onGameLongClick = viewModel::showOptions,
         onPlayAll = viewModel::playAll,
-        onRedeem = viewModel::redeemKey,
         onToggleBlacklist = viewModel::toggleBlacklist,
         onDismissOptions = viewModel::dismissOptions,
         onImageError = viewModel::onImageError,
@@ -131,7 +127,6 @@ fun GamesScreenContent(
     onGameClick: (Game) -> Unit,
     onGameLongClick: (Game) -> Unit,
     onPlayAll: () -> Unit,
-    onRedeem: (String) -> Unit,
     onToggleBlacklist: (Game) -> Unit,
     onDismissOptions: () -> Unit,
     onImageError: (Game) -> Unit,
@@ -139,7 +134,6 @@ fun GamesScreenContent(
     IdleTheme {
         val gridState = rememberLazyGridState()
         var fabMenuExpanded by rememberSaveable { mutableStateOf(state.fabMenuExpanded) }
-        var redeemDialogVisible by rememberSaveable { mutableStateOf(state.redeemDialogVisible) }
 
         LaunchedEffect(state.games) {
             if (state.games.isNotEmpty()) {
@@ -156,11 +150,9 @@ fun GamesScreenContent(
                 GamesTopBar(
                     tab = state.tab,
                     query = state.query,
-                    showRedeem = state.showRedeem,
                     onMenuClick = onMenuClick,
                     onQueryChange = onQueryChange,
                     onSortChange = onSortChange,
-                    onRedeem = { redeemDialogVisible = true },
                 )
             },
             floatingActionButton = {
@@ -249,16 +241,6 @@ fun GamesScreenContent(
                         onDismiss = onDismissOptions,
                     )
                 }
-
-                if (redeemDialogVisible) {
-                    RedeemDialog(
-                        onConfirm = { key ->
-                            onRedeem(key)
-                            redeemDialogVisible = false
-                        },
-                        onDismiss = { redeemDialogVisible = false },
-                    )
-                }
             }
         }
     }
@@ -269,11 +251,9 @@ fun GamesScreenContent(
 private fun GamesTopBar(
     tab: Int,
     query: String,
-    showRedeem: Boolean,
     onMenuClick: () -> Unit,
     onQueryChange: (String) -> Unit,
     onSortChange: (Int) -> Unit,
-    onRedeem: () -> Unit,
 ) {
     var searching by rememberSaveable { mutableStateOf(false) }
     var sortMenuOpen by remember { mutableStateOf(false) }
@@ -318,7 +298,7 @@ private fun GamesTopBar(
             if (searching) {
                 IconButton(onClick = ::closeSearch) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        imageVector = Icons.Default.Close,
                         contentDescription = stringResource(android.R.string.cancel),
                     )
                 }
@@ -379,14 +359,6 @@ private fun GamesTopBar(
                             onSortChange(GamesViewModel.SORT_HOURS_PLAYED_REVERSED)
                         },
                     )
-                }
-                if (showRedeem) {
-                    IconButton(onClick = onRedeem) {
-                        Icon(
-                            imageVector = Icons.Default.Redeem,
-                            contentDescription = stringResource(R.string.redeem),
-                        )
-                    }
                 }
             }
         },
@@ -478,28 +450,23 @@ private class GamesPreview : PreviewParameterProvider<GamesScreenState> {
         "Games" to GamesScreenState(
             games = sampleGames,
             selected = sampleGames.take(1),
-            showRedeem = true,
         ),
         "Last session" to GamesScreenState(
             games = sampleGames,
             tab = TAB_LAST,
             showPlayAll = true,
-            showRedeem = true,
         ),
         "Empty" to GamesScreenState(),
         "Fab menu open" to GamesScreenState(
             games = sampleGames,
-            showRedeem = true,
             fabMenuExpanded = true,
         ),
         "Redeem dialog open" to GamesScreenState(
             games = sampleGames,
-            showRedeem = true,
             redeemDialogVisible = true,
         ),
         "Options dialog open" to GamesScreenState(
             games = sampleGames,
-            showRedeem = true,
             optionsGame = sampleGames.first(),
             optionsBlacklisted = false,
         ),
@@ -523,7 +490,6 @@ private fun Preview(@PreviewParameter(GamesPreview::class) state: GamesScreenSta
         onGameClick = {},
         onGameLongClick = {},
         onPlayAll = {},
-        onRedeem = {},
         onToggleBlacklist = {},
         onDismissOptions = {},
         onImageError = {},

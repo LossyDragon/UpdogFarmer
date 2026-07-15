@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 @Immutable
 data class HomeUiState(
@@ -25,6 +26,7 @@ data class HomeUiState(
     val cardCount: Int = 0,
     val showDropInfo: Boolean = false,
     val customAppDialogVisible: Boolean = false,
+    val redeemAppDialogVisible: Boolean = false,
     val itemAnnouncements: Int = 0,
 )
 
@@ -60,6 +62,17 @@ class HomeViewModel(private val connection: SteamServiceConnection) : ViewModel(
             }
         }
     }
+
+    /**
+     * Redeem a Steam key or free game ID
+     */
+    fun redeemKey(text: String) {
+        val key = text.uppercase(Locale.getDefault()).trim()
+        if (key.isNotEmpty()) {
+            service?.redeemKey(key)
+        }
+    }
+
 
     fun startFarming() {
         service?.startFarming()

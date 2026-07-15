@@ -29,7 +29,6 @@ data class GamesScreenState(
     val query: String = "",
     val refreshing: Boolean = false,
     val showPlayAll: Boolean = false,
-    val showRedeem: Boolean = false,
     val showIcons: Boolean = false,
     val optionsGame: Game? = null,
     val optionsBlacklisted: Boolean = false,
@@ -66,7 +65,7 @@ class GamesViewModel(
                 .collect { state ->
                     steamId = state.steamId
                     uiState.update {
-                        it.copy(selected = state.currentGames, showRedeem = steamId > 0)
+                        it.copy(selected = state.currentGames)
                     }
                     refresh()
                 }
@@ -161,16 +160,6 @@ class GamesViewModel(
         } else {
             uiState.update { it.copy(refreshing = true) }
             fetchGames()
-        }
-    }
-
-    /**
-     * Redeem a Steam key or free game ID
-     */
-    fun redeemKey(text: String) {
-        val key = text.uppercase(Locale.getDefault()).trim()
-        if (key.isNotEmpty()) {
-            service?.redeemKey(key)
         }
     }
 

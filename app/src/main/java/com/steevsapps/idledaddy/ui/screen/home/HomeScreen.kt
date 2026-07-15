@@ -7,7 +7,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.MoreTime
+import androidx.compose.material.icons.filled.Redeem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,6 +37,7 @@ import com.steevsapps.idledaddy.ui.component.cards.StartCard
 import com.steevsapps.idledaddy.ui.component.cards.StatusCard
 import com.steevsapps.idledaddy.ui.component.cards.StopCard
 import com.steevsapps.idledaddy.ui.component.dialog.CustomAppDialog
+import com.steevsapps.idledaddy.ui.component.dialog.RedeemDialog
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 import org.koin.androidx.compose.koinViewModel
 
@@ -62,6 +64,7 @@ fun HomeScreen(
         onStopSteam = onStopSteam,
         onIdleCustomApp = viewModel::idleGame,
         onIdleCustomApps = viewModel::idleGames,
+        onRedeem = viewModel::redeemKey,
     )
 }
 
@@ -80,11 +83,13 @@ fun HomeScreenContent(
     onStopSteam: () -> Unit,
     onIdleCustomApp: (Game) -> Unit,
     onIdleCustomApps: (List<Game>) -> Unit,
+    onRedeem: (String) -> Unit,
 ) {
     // Currently just show the first game
     val game = state.currentGames.firstOrNull()
     val showNext = state.farming && state.currentGames.size == 1
     var customAppDialogVisible by rememberSaveable { mutableStateOf(state.customAppDialogVisible) }
+    var redeemAppDialogVisible by rememberSaveable { mutableStateOf(state.redeemAppDialogVisible) }
 
     IdleTheme {
         Scaffold(
@@ -95,9 +100,15 @@ fun HomeScreenContent(
                     navIcon = NavIcon.Menu,
                     actions = {
                         if (state.loggedIn) {
+                            IconButton(onClick = { redeemAppDialogVisible = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.Redeem,
+                                    contentDescription = stringResource(R.string.redeem),
+                                )
+                            }
                             IconButton(onClick = { customAppDialogVisible = true }) {
                                 Icon(
-                                    imageVector = Icons.Default.MoreVert,
+                                    imageVector = Icons.Default.MoreTime,
                                     contentDescription = stringResource(R.string.idle_custom_app),
                                 )
                             }
@@ -166,6 +177,16 @@ fun HomeScreenContent(
             }
         }
 
+        if (redeemAppDialogVisible) {
+            RedeemDialog(
+                onConfirm = { key ->
+                    onRedeem(key)
+                    redeemAppDialogVisible = false
+                },
+                onDismiss = { redeemAppDialogVisible = false },
+            )
+        }
+
         if (customAppDialogVisible) {
             CustomAppDialog(
                 onConfirm = { customGame ->
@@ -232,5 +253,6 @@ private fun Preview(@PreviewParameter(HomePreview::class) state: HomeUiState) {
         onStopSteam = {},
         onIdleCustomApp = {},
         onIdleCustomApps = {},
+        onRedeem = {},
     )
 }
