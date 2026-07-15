@@ -1,5 +1,6 @@
 package com.steevsapps.idledaddy.ui.component
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -15,9 +16,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 
-enum class NavIcon(val imageVector: ImageVector) {
-    Back(Icons.AutoMirrored.Filled.ArrowBack),
-    Menu(Icons.Filled.Menu),
+enum class NavIcon(val imageVector: ImageVector, @StringRes val desc: Int) {
+    Back(Icons.AutoMirrored.Filled.ArrowBack, R.string.go_back),
+    Menu(Icons.Filled.Menu, R.string.open_drawer),
 }
 
 @Composable
@@ -33,7 +34,7 @@ fun IdleTopAppBar(
             IconButton(onClick = onNavClick) {
                 Icon(
                     imageVector = navIcon.imageVector,
-                    contentDescription = null,
+                    contentDescription = stringResource(navIcon.desc),
                 )
             }
         },
