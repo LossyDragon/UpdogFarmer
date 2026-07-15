@@ -67,33 +67,35 @@ fun GameItem(
                 .combinedClickable(onClick = onClick, onLongClick = onLongClick)
                 .padding(8.dp),
         ) {
-            SubcomposeAsyncImage(
-                model = iconUrl.takeIf { showIcon },
-                contentDescription = stringResource(R.string.desc_game_icon),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(292f / 136f),
-                contentScale = ContentScale.Fit,
-                onError = { onImageError(game) },
-                loading = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .size(64.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        CircularProgressIndicator(modifier = Modifier.size(64.dp))
-                    }
-                },
-                error = {
-                    Icon(
-                        imageVector = Icons.Default.Image,
-                        contentDescription = null,
-                        modifier = Modifier,
-                    )
-                },
-            )
-            Spacer(modifier = Modifier.height(6.dp))
+            if (showIcon) {
+                SubcomposeAsyncImage(
+                    model = iconUrl,
+                    contentDescription = stringResource(R.string.desc_game_icon),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(292f / 136f),
+                    contentScale = ContentScale.Fit,
+                    onError = { onImageError(game) },
+                    loading = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .size(64.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.size(64.dp))
+                        }
+                    },
+                    error = {
+                        Icon(
+                            imageVector = Icons.Default.Image,
+                            contentDescription = null,
+                            modifier = Modifier,
+                        )
+                    },
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+            }
             Text(
                 text = game.name,
                 maxLines = 1,
@@ -132,7 +134,7 @@ private fun Preview(
         GameItem(
             game = Game(440, "Team Fortress 2", 12.3f, 3),
             selected = selected,
-            showIcon = false,
+            showIcon = true,
             onClick = {},
             onLongClick = {},
             onImageError = {},
