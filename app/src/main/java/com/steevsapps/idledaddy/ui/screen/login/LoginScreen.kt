@@ -117,50 +117,48 @@ private fun LoginScreenComponent(
     twoFactorError: String?,
     twoFactorRequired: Boolean,
 ) {
-    IdleTheme {
-        Scaffold(
-            modifier = Modifier.imePadding(),
-            topBar = {
-                IdleTopAppBar(
-                    title = stringResource(R.string.login),
-                    onNavClick = onBack
+    Scaffold(
+        modifier = Modifier.imePadding(),
+        topBar = {
+            IdleTopAppBar(
+                title = stringResource(R.string.login),
+                onNavClick = onBack
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+        ) {
+            /* Not AppBar title */
+            Text(
+                modifier = Modifier.padding(vertical = 16.dp),
+                text = stringResource(R.string.login_to_steam),
+                style = MaterialTheme.typography.headlineSmall,
+            )
+            /* The login type between Credential or QR sign in */
+            when (loginType) {
+                LoginType.CREDENTIAL -> CredentialsComponent(
+                    loginInProgress = loginInProgress,
+                    twoFactorRequired = twoFactorRequired,
+                    passwordError = passwordError,
+                    twoFactorError = twoFactorError,
+                    initialUsername = initialUsername,
+                    initialPassword = initialPassword,
+                    onLogin = onLogin,
+                    onToggleLoginType = onToggleLoginType,
                 )
-            },
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-            ) {
-                /* Not AppBar title */
-                Text(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    text = stringResource(R.string.login_to_steam),
-                    style = MaterialTheme.typography.headlineSmall,
-                )
-                /* The login type between Credential or QR sign in */
-                when (loginType) {
-                    LoginType.CREDENTIAL -> CredentialsComponent(
-                        loginInProgress = loginInProgress,
-                        twoFactorRequired = twoFactorRequired,
-                        passwordError = passwordError,
-                        twoFactorError = twoFactorError,
-                        initialUsername = initialUsername,
-                        initialPassword = initialPassword,
-                        onLogin = onLogin,
-                        onToggleLoginType = onToggleLoginType,
-                    )
 
-                    LoginType.QR -> QrComponent(
-                        qrCode = qrCode,
-                        qrFailed = qrFailed,
-                        onToggleLoginType = onToggleLoginType,
-                        onRetry = onRetryQr,
-                    )
-                }
+                LoginType.QR -> QrComponent(
+                    qrCode = qrCode,
+                    qrFailed = qrFailed,
+                    onToggleLoginType = onToggleLoginType,
+                    onRetry = onRetryQr,
+                )
             }
         }
     }
@@ -345,19 +343,21 @@ private class LoginPreview : PreviewParameterProvider<LoginUiState> {
 @Preview
 @Composable
 private fun Preview(@PreviewParameter(LoginPreview::class) state: LoginUiState) {
-    LoginScreenComponent(
-        onBack = {},
-        initialPassword = "idledaddy",
-        initialUsername = "steev",
-        loginInProgress = state.loginInProgress,
-        loginType = state.loginType,
-        onLogin = { _, _, _ -> },
-        onToggleLoginType = {},
-        passwordError = state.passwordError?.let { stringResource(it) },
-        qrCode = state.qrCode,
-        qrFailed = state.qrFailed,
-        snackbarHostState = remember { SnackbarHostState() },
-        twoFactorError = state.twoFactorError?.let { stringResource(it) },
-        twoFactorRequired = state.twoFactorRequired,
-    )
+    IdleTheme {
+        LoginScreenComponent(
+            onBack = {},
+            initialPassword = "idledaddy",
+            initialUsername = "steev",
+            loginInProgress = state.loginInProgress,
+            loginType = state.loginType,
+            onLogin = { _, _, _ -> },
+            onToggleLoginType = {},
+            passwordError = state.passwordError?.let { stringResource(it) },
+            qrCode = state.qrCode,
+            qrFailed = state.qrFailed,
+            snackbarHostState = remember { SnackbarHostState() },
+            twoFactorError = state.twoFactorError?.let { stringResource(it) },
+            twoFactorRequired = state.twoFactorRequired,
+        )
+    }
 }

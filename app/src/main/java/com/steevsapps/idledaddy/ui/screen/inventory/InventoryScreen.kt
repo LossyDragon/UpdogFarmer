@@ -52,7 +52,6 @@ fun InventoryScreenContent(
     // Let the WebView consume back presses while it has history
     BackHandler(enabled = canGoBack) { webView?.goBack() }
 
-    IdleTheme {
         Scaffold(
             topBar = {
                 IdleTopAppBar(
@@ -100,7 +99,6 @@ fun InventoryScreenContent(
             )
         }
     }
-}
 
 /**
  * Preview
@@ -109,9 +107,11 @@ fun InventoryScreenContent(
 @Preview
 @Composable
 private fun Preview() {
-    InventoryScreenContent(
-        url = "",
-        cookies = emptyMap(),
-        onBack = {},
-    )
+    IdleTheme {
+        InventoryScreenContent(
+            url = "",
+            cookies = emptyMap(),
+            onBack = {},
+        )
+    }
 }

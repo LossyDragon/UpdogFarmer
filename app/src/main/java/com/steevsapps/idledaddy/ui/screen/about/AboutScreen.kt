@@ -39,26 +39,24 @@ private data class TranslatorEntry(val language: String, val contributors: Map<S
 
 @Composable
 fun AboutScreen(onBack: () -> Unit) {
-    IdleTheme {
-        Scaffold(
-            topBar = {
-                IdleTopAppBar(
-                    title = stringResource(R.string.about),
-                    onNavClick = onBack
-                )
-            }
-        ) { paddingValues ->
-            LazyColumn(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp)
-            ) {
-                item { GeneralInfoText() }
-                item { TranslatorsText() }
-                item { LicenseText() }
-            }
+    Scaffold(
+        topBar = {
+            IdleTopAppBar(
+                title = stringResource(R.string.about),
+                onNavClick = onBack
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp)
+        ) {
+            item { GeneralInfoText() }
+            item { TranslatorsText() }
+            item { LicenseText() }
         }
     }
 }
@@ -304,5 +302,7 @@ private val translators = listOf(
 @Preview
 @Composable
 private fun Preview() {
-    AboutScreen(onBack = {})
+    IdleTheme {
+        AboutScreen(onBack = {})
+    }
 }

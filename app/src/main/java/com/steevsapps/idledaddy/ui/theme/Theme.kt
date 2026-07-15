@@ -8,6 +8,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.steevsapps.idledaddy.ui.compat.darken
 
 // Legacy AppTheme palette (colors.xml/styles.xml), kept for the Oreo-era AppCompat dark look
 private val GreyPrimary = Color(0xFF424242)
@@ -17,6 +18,7 @@ private val WindowBackground = Color(0xFF303030)
 private val TextPrimary = Color.White
 private val TextSecondary = Color(0xB3FFFFFF)
 private val Divider = Color(0xFF4A4A4A)
+private val RedAccentDark = RedAccent.darken(0.15f)
 
 /**
  * M3 scheme mapped to the old AppCompat roles: `primary` here does the job of `colorAccent`
@@ -50,6 +52,21 @@ private val OreoColorScheme = darkColorScheme(
     outlineVariant = Divider,
 )
 
+private val AmoledColorScheme = OreoColorScheme.copy(
+    primary = RedAccentDark,
+    primaryContainer = RedAccentDark,
+    secondary = RedAccentDark,
+    tertiary = RedAccentDark,
+    background = Color.Black,
+    surface = Color.Black,
+    surfaceTint = Color.Black,
+    surfaceContainerLowest = Color.Black,
+    surfaceContainerLow = Color(0xFF141414),
+    surfaceContainer = Color(0xFF1A1A1A),
+    surfaceContainerHigh = GreyPrimaryDark,
+    surfaceContainerHighest = Color(0xFF2C2C2C),
+)
+
 // Oreo-era Material used 2dp corners on cards, dialogs, and menus
 private val OreoShapes = Shapes(
     extraSmall = RoundedCornerShape(2.dp),
@@ -60,9 +77,12 @@ private val OreoShapes = Shapes(
 )
 
 @Composable
-fun IdleTheme(content: @Composable () -> Unit) {
+fun IdleTheme(
+    amoled: Boolean = false,
+    content: @Composable () -> Unit
+) {
     MaterialTheme(
-        colorScheme = OreoColorScheme,
+        colorScheme = if (amoled) AmoledColorScheme else OreoColorScheme,
         shapes = OreoShapes,
     ) {
         Surface(

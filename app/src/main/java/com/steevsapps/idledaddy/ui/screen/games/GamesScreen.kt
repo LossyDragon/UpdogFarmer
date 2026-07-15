@@ -131,7 +131,6 @@ fun GamesScreenContent(
     onDismissOptions: () -> Unit,
     onImageError: (Game) -> Unit,
 ) {
-    IdleTheme {
         val gridState = rememberLazyGridState()
         var fabMenuExpanded by rememberSaveable { mutableStateOf(state.fabMenuExpanded) }
 
@@ -243,7 +242,6 @@ fun GamesScreenContent(
                 }
             }
         }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -391,11 +389,6 @@ private fun GamesFabMenu(
                 Icon(
                     imageVector = if (expanded) Icons.Default.Close else Icons.Default.Apps,
                     contentDescription = null,
-                    tint = if (expanded) {
-                        MaterialTheme.colorScheme.onPrimary
-                    } else {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    },
                 )
             }
         },
@@ -480,18 +473,20 @@ private class GamesPreview : PreviewParameterProvider<GamesScreenState> {
 @Preview
 @Composable
 private fun Preview(@PreviewParameter(GamesPreview::class) state: GamesScreenState) {
-    GamesScreenContent(
-        state = state,
-        onMenuClick = {},
-        onQueryChange = {},
-        onTabChange = {},
-        onSortChange = {},
-        onRefresh = {},
-        onGameClick = {},
-        onGameLongClick = {},
-        onPlayAll = {},
-        onToggleBlacklist = {},
-        onDismissOptions = {},
-        onImageError = {},
-    )
+    IdleTheme {
+        GamesScreenContent(
+            state = state,
+            onMenuClick = {},
+            onQueryChange = {},
+            onTabChange = {},
+            onSortChange = {},
+            onRefresh = {},
+            onGameClick = {},
+            onGameLongClick = {},
+            onPlayAll = {},
+            onToggleBlacklist = {},
+            onDismissOptions = {},
+            onImageError = {},
+        )
+    }
 }

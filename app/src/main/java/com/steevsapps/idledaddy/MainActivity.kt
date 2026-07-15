@@ -170,7 +170,8 @@ class MainActivity : ComponentActivity() {
                 onDispose { view.keepScreenOn = false }
             }
 
-            IdleTheme {
+            val amoled = preferences.get<Boolean>("amoled") ?: false
+            IdleTheme(amoled = amoled) {
                 MainScreen(
                     serviceState = serviceState,
                     backStack = backStack,

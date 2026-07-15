@@ -91,7 +91,6 @@ fun HomeScreenContent(
     var customAppDialogVisible by rememberSaveable { mutableStateOf(state.customAppDialogVisible) }
     var redeemAppDialogVisible by rememberSaveable { mutableStateOf(state.redeemAppDialogVisible) }
 
-    IdleTheme {
         Scaffold(
             topBar = {
                 IdleTopAppBar(
@@ -201,7 +200,6 @@ fun HomeScreenContent(
             )
         }
     }
-}
 
 
 /**
@@ -240,19 +238,21 @@ private class HomePreview : PreviewParameterProvider<HomeUiState> {
 @Preview
 @Composable
 private fun Preview(@PreviewParameter(HomePreview::class) state: HomeUiState) {
-    HomeScreenContent(
-        state = state,
-        showIcon = true,
-        onMenuClick = {},
-        onStatusClick = {},
-        onInventoryClick = {},
-        onStartFarming = {},
-        onStopGame = {},
-        onPauseResume = {},
-        onNextGame = {},
-        onStopSteam = {},
-        onIdleCustomApp = {},
-        onIdleCustomApps = {},
-        onRedeem = {},
-    )
+    IdleTheme {
+        HomeScreenContent(
+            state = state,
+            showIcon = true,
+            onMenuClick = {},
+            onStatusClick = {},
+            onInventoryClick = {},
+            onStartFarming = {},
+            onStopGame = {},
+            onPauseResume = {},
+            onNextGame = {},
+            onStopSteam = {},
+            onIdleCustomApp = {},
+            onIdleCustomApps = {},
+            onRedeem = {},
+        )
+    }
 }

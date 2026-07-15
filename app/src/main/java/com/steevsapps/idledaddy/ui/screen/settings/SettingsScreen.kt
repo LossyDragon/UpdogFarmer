@@ -88,116 +88,120 @@ private fun SettingsScreenContent(
 
     var showBlacklist by rememberSaveable { mutableStateOf(false) }
 
-    IdleTheme {
-        ProvidePreferenceLocals(flow = preferenceFlow) {
-            if (showBlacklist) {
-                BlacklistEditDialog(onDismiss = { showBlacklist = false })
+    ProvidePreferenceLocals(flow = preferenceFlow) {
+        if (showBlacklist) {
+            BlacklistEditDialog(onDismiss = { showBlacklist = false })
+        }
+
+        val stayAwake by rememberPreferenceState("stay_awake", false)
+        OnPreferenceChanged(stayAwake) { onStayAwakeChanged(it) }
+
+        val offline by rememberPreferenceState("offline", false)
+        OnPreferenceChanged(offline) { onOfflineChanged() }
+
+        val language by rememberPreferenceState("language", "")
+        OnPreferenceChanged(language) {
+            Toast.makeText(context, R.string.language_changed, Toast.LENGTH_LONG).show()
+        }
+
+        Scaffold(
+            topBar = {
+                IdleTopAppBar(
+                    title = stringResource(R.string.settings),
+                    onNavClick = onBack
+                )
             }
-
-            val stayAwake by rememberPreferenceState("stay_awake", false)
-            OnPreferenceChanged(stayAwake) { onStayAwakeChanged(it) }
-
-            val offline by rememberPreferenceState("offline", false)
-            OnPreferenceChanged(offline) { onOfflineChanged() }
-
-            val language by rememberPreferenceState("language", "")
-            OnPreferenceChanged(language) {
-                Toast.makeText(context, R.string.language_changed, Toast.LENGTH_LONG).show()
-            }
-
-            Scaffold(
-                topBar = {
-                    IdleTopAppBar(
-                        title = stringResource(R.string.settings),
-                        onNavClick = onBack
-                    )
-                }
-            ) { paddingValues ->
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(paddingValues)
-                        .fillMaxSize(),
-                ) {
-                    preferenceCategory(
-                        key = "cat_general",
-                        title = { Text(text = stringResource(R.string.cat_general)) }
-                    )
-                    switchPreference(
-                        key = "minimize_data",
-                        defaultValue = false,
-                        title = { Text(text = stringResource(R.string.pref_minimize_data)) },
-                        summary = { Text(text = stringResource(R.string.sum_minimize_data)) },
-                    )
-                    switchPreference(
-                        key = "stay_awake",
-                        defaultValue = false,
-                        title = { Text(text = stringResource(R.string.pref_stay_awake)) },
-                        summary = { Text(text = stringResource(R.string.sum_stay_awake)) },
-                    )
-                    switchPreference(
-                        key = "keep_screen_on",
-                        defaultValue = false,
-                        title = { Text(text = stringResource(R.string.pref_keep_screen_on)) },
-                        summary = { Text(text = stringResource(R.string.sum_keep_screen_on)) },
-                    )
-                    switchPreference(
-                        key = "include_free_games",
-                        defaultValue = true,
-                        title = { Text(text = stringResource(R.string.pref_include_free_games)) },
-                        summary = { Text(text = stringResource(R.string.sum_include_free_games)) },
-                    )
-                    switchPreference(
-                        key = "use_custom_loginid",
-                        defaultValue = false,
-                        title = { Text(text = stringResource(R.string.pref_use_custom_loginid)) },
-                        summary = { Text(text = stringResource(R.string.sum_use_custom_loginid)) },
-                    )
-                    textFieldPreference(
-                        key = "parental_pin",
-                        defaultValue = "",
-                        title = { Text(text = stringResource(R.string.pref_parental_pin)) },
-                        summary = { Text(text = stringResource(R.string.sum_parental_pin)) },
-                        textToValue = { it },
-                    )
-                    listPreference(
-                        key = "language",
-                        defaultValue = "",
-                        values = languageValues,
-                        title = { Text(text = stringResource(R.string.pref_language)) },
-                        summary = { Text(text = stringResource(R.string.sum_language)) },
-                        valueToText = { AnnotatedString(languageLabels[it] ?: it) },
-                    )
-                    preferenceCategory(
-                        key = "cat_idle",
-                        title = { Text(text = stringResource(R.string.cat_idle)) }
-                    )
-                    switchPreference(
-                        key = "offline",
-                        defaultValue = false,
-                        title = { Text(text = stringResource(R.string.pref_offline)) },
-                        summary = { Text(text = stringResource(R.string.sum_offline)) },
-                    )
-                    // The slider value is an INDEX into HOURS_UNTIL_DROPS_OPTIONS, not the hours.
-                    val hoursOptions = PrefsManager.HOURS_UNTIL_DROPS_OPTIONS
-                    sliderPreference(
-                        key = "hours_until_drops",
-                        defaultValue = PrefsManager.HOURS_UNTIL_DROPS_DEFAULT_INDEX.toFloat(),
-                        title = { Text(text = stringResource(R.string.pref_hours_until)) },
-                        summary = { Text(text = stringResource(R.string.sum_hours_until)) },
-                        valueRange = 0f..(hoursOptions.size - 1).toFloat(),
-                        valueSteps = hoursOptions.size - 2,
-                        valueText = {
-                            val hours = hoursOptions[it.roundToInt()]
-                            Text(text = if (hours == Int.MAX_VALUE) "∞" else hours.toString())
-                        },
-                    )
-                    preference(
-                        key = "blacklist",
-                        title = { Text(text = stringResource(R.string.pref_blacklist)) },
-                        summary = { Text(text = stringResource(R.string.sum_blacklist)) },
-                        onClick = { showBlacklist = true },
-                    )
-                }
+        ) { paddingValues ->
+            LazyColumn(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize(),
+            ) {
+                preferenceCategory(
+                    key = "cat_general",
+                    title = { Text(text = stringResource(R.string.cat_general)) }
+                )
+                switchPreference(
+                    key = "minimize_data",
+                    defaultValue = false,
+                    title = { Text(text = stringResource(R.string.pref_minimize_data)) },
+                    summary = { Text(text = stringResource(R.string.sum_minimize_data)) },
+                )
+                switchPreference(
+                    key = "stay_awake",
+                    defaultValue = false,
+                    title = { Text(text = stringResource(R.string.pref_stay_awake)) },
+                    summary = { Text(text = stringResource(R.string.sum_stay_awake)) },
+                )
+                switchPreference(
+                    key = "keep_screen_on",
+                    defaultValue = false,
+                    title = { Text(text = stringResource(R.string.pref_keep_screen_on)) },
+                    summary = { Text(text = stringResource(R.string.sum_keep_screen_on)) },
+                )
+                switchPreference(
+                    key = "amoled",
+                    defaultValue = false,
+                    title = { Text(text = stringResource(R.string.pref_amoled)) },
+                    summary = { Text(text = stringResource(R.string.sum_amoled)) },
+                )
+                switchPreference(
+                    key = "include_free_games",
+                    defaultValue = true,
+                    title = { Text(text = stringResource(R.string.pref_include_free_games)) },
+                    summary = { Text(text = stringResource(R.string.sum_include_free_games)) },
+                )
+                switchPreference(
+                    key = "use_custom_loginid",
+                    defaultValue = false,
+                    title = { Text(text = stringResource(R.string.pref_use_custom_loginid)) },
+                    summary = { Text(text = stringResource(R.string.sum_use_custom_loginid)) },
+                )
+                textFieldPreference(
+                    key = "parental_pin",
+                    defaultValue = "",
+                    title = { Text(text = stringResource(R.string.pref_parental_pin)) },
+                    summary = { Text(text = stringResource(R.string.sum_parental_pin)) },
+                    textToValue = { it },
+                )
+                listPreference(
+                    key = "language",
+                    defaultValue = "",
+                    values = languageValues,
+                    title = { Text(text = stringResource(R.string.pref_language)) },
+                    summary = { Text(text = stringResource(R.string.sum_language)) },
+                    valueToText = { AnnotatedString(languageLabels[it] ?: it) },
+                )
+                preferenceCategory(
+                    key = "cat_idle",
+                    title = { Text(text = stringResource(R.string.cat_idle)) }
+                )
+                switchPreference(
+                    key = "offline",
+                    defaultValue = false,
+                    title = { Text(text = stringResource(R.string.pref_offline)) },
+                    summary = { Text(text = stringResource(R.string.sum_offline)) },
+                )
+                // The slider value is an INDEX into HOURS_UNTIL_DROPS_OPTIONS, not the hours.
+                val hoursOptions = PrefsManager.HOURS_UNTIL_DROPS_OPTIONS
+                sliderPreference(
+                    key = "hours_until_drops",
+                    defaultValue = PrefsManager.HOURS_UNTIL_DROPS_DEFAULT_INDEX.toFloat(),
+                    title = { Text(text = stringResource(R.string.pref_hours_until)) },
+                    summary = { Text(text = stringResource(R.string.sum_hours_until)) },
+                    valueRange = 0f..(hoursOptions.size - 1).toFloat(),
+                    valueSteps = hoursOptions.size - 2,
+                    valueText = {
+                        val hours = hoursOptions[it.roundToInt()]
+                        Text(text = if (hours == Int.MAX_VALUE) "∞" else hours.toString())
+                    },
+                )
+                preference(
+                    key = "blacklist",
+                    title = { Text(text = stringResource(R.string.pref_blacklist)) },
+                    summary = { Text(text = stringResource(R.string.sum_blacklist)) },
+                    onClick = { showBlacklist = true },
+                )
             }
         }
     }
@@ -206,5 +210,7 @@ private fun SettingsScreenContent(
 @Preview
 @Composable
 private fun Preview() {
-    SettingsScreenContent()
+    IdleTheme {
+        SettingsScreenContent()
+    }
 }

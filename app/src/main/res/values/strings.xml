@@ -33,6 +33,8 @@
     <string name="pref_stay_awake">Keep Device Awake</string>
     <string name="pref_keep_screen_on">Keep Screen On</string>
     <string name="sum_keep_screen_on">The screen stays on while the app is open.</string>
+    <string name="pref_amoled">AMOLED Mode</string>
+    <string name="sum_amoled">Use a darker theme to reduce battery usage on OLED displays.</string>
     <string name="battery_optimization_restore_hint">To restore battery optimization, set %1$s back to \'Optimize\'</string>
     <string name="sum_stay_awake">Enable this if Idle Daddy stops working when the screen is off. WARNING: Some devices may automatically kill the app after a short period if this option is enabled.</string>
     <string name="pref_minimize_data">Minimize Data Usage</string>
