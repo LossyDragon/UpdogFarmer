@@ -40,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -52,6 +53,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -72,6 +74,7 @@ import coil3.annotation.ExperimentalCoilApi
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePreviewHandler
 import coil3.compose.LocalAsyncImagePreviewHandler
+import com.steevsapps.idledaddy.preferences.PrefsManager
 import com.steevsapps.idledaddy.steam.SteamService
 import com.steevsapps.idledaddy.steam.SteamServiceConnection
 import com.steevsapps.idledaddy.steam.SteamServiceState
@@ -157,6 +160,16 @@ class MainActivity : ComponentActivity() {
             val backStack = rememberNavBackStack(NavKeyRoot.Home)
             val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
             val serviceState by serviceConnection.state.collectAsStateWithLifecycle()
+
+            val preferences by PrefsManager.preferenceFlow.collectAsStateWithLifecycle()
+            val keepScreenOn = preferences.get<Boolean>("keep_screen_on") ?: false
+            val view = LocalView.current
+            DisposableEffect(keepScreenOn) {
+                Log.i(TAG, "Keep screen on: $keepScreenOn")
+                view.keepScreenOn = keepScreenOn
+                onDispose { view.keepScreenOn = false }
+            }
+
             IdleTheme {
                 MainScreen(
                     serviceState = serviceState,

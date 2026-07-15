@@ -135,6 +135,12 @@ private fun SettingsScreenContent(
                         summary = { Text(text = stringResource(R.string.sum_stay_awake)) },
                     )
                     switchPreference(
+                        key = "keep_screen_on",
+                        defaultValue = false,
+                        title = { Text(text = stringResource(R.string.pref_keep_screen_on)) },
+                        summary = { Text(text = stringResource(R.string.sum_keep_screen_on)) },
+                    )
+                    switchPreference(
                         key = "include_free_games",
                         defaultValue = true,
                         title = { Text(text = stringResource(R.string.pref_include_free_games)) },
