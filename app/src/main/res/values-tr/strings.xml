@@ -78,8 +78,6 @@
     <string name="sum_include_free_games">Varsayılan olarak, Team Fortress 2 gibi oynaması ücretsiz oyunlar dahil değildir (teknik olarak herkes onlara sahiptir). Bu seçeneği seçerseniz ve bu tür oyunları daha önce oynamış iseniz listeye dahil edilir.</string>
     <string name="pref_language">Dil</string>
     <string name="sum_language">Uygulama\'nın dilini değiştir (Yeniden  başlatma gerektirir).</string>
-    <string name="pref_use_custom_loginid">Giriş yapmak için Custom ID kullan</string>
-    <string name="sum_use_custom_loginid">Idle Daddy ile diğer SteamKit uygulamalarını (Ice Client gibi) beraber çalıştırabilmek için bu ayarı açın. Eğer emin değilseniz, bu ayarı kapalı tutun. (Yeniden başlatma gerektirir)</string>
     <string name="play_all">Hepsini çalıştır</string>
     <string name="sort">Sırala</string>
     <string name="sort_alphabetically">Alfabetik</string>

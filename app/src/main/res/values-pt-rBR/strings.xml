@@ -37,8 +37,6 @@
     <string name="sum_include_free_games">Por padrão, jogos gratuitos como Team Fortress 2 não são listados (já que tecnicamente todos os possuem). Se esta opção estiver habilitada, eles serão listados se o jogador os tiver jogado em algum momento.</string>
     <string name="pref_language">Idioma</string>
     <string name="sum_language">Altere o idioma do aplicativo (requer reinicialização).</string>
-    <string name="pref_use_custom_loginid">Usar ID de login personalizado</string>
-    <string name="sum_use_custom_loginid">Habilitar essa opção permitirá que você execute outros aplicativos SteamKit (como Ice Client) ao mesmo tempo que o Idle Daddy. Se não tiver certeza, mantenha desligado. (Requer reinicialização)</string>
     <string name="add_to_blacklist">Adicionar jogo à lista negra</string>
     <string name="remove_from_blacklist">Remover o jogo da lista negra</string>
     <string name="open_drawer">Abrir gaveta</string>

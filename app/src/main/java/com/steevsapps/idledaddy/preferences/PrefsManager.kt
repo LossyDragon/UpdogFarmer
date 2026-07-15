@@ -7,13 +7,12 @@ import androidx.preference.PreferenceManager
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.utils.CryptHelper
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import me.zhanghai.compose.preference.Preferences
 import me.zhanghai.compose.preference.createPreferenceFlow
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 /**
  * SharedPreferences manager
@@ -33,7 +32,6 @@ object PrefsManager {
     private const val LAST_SESSION = "last_session"
     private const val HOURS_UNTIL_DROPS = "hours_until_drops"
     private const val INCLUDE_FREE_GAMES = "include_free_games"
-    private const val USE_CUSTOM_LOGINID = "use_custom_loginid"
     private const val PERSONA_NAME = "persona_name"
     private const val AVATAR_HASH = "avatar_hash"
     private const val API_KEY = "api_key"
@@ -41,6 +39,7 @@ object PrefsManager {
     private const val VERSION = "version"
     private const val SORT_VALUE = "sort_value"
     private const val CELL_ID = "cell_id"
+    private const val LOGIN_ID = "login_id"
 
     /**
      * The slider stores an INDEX into this list, not the hour count itself.
@@ -92,7 +91,9 @@ object PrefsManager {
             // hours_until_drops now stores an INDEX into HOURS_UNTIL_DROPS_OPTIONS, not the hour
             // count; map any old hour value to the nearest option.
             (prefs.all[HOURS_UNTIL_DROPS] as? Float)?.let { oldHours ->
-                val nearest = HOURS_UNTIL_DROPS_OPTIONS.minByOrNull { abs(it.toFloat() - oldHours) }!!
+                val nearest = HOURS_UNTIL_DROPS_OPTIONS.minByOrNull {
+                    abs(it.toFloat() - oldHours)
+                }!!
                 val index = HOURS_UNTIL_DROPS_OPTIONS.indexOf(nearest)
                 prefs.edit { putFloat(HOURS_UNTIL_DROPS, index.toFloat()) }
             }
@@ -117,6 +118,7 @@ object PrefsManager {
             putString(PERSONA_NAME, "")
             putString(AVATAR_HASH, "")
             putString(API_KEY, "")
+            putInt(LOGIN_ID, 0)
         }
     }
 
@@ -142,7 +144,6 @@ object PrefsManager {
         writePref(GUARD_DATA, guardData)
     }
 
-    @JvmStatic
     fun getBlacklist(): MutableList<String?> {
         val blacklist: Array<String?> =
             prefs.getString(BLACKLIST, "")!!.split(",".toRegex())
@@ -176,9 +177,8 @@ object PrefsManager {
         writePref(AVATAR_HASH, avatarHash)
     }
 
-    @JvmStatic
     fun getApiKey(): String = prefs.getString(API_KEY, "")!!
-    @JvmStatic
+
     fun writeApiKey(apiKey: String?) {
         writePref(API_KEY, apiKey)
     }
@@ -209,7 +209,6 @@ object PrefsManager {
 
     fun minimizeData(): Boolean = prefs.getBoolean(MINIMIZE_DATA, false)
 
-    @JvmStatic
     fun getParentalPin(): String = prefs.getString(PARENTAL_PIN, "")!!
 
     fun getHoursUntilDrops(): Int {
@@ -219,8 +218,14 @@ object PrefsManager {
         return HOURS_UNTIL_DROPS_OPTIONS[index]
     }
 
-    @JvmStatic
     fun includeFreeGames(): Boolean = prefs.getBoolean(INCLUDE_FREE_GAMES, false)
 
-    fun useCustomLoginId(): Boolean = prefs.getBoolean(USE_CUSTOM_LOGINID, false)
+    fun getLoginId(): Int {
+        var id = prefs.getInt(LOGIN_ID, 0)
+        if (id == 0) {
+            id = Random.nextInt().takeIf { it != 0 } ?: 1
+            writePref(LOGIN_ID, id)
+        }
+        return id
+    }
 }

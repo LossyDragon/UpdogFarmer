@@ -49,8 +49,6 @@
     <string name="sum_include_free_games">Enabling this option will allow to display of played games activated with a free license.</string>
     <string name="pref_language">Language</string>
     <string name="sum_language">Change the app\'s language. (Requires restart)</string>
-    <string name="pref_use_custom_loginid">Use Custom Login ID</string>
-    <string name="sum_use_custom_loginid">Enabling this option will allow you to run other SteamKit apps at the same time as Idle Daddy. If unsure, leave this off. (Requires restart)</string>
     <string name="enter_an_appid">Enter an appid</string>
     <string name="add_to_blacklist">Add game to blacklist</string>
     <string name="remove_from_blacklist">Remove game from blacklist</string>
@@ -154,4 +152,5 @@
     <string name="translations">Translations</string>
     <string name="status_parental">Parental Status: %b</string>
     <string name="go_back">Go Back</string>
+    <string name="account">Account</string>
 </resources>

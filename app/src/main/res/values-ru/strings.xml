@@ -49,8 +49,6 @@
     <string name="sum_include_free_games">Включение этой опции позволит отображать сыгранные игры, активированные по бесплатной лицензии.</string>
     <string name="pref_language">Язык</string>
     <string name="sum_language">Сменить язык приложения. (Требуется перезапуск)</string>
-    <string name="pref_use_custom_loginid">Использовать Пользовательский Login ID</string>
-    <string name="sum_use_custom_loginid">Включение этой опции позволит вам запускать другие SteamKit приложения одновременно с Idle Daddy. Если не уверены, оставьте по умолчанию. (Требуется перезапуск)</string>
     <string name="enter_an_appid">Введите appid</string>
     <string name="add_to_blacklist">Внести игру в чёрный список</string>
     <string name="remove_from_blacklist">Удалить игру из чёрного списка</string>

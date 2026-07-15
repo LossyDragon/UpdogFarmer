@@ -28,6 +28,7 @@ import com.steevsapps.idledaddy.MainActivity
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.listeners.AndroidLogListener
 import com.steevsapps.idledaddy.preferences.PrefsManager
+import com.steevsapps.idledaddy.steam.SteamService.Companion.SKIP_INTENT
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.utils.LocaleManager
 import `in`.dragonbra.javasteam.base.ClientMsgProtobuf
@@ -87,7 +88,6 @@ import `in`.dragonbra.javasteam.types.GameID
 import `in`.dragonbra.javasteam.types.KeyValue
 import `in`.dragonbra.javasteam.types.SteamID
 import `in`.dragonbra.javasteam.util.IDebugNetworkListener
-import `in`.dragonbra.javasteam.util.NetHelpers.getIPAddress
 import `in`.dragonbra.javasteam.util.Strings
 import `in`.dragonbra.javasteam.util.log.LogManager
 import kotlinx.coroutines.CancellationException
@@ -391,8 +391,8 @@ class SteamService : Service() {
                 Log.i(
                     TAG,
                     "Heartbeat: connected=$connected loggedIn=$isLoggedIn " +
-                        "wakeLockHeld=${wakeLock?.isHeld == true} " +
-                        "dozeExempt=${pm.isIgnoringBatteryOptimizations(packageName)}"
+                            "wakeLockHeld=${wakeLock?.isHeld == true} " +
+                            "dozeExempt=${pm.isIgnoringBatteryOptimizations(packageName)}"
                 )
                 delay(10.minutes)
             }
@@ -541,15 +541,10 @@ class SteamService : Service() {
             clientOSType = EOSType.AndroidUnknown,
             machineName = FRIENDLY_NAME,
             shouldRememberPassword = true,
+            loginID = PrefsManager.getLoginId(),
             // chatMode = ChatMode.NEW_STEAM_CHAT,
             // uiMode = EUIMode.DesktopUI
         )
-        if (PrefsManager.useCustomLoginId()) {
-            val localIP = steamClient.localIP
-            if (localIP != null) {
-                details.loginID = getIPAddress(localIP) xor CUSTOM_OBFUSCATION_MASK
-            }
-        }
         steamUser.logOn(details)
     }
 
@@ -1162,7 +1157,7 @@ class SteamService : Service() {
                 appId = it.appid,
                 name = it.name,
                 iconUrl = "https://shared.fastly.steamstatic.com/store_item_assets/" +
-                    "steam/apps/${it.appid}/header.jpg",
+                        "steam/apps/${it.appid}/header.jpg",
                 hoursPlayed = it.playtimeForever / 60f,
             )
         }
@@ -1580,8 +1575,6 @@ class SteamService : Service() {
         // Some Huawei phones reportedly kill apps when they hold a WakeLock for a long time.
         // This can be prevented by using a WakeLock tag from the PowerGenie whitelist.
         private val WAKELOCK_TAG: String = "$TAG:LocationManagerService"
-
-        private const val CUSTOM_OBFUSCATION_MASK = -0xff24553
 
         private const val FRIENDLY_NAME = "Idle Daddy-Fork, " + BuildConfig.VERSION_NAME
 

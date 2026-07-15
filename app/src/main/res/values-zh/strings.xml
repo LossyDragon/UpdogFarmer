@@ -110,8 +110,6 @@
     <string name="non_steam_game">非Steam遊戲</string>
     <string name="playing_unknown_app">未知應用: %d</string>
     <string name="playing_non_steam_game">非Steam遊戲: %s</string>
-    <string name="pref_use_custom_loginid">使用自定義登錄ID</string>
-    <string name="sum_use_custom_loginid">啟用此選項將允許您在開啟Idle Daddy的同時運行其他SteamKit應用程序（例如Ice Client）。如果不確定，請將其關閉。 （需要重啟應用程式）</string>
     <string name="persian">Persian</string>
     <string name="bosnian_croatian">Bosnian/Croatian</string>
     <string name="serbian">Serbian</string>

@@ -109,8 +109,6 @@
     <string name="non_steam_game">Bukan game steam</string>
     <string name="playing_unknown_app">Aplikasi tidak dikenal: %d</string>
     <string name="playing_non_steam_game">Bukan game steam: %s</string>
-    <string name="pref_use_custom_loginid">Use Custom Login ID</string>
-    <string name="sum_use_custom_loginid">Enabling this option will allow you to run other SteamKit apps (such as Ice Client) at the same time as Idle Daddy. If unsure, leave this off. (Requires restart)</string>
     <string name="vietnamese">Vietnamese</string>
     <string name="persian">Persian</string>
     <string name="bosnian_croatian">Bosnian/Croatian</string>

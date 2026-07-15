@@ -98,8 +98,6 @@
     <string name="slovenian">Slovaque</string>
     <string name="french">Français</string>
     <string name="language_changed">Vous devez redémarrez l\'application pour que la langue se mette à jour.</string>
-    <string name="pref_use_custom_loginid">Utiliser un nom d\'utilisateur customisé.</string>
-    <string name="sum_use_custom_loginid">Activez cette option vous permettra d\'utiliser d\'autres applications SteamKit (comme Ice Client) au même moment que Idle Daddy. Si vous n\'êtes pas sûr, laissez cela éteint. (Requit un redémarrage)</string>
     <string name="romanian">Roumain</string>
     <string name="spanish">Espagnol</string>
     <string name="arabic">Arabe</string>

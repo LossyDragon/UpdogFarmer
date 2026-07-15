@@ -36,7 +36,6 @@ import me.zhanghai.compose.preference.preferenceCategory
 import me.zhanghai.compose.preference.rememberPreferenceState
 import me.zhanghai.compose.preference.sliderPreference
 import me.zhanghai.compose.preference.switchPreference
-import me.zhanghai.compose.preference.textFieldPreference
 import org.koin.compose.koinInject
 import kotlin.math.roundToInt
 
@@ -80,6 +79,9 @@ private fun SettingsScreenContent(
     val languageValues = stringArrayResource(R.array.language_option_values).toList()
     val languageLabels = languageValues.zip(stringArrayResource(R.array.language_options)).toMap()
 
+    // The slider value is an INDEX into HOURS_UNTIL_DROPS_OPTIONS, not the hours.
+    val hoursOptions = PrefsManager.HOURS_UNTIL_DROPS_OPTIONS
+
     val preferenceFlow = if (LocalView.current.isInEditMode) {
         createDefaultPreferenceFlow()
     } else {
@@ -117,15 +119,18 @@ private fun SettingsScreenContent(
                     .padding(paddingValues)
                     .fillMaxSize(),
             ) {
+                /* General */
                 preferenceCategory(
                     key = "cat_general",
                     title = { Text(text = stringResource(R.string.cat_general)) }
                 )
-                switchPreference(
-                    key = "minimize_data",
-                    defaultValue = false,
-                    title = { Text(text = stringResource(R.string.pref_minimize_data)) },
-                    summary = { Text(text = stringResource(R.string.sum_minimize_data)) },
+                listPreference(
+                    key = "language",
+                    defaultValue = "",
+                    values = languageValues,
+                    title = { Text(text = stringResource(R.string.pref_language)) },
+                    summary = { Text(text = stringResource(R.string.sum_language)) },
+                    valueToText = { AnnotatedString(languageLabels[it] ?: it) },
                 )
                 switchPreference(
                     key = "stay_awake",
@@ -145,36 +150,11 @@ private fun SettingsScreenContent(
                     title = { Text(text = stringResource(R.string.pref_amoled)) },
                     summary = { Text(text = stringResource(R.string.sum_amoled)) },
                 )
-                switchPreference(
-                    key = "include_free_games",
-                    defaultValue = true,
-                    title = { Text(text = stringResource(R.string.pref_include_free_games)) },
-                    summary = { Text(text = stringResource(R.string.sum_include_free_games)) },
-                )
-                switchPreference(
-                    key = "use_custom_loginid",
-                    defaultValue = false,
-                    title = { Text(text = stringResource(R.string.pref_use_custom_loginid)) },
-                    summary = { Text(text = stringResource(R.string.sum_use_custom_loginid)) },
-                )
-                textFieldPreference(
-                    key = "parental_pin",
-                    defaultValue = "",
-                    title = { Text(text = stringResource(R.string.pref_parental_pin)) },
-                    summary = { Text(text = stringResource(R.string.sum_parental_pin)) },
-                    textToValue = { it },
-                )
-                listPreference(
-                    key = "language",
-                    defaultValue = "",
-                    values = languageValues,
-                    title = { Text(text = stringResource(R.string.pref_language)) },
-                    summary = { Text(text = stringResource(R.string.sum_language)) },
-                    valueToText = { AnnotatedString(languageLabels[it] ?: it) },
-                )
+
+                /* Account */
                 preferenceCategory(
-                    key = "cat_idle",
-                    title = { Text(text = stringResource(R.string.cat_idle)) }
+                    key = "cat_account",
+                    title = { Text(text = stringResource(R.string.account)) }
                 )
                 switchPreference(
                     key = "offline",
@@ -182,8 +162,24 @@ private fun SettingsScreenContent(
                     title = { Text(text = stringResource(R.string.pref_offline)) },
                     summary = { Text(text = stringResource(R.string.sum_offline)) },
                 )
-                // The slider value is an INDEX into HOURS_UNTIL_DROPS_OPTIONS, not the hours.
-                val hoursOptions = PrefsManager.HOURS_UNTIL_DROPS_OPTIONS
+                switchPreference(
+                    key = "include_free_games",
+                    defaultValue = true,
+                    title = { Text(text = stringResource(R.string.pref_include_free_games)) },
+                    summary = { Text(text = stringResource(R.string.sum_include_free_games)) },
+                )
+                switchPreference(
+                    key = "minimize_data",
+                    defaultValue = false,
+                    title = { Text(text = stringResource(R.string.pref_minimize_data)) },
+                    summary = { Text(text = stringResource(R.string.sum_minimize_data)) },
+                )
+
+                /* Idling */
+                preferenceCategory(
+                    key = "cat_farming",
+                    title = { Text(text = stringResource(R.string.cat_idle)) }
+                )
                 sliderPreference(
                     key = "hours_until_drops",
                     defaultValue = PrefsManager.HOURS_UNTIL_DROPS_DEFAULT_INDEX.toFloat(),

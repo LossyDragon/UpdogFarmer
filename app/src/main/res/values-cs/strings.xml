@@ -76,8 +76,6 @@
     <string name="sum_include_free_games">Podle výchozího nastavení je farmení her zdarma jako Team Fortress 2 vypnuto (technicky vzato je kazdý vlastní). Pokud je tato možnost zapnuta, tak je uvidíte na seznamu, pokud jsi je někdy hrál.</string>
     <string name="pref_language">Jazyk</string>
     <string name="sum_language">Změnit jazyk aplikace (Vyžaduje restart).</string>
-    <string name="pref_use_custom_loginid">Použít vlastní přihlášení ID</string>
-    <string name="sum_use_custom_loginid">Povolením této funkce bude možné spustit ostatní SteamKit aplikace (jako např. Ice Client) ve stejnou dobu jako Idle Daddy. Pokud jsi nejsi jist, nech to vyplé. (Vyžaduje restart)</string>
     <string name="play_all">Hrát vše</string>
     <string name="sort">Seřadit</string>
     <string name="sort_alphabetically">Abecedně</string>

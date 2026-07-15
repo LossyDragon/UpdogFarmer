@@ -113,8 +113,6 @@
     <string name="playing_non_steam_game">Non-Steam game: %s</string>
     <string name="vietnamese">Tiếng Việt</string>
     <string name="persian">Tiếng Ba Tư</string>
-    <string name="pref_use_custom_loginid">Dùng ID đăng nhập tự chọn</string>
-    <string name="sum_use_custom_loginid">Bật chức năng này sẽ giúp bạn chạy những ứng dụng SteamKit khác (như Ice Client) cũng thời điểm với Idle Daddy. Nếu không chắc, hãy tắt chức năng này. (Cần khởi động lại)</string>
     <string name="sort_hours_played_reversed">Hours Played (reversed)</string>
     <!-- Untranslated strings: -->
     <!-- End untranslated strings -->

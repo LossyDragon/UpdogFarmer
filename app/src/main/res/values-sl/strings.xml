@@ -111,8 +111,6 @@
     <string name="non_steam_game">Non-Steam game</string>
     <string name="playing_unknown_app">Neznana aplikacija: %d</string>
     <string name="playing_non_steam_game">Non-Steam game: %s</string>
-    <string name="pref_use_custom_loginid">Use Custom Login ID</string>
-    <string name="sum_use_custom_loginid">Enabling this option will allow you to run other SteamKit apps (such as Ice Client) at the same time as Idle Daddy. If unsure, leave this off. (Requires restart)</string>
     <string name="bosnian_croatian">Bosnian/Croatian</string>
     <string name="serbian">Serbian</string>
     <string name="sort_hours_played_reversed">Hours Played (reversed)</string>

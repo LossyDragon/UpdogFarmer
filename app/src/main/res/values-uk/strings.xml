@@ -37,8 +37,6 @@
     <string name="sum_include_free_games">За замовчуванням безкоштовні ігри, такі як Team Fortress 2, відокремлюються (як формально кожен володіє ними). Якщо ця опція увімкнена, то зіграні раніше безкоштовні ігри будуть відображені.</string>
     <string name="pref_language">Мова</string>
     <string name="sum_language">Зміна мови інтерфейсу (Потрібен перезапуск).</string>
-    <string name="pref_use_custom_loginid">Використовувати Login ID користувача</string>
-    <string name="sum_use_custom_loginid">Включення цієї опції дозволить вам запускати інші SteamKit програми (наприклад, Ice Client) одночасно з Idle Daddy. Не змінюйте, якщо не впевнені. (Необхіден перезапуск)</string>
     <string name="add_to_blacklist">Додати гру до чорного списку</string>
     <string name="remove_from_blacklist">Видалити гру з чорного списку</string>
     <string name="open_drawer">Відкрити ящик</string>

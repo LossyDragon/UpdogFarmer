@@ -37,8 +37,6 @@
     <string name="sum_include_free_games">在默认情况下，Team Fortress 2 之类的免费游戏会被排除（因为从技术上来讲，所有用户都拥有它们）。如果启用此选项，您玩过的免费游戏也会被列出。</string>
     <string name="pref_language">语言</string>
     <string name="sum_language">更改应用程序的显示语言（需要重启应用）。</string>
-    <string name="pref_use_custom_loginid">使用自定义登录 ID</string>
-    <string name="sum_use_custom_loginid">启用此选项允许您在运行 Idle Daddy 的同时运行其他 SteamKit 应用（例如 Ice Client）。如果您不确定此选项的作用，请将其保持默认（需要重启应用）。</string>
     <string name="add_to_blacklist">添加游戏到黑名单</string>
     <string name="remove_from_blacklist">从黑名单中移除游戏</string>
     <string name="open_drawer">打开抽屉</string>

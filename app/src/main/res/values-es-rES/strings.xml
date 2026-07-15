@@ -82,8 +82,6 @@
     <string name="sort_hours_played">Horas jugadas</string>
     <string name="pref_language">Language</string>
     <string name="sum_language">Change the app\'s language (Requires restart).</string>
-    <string name="pref_use_custom_loginid">Use Custom Login ID</string>
-    <string name="sum_use_custom_loginid">Enabling this option will allow you to run other SteamKit apps (such as Ice Client) at the same time as Idle Daddy. If unsure, leave this off. (Requires restart)</string>
     <string name="english">English</string>
     <string name="german">German</string>
     <string name="russian">Russian</string>
