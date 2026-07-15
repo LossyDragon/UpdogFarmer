@@ -36,7 +36,7 @@
     <string name="pref_amoled">AMOLED Theme</string>
     <string name="sum_amoled">Use a darker theme to reduce battery usage on OLED displays.</string>
     <string name="battery_optimization_restore_hint">To restore battery optimization, set %1$s back to default</string>
-    <string name="sum_stay_awake">Enable this if Idle Daddy stops working when the screen is off. WARNING: Some devices may automatically close the app after a short period if this option is enabled.</string>
+    <string name="sum_stay_awake">Enable this if Idle Daddy stops working when the screen is off. WARNING: Some devices may still automatically close the app after a while.</string>
     <string name="pref_minimize_data">Minimize Data Usage</string>
     <string name="sum_minimize_data">Disable downloading images.</string>
     <string name="pref_parental_pin">Parental PIN</string>
