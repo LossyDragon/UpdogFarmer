@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Idle Daddy</string>
     <string name="status">Status</string>
     <string name="logged_in">Zalogowany</string>
     <string name="tap_to_login">Dotknij, aby się zalogować</string>
@@ -84,30 +83,6 @@
     <string name="sort">Sortuj</string>
     <string name="sort_alphabetically">Alfabetycznie</string>
     <string name="sort_hours_played">Wg czasu gry</string>
-    <string name="english">Angielski</string>
-    <string name="german">Niemiecki</string>
-    <string name="russian">Rosyjski</string>
-    <string name="portuguese_eu">Portugalski (europejski)</string>
-    <string name="portuguese_br">Portugalski (brazylijski)</string>
-    <string name="ukrainian">Ukraiński</string>
-    <string name="czech">Czeski</string>
-    <string name="polish">Polski</string>
-    <string name="turkish">Turecki</string>
-    <string name="thai">Tajlandzki</string>
-    <string name="chinese_simple">Chiński (uproszczony)</string>
-    <string name="chinese_traditional">Chiński (tradycyjny)</string>
-    <string name="bulgarian">Bułgarski</string>
-    <string name="slovenian">Słoweński</string>
-    <string name="french">Francuski</string>
-    <string name="romanian">Rumuński</string>
-    <string name="spanish">Hiszpański</string>
-    <string name="arabic">Arabski</string>
-    <string name="hebrew">Hebrajski</string>
-    <string name="indonesian">Indonezyjski</string>
-    <string name="vietnamese">Wietnamski</string>
-    <string name="persian">Perski</string>
-    <string name="bosnian_croatian">Bośniacki/Chorwacki</string>
-    <string name="serbian">Serbski</string>
     <string name="language_changed">Uruchom ponownie aplikację, aby zmienić ustawienia języka.</string>
     <string name="service_started">Usługa Steam uruchomiona</string>
     <string name="idle_custom_app">Symulacja gry ukrytej/spoza Steam</string>

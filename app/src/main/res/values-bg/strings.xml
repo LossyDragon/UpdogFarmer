@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Idle Daddy</string>
     <string name="status">Статус</string>
     <string name="logged_in">Вписан</string>
     <string name="tap_to_login">Цъкни тук, за да се впишеш</string>
@@ -82,28 +81,6 @@
     <string name="sort_hours_played">По изиграни часове</string>
     <string name="pref_language">Език</string>
     <string name="sum_language">Смени езика на приложението (Изисква рестарт).</string>
-    <string name="english">Английски</string>
-    <string name="german">Немски</string>
-    <string name="russian">Руски</string>
-    <string name="portuguese_eu">Португалски (Европа)</string>
-    <string name="portuguese_br">Португалски (Бразилия)</string>
-    <string name="ukrainian">Украински</string>
-    <string name="czech">Чешки</string>
-    <string name="polish">Полски</string>
-    <string name="turkish">Турски</string>
-    <string name="thai">Тайвански</string>
-    <string name="chinese_simple">Китайски (Опростен)</string>
-    <string name="chinese_traditional">Китайски (Традиционен)</string>
-    <string name="bulgarian">български</string>
-    <string name="slovenian">Словенски</string>
-    <string name="french">French</string>
-    <string name="romanian">Ромънски</string>
-    <string name="spanish">Испански</string>
-    <string name="arabic">Арабски</string>
-    <string name="hebrew">Иврит</string>
-    <string name="indonesian">Индонезийски</string>
-    <string name="vietnamese">Виетнамски</string>
-    <string name="persian">Персийски</string>
     <string name="language_changed">Рестартирай приложението, за да се промени езика.</string>
     <string name="service_started">Steam услугата е стартирана</string>
     <string name="idle_custom_app">Симулирай играене на игри извън Steam</string>
@@ -111,8 +88,6 @@
     <string name="non_steam_game">Игра извън Steam</string>
     <string name="playing_unknown_app">Непозната игра: %d</string>
     <string name="playing_non_steam_game">Игра извън Steam: %s</string>
-    <string name="bosnian_croatian">Хърватски</string>
-    <string name="serbian">Сръбски</string>
     <string name="sort_hours_played_reversed">Hours Played (reversed)</string>
     <!-- Untranslated strings: -->
     <!-- End untranslated strings -->

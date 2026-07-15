@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Идле Дадди</string>
     <string name="status">Статус</string>
     <string name="logged_in">Пријављен</string>
     <string name="tap_to_login">Додирните овде да се пријавите</string>
@@ -82,30 +81,6 @@
     <string name="sort">Поредај</string>
     <string name="sort_alphabetically">По абецеди</string>
     <string name="sort_hours_played">По броју сати</string>
-    <string name="english">Енглески</string>
-    <string name="german">Немачки</string>
-    <string name="russian">Руски</string>
-    <string name="portuguese_eu">Португалски (европски)</string>
-    <string name="portuguese_br">Португалски (Бразилски)</string>
-    <string name="ukrainian">Украјински</string>
-    <string name="czech">Чешки</string>
-    <string name="polish">Пољски</string>
-    <string name="turkish">Турски</string>
-    <string name="thai">Тајландски</string>
-    <string name="chinese_simple">Кинески (поједностављени)</string>
-    <string name="chinese_traditional">Кинески (традиционални)</string>
-    <string name="bulgarian">Бугарски</string>
-    <string name="slovenian">Словеначки</string>
-    <string name="french">Француски</string>
-    <string name="romanian">Румунски</string>
-    <string name="spanish">Шпански</string>
-    <string name="arabic">Арапски</string>
-    <string name="hebrew">Хебрејски</string>
-    <string name="indonesian">Индонежански</string>
-    <string name="vietnamese">Вијетнамски</string>
-    <string name="persian">Персијски</string>
-    <string name="bosnian_croatian">Босански/Хрватски</string>
-    <string name="serbian">Српски</string>
     <string name="language_changed">Да бисте променили језик, морате поново покренути апликацију.</string>
     <string name="service_started">Услуга покренута</string>
     <string name="idle_custom_app">Идлај Скривену игру или игру која није на Стеаму</string>

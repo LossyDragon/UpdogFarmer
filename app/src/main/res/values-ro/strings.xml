@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Idle Daddy</string>
     <string name="status">Status</string>
     <string name="logged_in">Autentificat</string>
     <string name="tap_to_login">Apasa aici pentru a te autentifica</string>
@@ -86,28 +85,6 @@ Seteaza starea ta ca "Offline", astfel incat prietenii tai sa nu vada ca esti in
     <string name="sort">Sorteaza</string>
     <string name="sort_alphabetically">Alfabetical</string>
     <string name="sort_hours_played">Ore jucate</string>
-    <string name="english">Engleza</string>
-    <string name="german">Germana</string>
-    <string name="russian">Rusa</string>
-    <string name="portuguese_eu">Portugheza (Europeana)</string>
-    <string name="portuguese_br">Portugheza (Braziliana)</string>
-    <string name="ukrainian">Ucraineana</string>
-    <string name="czech">Ceha</string>
-    <string name="polish">Poloneza</string>
-    <string name="turkish">Turca</string>
-    <string name="thai">Tailandeza</string>
-    <string name="chinese_simple">Chineza (Simplificata)</string>
-    <string name="chinese_traditional">Chineza (Traditionala)</string>
-    <string name="bulgarian">Bulgara</string>
-    <string name="slovenian">Slovaca</string>
-    <string name="french">Franceza</string>
-    <string name="romanian">Română</string>
-    <string name="spanish">Spaniola</string>
-    <string name="arabic">Araba</string>
-    <string name="hebrew">Ebraică</string>
-    <string name="indonesian">Indoneziană</string>
-    <string name="vietnamese">Vietnameză</string>
-    <string name="persian">Persană</string>
     <string name="language_changed">Trebuie sa restartezi aplicatia pentru ca limba sa fie schimbata.</string>
     <string name="service_started">Serviciul Steam a inceput</string>
     <string name="idle_custom_app">Idle ascuns in jocuri Non-Steam </string>
@@ -115,8 +92,6 @@ Seteaza starea ta ca "Offline", astfel incat prietenii tai sa nu vada ca esti in
     <string name="non_steam_game"> Jocuri Non-Steam </string>
     <string name="playing_unknown_app">Aplicatie necunoscuta: %d</string>
     <string name="playing_non_steam_game">Joc Non-Steam: %s</string>
-    <string name="bosnian_croatian">Bosnian/Croatian</string>
-    <string name="serbian">Serbian</string>
     <string name="sort_hours_played_reversed">Hours Played (reversed)</string>
     <!-- Untranslated strings: -->
     <!-- End untranslated strings -->

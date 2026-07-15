@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Idle Daddy</string>
     <string name="status">Statut</string>
     <string name="logged_in">Connecté</string>
     <string name="tap_to_login">Appuyez ici pour se connecter</string>
@@ -82,31 +81,7 @@
     <string name="sort">Trier</string>
     <string name="sort_alphabetically">Dans l\'ordre alphabétique</string>
     <string name="sort_hours_played">Heures jouées</string>
-    <string name="english">Anglais</string>
-    <string name="german">Allemand</string>
-    <string name="russian">Russe</string>
-    <string name="portuguese_eu">Portugais (Européen)</string>
-    <string name="portuguese_br">Portugais (Brésilien)</string>
-    <string name="ukrainian">Ukrainien</string>
-    <string name="czech">Tchèque</string>
-    <string name="polish">Polonais</string>
-    <string name="turkish">Turque</string>
-    <string name="thai">Thaïlandais</string>
-    <string name="chinese_simple">Chinois (Simplifié)</string>
-    <string name="chinese_traditional">Chinois (Traditionnel)</string>
-    <string name="bulgarian">Bulgare</string>
-    <string name="slovenian">Slovaque</string>
-    <string name="french">Français</string>
     <string name="language_changed">Vous devez redémarrez l\'application pour que la langue se mette à jour.</string>
-    <string name="romanian">Roumain</string>
-    <string name="spanish">Espagnol</string>
-    <string name="arabic">Arabe</string>
-    <string name="hebrew">Hébreu</string>
-    <string name="indonesian">Indonesien</string>
-    <string name="vietnamese">Vietnamien</string>
-    <string name="persian">Persan</string>
-    <string name="bosnian_croatian">Bosnien/Croate</string>
-    <string name="serbian">Serbe</string>
     <string name="service_started">Service Steam démarré.</string>
     <string name="idle_custom_app">Idle caché/Jeux non-Steam</string>
     <string name="hidden_appid">Appid cachée</string>

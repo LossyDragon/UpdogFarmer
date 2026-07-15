@@ -7,58 +7,57 @@
     </string-array>
 
     <string-array name="language_options">
-        <item>@string/english</item>
-        <item>@string/german</item>
-        <item>@string/russian</item>
-        <item>@string/portuguese_eu</item>
-        <item>@string/portuguese_br</item>
-        <item>@string/ukrainian</item>
-        <item>@string/czech</item>
-        <item>@string/polish</item>
-        <item>@string/turkish</item>
-        <item>@string/thai</item>
-        <item>@string/chinese_traditional</item>
-        <item>@string/chinese_simple</item>
-        <item>@string/bulgarian</item>
-        <item>@string/slovenian</item>
-        <item>@string/french</item>
-        <item>@string/romanian</item>
-        <item>@string/spanish</item>
-        <item>@string/arabic</item>
-        <item>@string/hebrew</item>
-        <item>@string/indonesian</item>
-        <item>@string/vietnamese</item>
-        <item>@string/persian</item>
-        <item>@string/bosnian_croatian</item>
-        <item>@string/serbian</item>
+        <item>@string/lang_english</item>
+        <item>@string/lang_russian</item>
+        <item>@string/lang_arabic</item>
+        <item>@string/lang_bosnian_croatian</item>
+        <item>@string/lang_bulgarian</item>
+        <item>@string/lang_chinese_simple</item>
+        <item>@string/lang_chinese_traditional</item>
+        <item>@string/lang_czech</item>
+        <item>@string/lang_french</item>
+        <item>@string/lang_german</item>
+        <item>@string/lang_hebrew</item>
+        <item>@string/lang_indonesian</item>
+        <item>@string/lang_persian</item>
+        <item>@string/lang_polish</item>
+        <item>@string/lang_portuguese_br</item>
+        <item>@string/lang_portuguese_eu</item>
+        <item>@string/lang_romanian</item>
+        <item>@string/lang_serbian</item>
+        <item>@string/lang_slovenian</item>
+        <item>@string/lang_spanish</item>
+        <item>@string/lang_thai</item>
+        <item>@string/lang_turkish</item>
+        <item>@string/lang_ukrainian</item>
+        <item>@string/lang_vietnamese</item>
     </string-array>
 
-    <!--suppress MissingTranslation -->
     <string-array name="language_option_values">
         <item>en</item>
-        <item>de</item>
         <item>ru</item>
-        <item>pt-PT</item>
-        <item>pt-BR</item>
-        <item>uk</item>
-        <item>cs</item>
-        <item>pl</item>
-        <item>tr</item>
-        <item>th</item>
-        <item>zh</item>
-        <item>zh-CN</item>
-        <item>bg</item>
-        <item>sl</item>
-        <item>fr</item>
-        <item>ro</item>
-        <item>es-ES</item>
         <item>ar</item>
+        <item>bs</item>
+        <item>bg</item>
+        <item>zh-CN</item>
+        <item>zh</item>
+        <item>cs</item>
+        <item>fr</item>
+        <item>de</item>
         <item>iw</item>
         <item>in</item>
-        <item>vi</item>
         <item>fa</item>
-        <item>bs</item>
+        <item>pl</item>
+        <item>pt-BR</item>
+        <item>pt-PT</item>
+        <item>ro</item>
         <item>sr</item>
+        <item>sl</item>
+        <item>es-ES</item>
+        <item>th</item>
+        <item>tr</item>
+        <item>uk</item>
+        <item>vi</item>
     </string-array>
 
     <string-array name="custom_app_type_options">

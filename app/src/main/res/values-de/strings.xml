@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Idle Daddy</string>
     <string name="status">Status</string>
     <string name="logged_in">Angemeldet</string>
     <string name="tap_to_login">Klicke hier zum Anmelden</string>
@@ -83,30 +82,6 @@
     <string name="sort_alphabetically">Alphabetisch</string>
     <string name="sort_hours_played">Spielzeit</string>
     <string name="sort_hours_played_reversed">Spielzeit (umgekehrt)</string>
-    <string name="english">Englisch</string>
-    <string name="german">Deutsch</string>
-    <string name="russian">Russisch</string>
-    <string name="portuguese_eu">Portugiesisch (Europa)</string>
-    <string name="portuguese_br">Portugiesisch (Brasilien)</string>
-    <string name="ukrainian">Ukrainisch</string>
-    <string name="czech">Tschechisch</string>
-    <string name="polish">Polnisch</string>
-    <string name="turkish">Türkisch</string>
-    <string name="thai">Thailändisch</string>
-    <string name="chinese_simple">Chinesisch (Vereinfacht)</string>
-    <string name="chinese_traditional">Chinesisch (Traditionell)</string>
-    <string name="bulgarian">Bulgarisch</string>
-    <string name="slovenian">Slovenisch</string>
-    <string name="french">Französisch</string>
-    <string name="romanian">Romänisch</string>
-    <string name="spanish">Spanisch</string>
-    <string name="arabic">Arabisch</string>
-    <string name="hebrew">Hebräisch</string>
-    <string name="indonesian">Indonesisch</string>
-    <string name="vietnamese">Vietnamesisch</string>
-    <string name="persian">Persisch</string>
-    <string name="bosnian_croatian">Bosnisch/Kroatisch</string>
-    <string name="serbian">Serbisch</string>
     <string name="language_changed">Du musst die Anwendung für die zu aktualisierende Sprache neu starten.</string>
     <string name="service_started">Steam Service gestartet</string>
     <string name="idle_custom_app">Spiele inaktiv Versteckte/Steam-fremde Spiele</string>

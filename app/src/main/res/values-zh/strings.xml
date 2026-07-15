@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Idle Daddy</string>
     <string name="status">狀態</string>
     <string name="logged_in">已登陸</string>
     <string name="tap_to_login">點我登陸</string>
@@ -82,27 +81,6 @@
     <string name="sort_hours_played">已遊玩小時數</string>
     <string name="pref_language">語言</string>
     <string name="sum_language">更換應用程式的語言 (需要重啟)。</string>
-    <string name="english">English</string>
-    <string name="german">German</string>
-    <string name="russian">Russian</string>
-    <string name="portuguese_eu">Portuguese (European)</string>
-    <string name="portuguese_br">Portuguese (Brazilian)</string>
-    <string name="ukrainian">Ukrainian</string>
-    <string name="czech">Czech</string>
-    <string name="polish">Polish</string>
-    <string name="turkish">Turkish</string>
-    <string name="thai">Thai</string>
-    <string name="chinese_simple">Chinese (Simplified)</string>
-    <string name="chinese_traditional">Chinese (Traditional)</string>
-    <string name="bulgarian">Bulgarian</string>
-    <string name="slovenian">Slovenian</string>
-    <string name="french">French</string>
-    <string name="romanian">Romanian</string>
-    <string name="spanish">Spanish</string>
-    <string name="arabic">Arabic</string>
-    <string name="hebrew">Hebrew</string>
-    <string name="indonesian">Indonesian</string>
-    <string name="vietnamese">Vietnamese</string>
     <string name="language_changed">您必須重新啟動應用程序才能更新語言。</string>
     <string name="service_started">Steam服務開始</string>
     <string name="idle_custom_app">開始挂機-隱藏/非Steam遊戲</string>
@@ -110,9 +88,6 @@
     <string name="non_steam_game">非Steam遊戲</string>
     <string name="playing_unknown_app">未知應用: %d</string>
     <string name="playing_non_steam_game">非Steam遊戲: %s</string>
-    <string name="persian">Persian</string>
-    <string name="bosnian_croatian">Bosnian/Croatian</string>
-    <string name="serbian">Serbian</string>
     <string name="sort_hours_played_reversed">已遊玩小時數 (reversed)</string>
     <!-- Untranslated strings: -->
     <!-- End untranslated strings -->

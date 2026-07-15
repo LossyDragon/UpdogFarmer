@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Idle Daddy</string>
     <string name="status">وضعیت</string>
     <string name="logged_in">وارد شده</string>
     <string name="tap_to_login">برای وارد شدن اینجا را لمس کنید</string>
@@ -82,28 +81,6 @@
     <string name="sort">چینش</string>
     <string name="sort_alphabetically">حروف الفبا</string>
     <string name="sort_hours_played">ساعت</string>
-    <string name="english">انگلیسی</string>
-    <string name="german">آلمانی</string>
-    <string name="russian">روسی</string>
-    <string name="portuguese_eu">پرتغالی ( اروپایی)</string>
-    <string name="portuguese_br">پرتغالی (برزیلی)</string>
-    <string name="ukrainian">اکراینی</string>
-    <string name="czech">چکی</string>
-    <string name="polish">لهستانی</string>
-    <string name="turkish">ترکی</string>
-    <string name="thai">تایلندی</string>
-    <string name="chinese_simple"> چینی ساده شده</string>
-    <string name="chinese_traditional"> چینی سنتی</string>
-    <string name="bulgarian">بلغاری</string>
-    <string name="slovenian">اسلوانیایی</string>
-    <string name="french">فرانسوی</string>
-    <string name="romanian">رومانیایی</string>
-    <string name="spanish">اسپانیایی</string>
-    <string name="arabic">عربی</string>
-    <string name="hebrew">عبری</string>
-    <string name="indonesian">اندونزیایی</string>
-    <string name="vietnamese">ویتنامی</string>
-    <string name="persian">فارسی</string>
     <string name="language_changed">برای تغییر زبان، برنامه را دوباره راه اندازی کنید</string>
     <string name="service_started">سرویس استیم آغاز شد</string>
     <string name="idle_custom_app">آیدل کردن بازی مخفی یا غیر استیم</string>
@@ -111,8 +88,6 @@
     <string name="non_steam_game">بازی غیر استیم</string>
     <string name="playing_unknown_app">:نرم افزار ناشناخته %d</string>
     <string name="playing_non_steam_game">:بازی غیر استیم %s</string>
-    <string name="bosnian_croatian">Bosnian/Croatian</string>
-    <string name="serbian">Serbian</string>
     <string name="sort_hours_played_reversed">Hours Played (reversed)</string>
     <!-- Untranslated strings: -->
     <!-- End untranslated strings -->

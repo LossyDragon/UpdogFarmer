@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Idle Daddy</string>
     <string name="status">Статус</string>
     <string name="logged_in">Ви увійшли</string>
     <string name="tap_to_login">Натисніть, щоб увійти</string>
@@ -83,30 +82,6 @@
     <string name="sort_alphabetically">За назвою</string>
     <string name="sort_hours_played">За часом</string>
     <string name="sort_hours_played_reversed">За часом (навпаки)</string>
-    <string name="english">Англійська</string>
-    <string name="german">Німецька</string>
-    <string name="russian">Російська</string>
-    <string name="portuguese_eu">Португальська (Європейська)</string>
-    <string name="portuguese_br">Португальська (Бразильська)</string>
-    <string name="ukrainian">Українська</string>
-    <string name="czech">Чеська</string>
-    <string name="polish">Польська</string>
-    <string name="turkish">Турецька</string>
-    <string name="thai">Тайська</string>
-    <string name="chinese_simple">Китайська (Спрощена)</string>
-    <string name="chinese_traditional">Китайська (Традиційна)</string>
-    <string name="bulgarian">Болгарська</string>
-    <string name="slovenian">Словенська</string>
-    <string name="french">Французька</string>
-    <string name="romanian">Румунська</string>
-    <string name="spanish">Іспанська</string>
-    <string name="arabic">Арабська</string>
-    <string name="hebrew">Іврит</string>
-    <string name="indonesian">Індонезійська</string>
-    <string name="vietnamese">В\'єтнамська</string>
-    <string name="persian">Фарсі</string>
-    <string name="bosnian_croatian">Боснійська/Хорватська</string>
-    <string name="serbian">Сербська</string>
     <string name="language_changed">Перезапустіть програму, щоб оновити мову.</string>
     <string name="service_started">Розпочато Обслуговування Steam</string>
     <string name="idle_custom_app">Пуск Таємної/Не-Steam Гри</string>

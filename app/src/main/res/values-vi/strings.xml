@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Idle Daddy</string>
     <string name="status">Trạng thái</string>
     <string name="logged_in">Đã đăng nhập</string>
     <string name="tap_to_login">Ấn vào để đăng nhập</string>
@@ -82,28 +81,6 @@
     <string name="sort">Sắp xếp</string>
     <string name="sort_alphabetically">Theo bảng chữ cái</string>
     <string name="sort_hours_played">Số giờ đã chơi</string>
-    <string name="english">Tiếng Anh</string>
-    <string name="german">Tiếng Đức</string>
-    <string name="russian">Tiếng Nga</string>
-    <string name="portuguese_eu">Tiếng Bồ Đào Nha (Châu Âu)</string>
-    <string name="portuguese_br">Tiếng Bồ Đào Nha (Brazil)</string>
-    <string name="ukrainian">Tiếng Ukrain</string>
-    <string name="czech">Tiếng Séc</string>
-    <string name="polish">Tiếng Ba Lan</string>
-    <string name="turkish">Tiếng Thổ Nhỉ Kì</string>
-    <string name="thai">Tiếng Thái</string>
-    <string name="chinese_simple">Tiếng Trung (Giản thể)</string>
-    <string name="chinese_traditional">Tiếng Trung (Truyền thống)</string>
-    <string name="bulgarian">Tiếng Bulgari</string>
-    <string name="slovenian">Tiếng Slovenia</string>
-    <string name="french">Tiếng Pháp</string>
-    <string name="romanian">Tiếng Rumani</string>
-    <string name="spanish">Tiếng Tây Ban Nha</string>
-    <string name="arabic">Tiếng Ả Rập</string>
-    <string name="hebrew">Tiếng Hebrew</string>
-    <string name="indonesian">Tiếng Indonesian</string>
-    <string name="bosnian_croatian">Tiếng Bosnian/Croatian</string>
-    <string name="serbian">Tiếng Serbian</string>
     <string name="language_changed">Bạn phải khởi động lại ứng dụng để ngôn ngữ có thể được đổi.</string>
     <string name="service_started">Đã khởi động dịch vụ Steam</string>
     <string name="idle_custom_app">Đang treo game ẩn/non-Steam game</string>
@@ -111,8 +88,6 @@
     <string name="non_steam_game">Non-Steam game</string>
     <string name="playing_unknown_app">Ứng dụng không xác định: %d</string>
     <string name="playing_non_steam_game">Non-Steam game: %s</string>
-    <string name="vietnamese">Tiếng Việt</string>
-    <string name="persian">Tiếng Ba Tư</string>
     <string name="sort_hours_played_reversed">Hours Played (reversed)</string>
     <!-- Untranslated strings: -->
     <!-- End untranslated strings -->

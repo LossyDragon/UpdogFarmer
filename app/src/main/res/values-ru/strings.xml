@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Idle Daddy</string>
     <string name="status">Статус</string>
     <string name="logged_in">Вы вошли</string>
     <string name="tap_to_login">Нажмите здесь для входа</string>
@@ -97,7 +96,6 @@
     <string name="about">О приложении</string>
     <string name="source_code">Исходный код (fork)</string>
     <string name="steam_group">Steam группа</string>
-    <string name="about_license">Idle Daddy\nCopyright © 2017–2018  Steev\'s apps\n\nЭто свободная программа: вы можете перераспространять её и/или изменять\nеё на условиях Стандартной Общественной Лицензии GNU в том виде, в каком\nона была опубликована Фондом свободного программного обеспечения; либо\nверсии 3 лицензии, либо (по вашему выбору) любой более поздней версии.\n\nЭта программа распространяется в надежде, что она будет полезной,\nно БЕЗО ВСЯКИХ ГАРАНТИЙ; даже без неявной гарантии ТОВАРНОГО ВИДА\nили ПРИГОДНОСТИ ДЛЯ ОПРЕДЕЛЕННЫХ ЦЕЛЕЙ. Подробнее см. в Стандартной\nОбщественной Лицензии GNU.\n\nВы должны были получить копию Стандартной Общественной Лицензии GNU\nвместе с этой программой. Если нет, см. &lt;http://www.gnu.org/licenses&gt;.</string>
     <string name="stop">Стоп</string>
     <string name="skip">Пропустить</string>
     <string name="pause">Пауза</string>
@@ -109,30 +107,6 @@
     <string name="sort_alphabetically">По имени</string>
     <string name="sort_hours_played">По времени</string>
     <string name="sort_hours_played_reversed">По времени (наоборот)</string>
-    <string name="english">Английский</string>
-    <string name="german">Немецкий</string>
-    <string name="russian">Русский</string>
-    <string name="portuguese_eu">Португальский (Европейский)</string>
-    <string name="portuguese_br">Португальский (Бразильский)</string>
-    <string name="ukrainian">Украинский</string>
-    <string name="czech">Чешский</string>
-    <string name="polish">Польский</string>
-    <string name="turkish">Турецкий</string>
-    <string name="thai">Тайский</string>
-    <string name="chinese_simple">Китайский (Упрощенный)</string>
-    <string name="chinese_traditional">Китайский (Традиционный)</string>
-    <string name="bulgarian">Болгарский</string>
-    <string name="slovenian">Словенский</string>
-    <string name="french">Французский</string>
-    <string name="romanian">Румынский</string>
-    <string name="spanish">Испанский</string>
-    <string name="arabic">Арабский</string>
-    <string name="hebrew">Иврит</string>
-    <string name="indonesian">Индонезийский</string>
-    <string name="vietnamese">Вьетнамский </string>
-    <string name="persian">Фарси</string>
-    <string name="bosnian_croatian">Боснийский/Хорватский</string>
-    <string name="serbian">Сербский</string>
     <string name="language_changed">Перезапустите приложение для смены языка.</string>
     <string name="service_started">Приложение запущено</string>
     <string name="idle_custom_app">Запуск Приложения</string>

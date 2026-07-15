@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Idle Daddy</string>
     <string name="status">状态</string>
     <string name="logged_in">已登录</string>
     <string name="tap_to_login">点击这里登录</string>
@@ -83,30 +82,6 @@
     <string name="sort_alphabetically">字母顺序</string>
     <string name="sort_hours_played">游戏时长</string>
     <string name="sort_hours_played_reversed">游戏时长倒序</string>
-    <string name="english">英语</string>
-    <string name="german">德语</string>
-    <string name="russian">俄语</string>
-    <string name="portuguese_eu">葡萄牙语</string>
-    <string name="portuguese_br">葡萄牙语（巴西）</string>
-    <string name="ukrainian">乌克兰语</string>
-    <string name="czech">捷克语</string>
-    <string name="polish">波兰语</string>
-    <string name="turkish">土耳其语</string>
-    <string name="thai">泰语</string>
-    <string name="chinese_simple">简体中文</string>
-    <string name="chinese_traditional">繁体中文</string>
-    <string name="bulgarian">保加利亚语</string>
-    <string name="slovenian">斯洛文尼亚语</string>
-    <string name="french">法语</string>
-    <string name="romanian">罗马尼亚语</string>
-    <string name="spanish">西班牙语</string>
-    <string name="arabic">阿拉伯语</string>
-    <string name="hebrew">希伯来语</string>
-    <string name="indonesian">印度尼西亚语</string>
-    <string name="vietnamese">越南语</string>
-    <string name="persian">波斯语</string>
-    <string name="bosnian_croatian">波斯尼亚/克罗地亚语</string>
-    <string name="serbian">塞尔维亚语</string>
     <string name="language_changed">您必须重新启动应用才能使语言修改生效。</string>
     <string name="service_started">Steam 服务已启动</string>
     <string name="idle_custom_app">挂隐藏游戏/非 Steam 游戏</string>

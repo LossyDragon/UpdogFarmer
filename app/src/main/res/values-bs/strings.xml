@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Idle Daddy</string>
     <string name="status">Status</string>
     <string name="logged_in">Prijavljen</string>
     <string name="tap_to_login">Dotaknite ovdje da biste se prijavili</string>
@@ -82,30 +81,6 @@
     <string name="sort">Poredaj</string>
     <string name="sort_alphabetically">Po abecedi</string>
     <string name="sort_hours_played">Po broju sati</string>
-    <string name="english">Engleski</string>
-    <string name="german">Njemački</string>
-    <string name="russian">Ruski</string>
-    <string name="portuguese_eu">Portugalski (Europski)</string>
-    <string name="portuguese_br">Portugalski (Brazilski)</string>
-    <string name="ukrainian">Ukrajinski</string>
-    <string name="czech">Češki</string>
-    <string name="polish">Poljski</string>
-    <string name="turkish">Turski</string>
-    <string name="thai">Tajlandski</string>
-    <string name="chinese_simple">Kineski (Pojednostavljen)</string>
-    <string name="chinese_traditional">Kineski (Tradicionalan)</string>
-    <string name="bulgarian">Bugarski</string>
-    <string name="slovenian">Slovenski</string>
-    <string name="french">Francuski</string>
-    <string name="romanian">Rumunski</string>
-    <string name="spanish">Španski</string>
-    <string name="arabic">Arapski</string>
-    <string name="hebrew">Hebrejski</string>
-    <string name="indonesian">Indonezijski</string>
-    <string name="vietnamese">Vijetnamski</string>
-    <string name="persian">Persijski</string>
-    <string name="bosnian_croatian">Bosanski/Hrvatski</string>
-    <string name="serbian">Srpski</string>
     <string name="language_changed">Za promjenu jezika morate ponovo pokrenuti aplikaciju.</string>
     <string name="service_started">Usluga pokrenuta</string>
     <string name="idle_custom_app">Idlaj Skrivenu igru ili igru koja nije na Steamu</string>

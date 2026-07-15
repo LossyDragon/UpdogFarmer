@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Idle Daddy</string>
     <string name="status">Durum</string>
     <string name="logged_in">Giriş yapıldı</string>
     <string name="tap_to_login">Giriş yapmak için buraya dokunun</string>
@@ -83,30 +82,6 @@
     <string name="sort_alphabetically">Alfabetik</string>
     <string name="sort_hours_played">Oynama süresine göre (Azalan)</string>
     <string name="sort_hours_played_reversed">Oynama süresine göre (Artan)</string>
-    <string name="english">İngilizce</string>
-    <string name="german">Almanca</string>
-    <string name="russian">Rusça</string>
-    <string name="portuguese_eu">Portekizce (Avrupa)</string>
-    <string name="portuguese_br">Portekizce (Brezilya)</string>
-    <string name="ukrainian">Ukraynaca</string>
-    <string name="czech">Cekçe</string>
-    <string name="polish">Lehçe</string>
-    <string name="turkish">Türkçe</string>
-    <string name="thai">Tayca</string>
-    <string name="chinese_simple">Çince (Basitleştirilmiş)</string>
-    <string name="chinese_traditional">Çince (Geleneksel)</string>
-    <string name="bulgarian">Bulgarca</string>
-    <string name="slovenian">Slovence</string>
-    <string name="french">Fransızca</string>
-    <string name="romanian">Rumence</string>
-    <string name="spanish">İspanyolca</string>
-    <string name="arabic">Arapça</string>
-    <string name="hebrew">İbranice</string>
-    <string name="indonesian">Endonezce</string>
-    <string name="vietnamese">Vietnamca</string>
-    <string name="persian">Farsça</string>
-    <string name="bosnian_croatian">Boşnakça/Hırvatça</string>
-    <string name="serbian">Sırpça</string>
     <string name="language_changed">Dil ayarının değişmesi için uygulamayı yeniden başlatmanız gerekmektedir.</string>
     <string name="service_started">Steam Servisi başlatıldı</string>
     <string name="idle_custom_app">Gizli/Steam Dışı oyun çalıştır</string>

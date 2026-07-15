@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Idle Daddy</string>
     <string name="status">Estado</string>
     <string name="logged_in">Ligado</string>
     <string name="tap_to_login">Toque aqui para fazer login</string>
@@ -78,30 +77,6 @@
     <string name="sort">Sort</string>
     <string name="sort_alphabetically">Alphabetically</string>
     <string name="sort_hours_played">Hours Played</string>
-    <string name="english">English</string>
-    <string name="german">German</string>
-    <string name="russian">Russian</string>
-    <string name="portuguese_eu">Portuguese (European)</string>
-    <string name="portuguese_br">Portuguese (Brazilian)</string>
-    <string name="ukrainian">Ukrainian</string>
-    <string name="czech">Czech</string>
-    <string name="polish">Polish</string>
-    <string name="turkish">Turkish</string>
-    <string name="thai">Thai</string>
-    <string name="chinese_simple">Chinese (Simplified)</string>
-    <string name="chinese_traditional">Chinese (Traditional)</string>
-    <string name="bulgarian">Bulgarian</string>
-    <string name="slovenian">Slovenian</string>
-    <string name="french">French</string>
-    <string name="romanian">Romanian</string>
-    <string name="spanish">Spanish</string>
-    <string name="arabic">Arabic</string>
-    <string name="hebrew">Hebrew</string>
-    <string name="indonesian">Indonesian</string>
-    <string name="vietnamese">Vietnamese</string>
-    <string name="persian">Persian</string>
-    <string name="bosnian_croatian">Bosnian/Croatian</string>
-    <string name="serbian">Serbian</string>
     <string name="language_changed">You must restart the application for the language to be updated.</string>
     <string name="service_started">Steam Service Started</string>
     <string name="idle_custom_app">Idle Hidden/Non-Steam Game</string>

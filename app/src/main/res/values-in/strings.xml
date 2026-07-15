@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Idle Daddy</string>
     <string name="status">Status</string>
     <string name="logged_in">Sudah Masuk</string>
     <string name="tap_to_login">Klik disini untuk masuk</string>
@@ -82,26 +81,6 @@
     <string name="sort">Urutkan</string>
     <string name="sort_alphabetically">Sesuai Abjad</string>
     <string name="sort_hours_played">Sesuai jumlah waktu dimainkan</string>
-    <string name="english">Inggris</string>
-    <string name="german">Jerman</string>
-    <string name="russian">Russia</string>
-    <string name="portuguese_eu">Portugis (Eropa)</string>
-    <string name="portuguese_br">Portugis (Brazil)</string>
-    <string name="ukrainian">Ukrania</string>
-    <string name="czech">Ceko</string>
-    <string name="polish">Polandia</string>
-    <string name="turkish">Turki</string>
-    <string name="thai">Thailand</string>
-    <string name="chinese_simple">Chinese (Simplified)</string>
-    <string name="chinese_traditional">Chinese (Traditional)</string>
-    <string name="bulgarian">Bulgaria</string>
-    <string name="slovenian">Slovenia</string>
-    <string name="french">Perancis</string>
-    <string name="romanian">Romania</string>
-    <string name="spanish">Spanyol</string>
-    <string name="arabic">Arabic</string>
-    <string name="hebrew">Hebrew</string>
-    <string name="indonesian">Bahasa Indonesia</string>
     <string name="language_changed">Anda harus me-restart aplikasi untuk memperbarui bahasa.</string>
     <string name="service_started">Steam Service Dimulai</string>
     <string name="idle_custom_app">Sembunyikan Idle/Bukan game steam</string>
@@ -109,10 +88,6 @@
     <string name="non_steam_game">Bukan game steam</string>
     <string name="playing_unknown_app">Aplikasi tidak dikenal: %d</string>
     <string name="playing_non_steam_game">Bukan game steam: %s</string>
-    <string name="vietnamese">Vietnamese</string>
-    <string name="persian">Persian</string>
-    <string name="bosnian_croatian">Bosnian/Croatian</string>
-    <string name="serbian">Serbian</string>
     <string name="sort_hours_played_reversed">Hours Played (reversed)</string>
     <!-- Untranslated strings: -->
     <!-- End untranslated strings -->

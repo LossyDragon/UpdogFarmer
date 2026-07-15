@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Idle Daddy</string>
     <string name="status">מצב</string>
     <string name="logged_in">מחובר</string>
     <string name="tap_to_login">לחץ כדי להתחבר</string>
@@ -82,36 +81,12 @@
     <string name="sort">מיין</string>
     <string name="sort_alphabetically">אלף בית</string>
     <string name="sort_hours_played">שעות ששוחקו</string>
-    <string name="english">אנגלית</string>
-    <string name="german">גרמנית</string>
-    <string name="russian">רוסית</string>
-    <string name="portuguese_eu">פורטוגזית (אירופה)</string>
-    <string name="portuguese_br">פורטוגזית (ברזיל)</string>
-    <string name="ukrainian">אוקראינית</string>
-    <string name="czech">צ\'כית</string>
-    <string name="polish">פולנית</string>
-    <string name="turkish">טורקית</string>
-    <string name="thai">תאילנדית</string>
-    <string name="chinese_simple">סינית (פשוט)</string>
-    <string name="chinese_traditional">סינית (מסורתי)</string>
-    <string name="bulgarian">בולגרית</string>
-    <string name="slovenian">סלובנית</string>
-    <string name="french">צרפתית</string>
-    <string name="romanian">רומנית</string>
     <string name="language_changed">אתה חייב להפעיל מחדש את האפליקציה כדי שהשפה תעודכן.</string>
     <string name="idle_custom_app">סריקה מוחבאת/משחק שלא בסטים</string>
     <string name="hidden_appid">קוד אפליקציה מוסתר</string>
     <string name="non_steam_game">משחק שלא בסטים</string>
     <string name="playing_unknown_app">אפליקציה לא ידועה: %d</string>
     <string name="playing_non_steam_game">משחק שלא בסטים: %s</string>
-    <string name="spanish">ספרדית</string>
-    <string name="arabic">ערבית</string>
-    <string name="hebrew">עברית</string>
-    <string name="indonesian">אינדונזית</string>
-    <string name="vietnamese">ויאטנמית</string>
-    <string name="persian">פרסית</string>
-    <string name="bosnian_croatian">בוסנית/קרואטית</string>
-    <string name="serbian">סרבית</string>
     <string name="service_started">שירות סטים החל</string>
     <string name="sort_hours_played_reversed">Hours Played (reversed)</string>
     <!-- Untranslated strings: -->
