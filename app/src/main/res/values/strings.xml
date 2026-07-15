@@ -54,6 +54,7 @@
     <string name="enter_an_appid">Enter an appid</string>
     <string name="add_to_blacklist">Add game to blacklist</string>
     <string name="remove_from_blacklist">Remove game from blacklist</string>
+    <string name="open_drawer">Open drawer</string>
     <string name="home">Home</string>
     <string name="games">Games</string>
     <string name="no_games_found">Couldn\'t retrieve the list of games.</string>
