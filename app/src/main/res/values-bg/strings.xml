@@ -35,7 +35,6 @@
     <string name="sum_hours_until">Минимум часове при което започват да падат картите. Докато точиш, Idle Daddy ще точи няколко игри едновременно докато не достигнат тази цифра. За повечето потребители, 3 часа е най-добрия избор.</string>
     <string name="pref_include_free_games">Включи и вече играни игри</string>
     <string name="sum_include_free_games">По подразбиране, безплатни игри като Team Fortress 2 са изключени (защото технически - всеки я притежава)..</string>
-    <string name="blacklist_hint">Въведи appid и цъкни +</string>
     <string name="add_to_blacklist">Добави игра към черния списък</string>
     <string name="remove_from_blacklist">Премахни игра от черния списък</string>
     <string name="open_drawer">Отвори чекмедже</string>

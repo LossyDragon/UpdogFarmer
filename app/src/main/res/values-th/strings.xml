@@ -35,7 +35,6 @@
     <string name="sum_hours_until">ชั่วโมง หลักจากที่คุณกำหนดจะทำการ Idle ทีละเกมเพื่อการรับการ์ดที่ดีกว่า (เร็วกว่าการ Idle ทีละหลายๆ เกม, แนะนำ 2 ชั่วโมง ปกติต้องมี ชั่วโมง การเล่นเกมให้เกิน 2 ชั่วโมง การ์ดถึงจะมีการ Drop — เพื่อป้องกันคนซื้อเกมมาเพื่อรับการ์ดฟรีๆ</string>
     <string name="pref_include_free_games">ให้ทำการจำลองการเล่น (Idle) เกมฟรีด้วย</string>
     <string name="sum_include_free_games">ปกติเกมฟรีจะจะไม่ถูก จำลองการเล่น (Idle) </string>
-    <string name="blacklist_hint">ใส่ AppID ของเกมที่อยากจะ Blacklist และกดตรง + เพื่อเพิ่มเกม</string>
     <string name="add_to_blacklist">เพิ่มเกมใส่ Blacklist</string>
     <string name="remove_from_blacklist">เอาเกมออกจาก Blacklist</string>
     <string name="open_drawer">เปิด Drawer</string>

@@ -35,7 +35,6 @@
     <string name="sum_hours_until">Cuántas horas tienen que pasar para obtener los cromos. Idle Daddy dejará corriendo varios juegos al mismo tiempo mientras espera a que se cumpla este número. Por lo general, 3 horas es suficiente.</string>
     <string name="pref_include_free_games">Incluir juegos gratuitos jugados</string>
     <string name="sum_include_free_games">Por defecto se excluyen del listado juegos gratuitos como el Team Fortress 2 ya que técnicamente todos lo poseen. Si activas esta opción, aparecerán en el listado si alguna vez lo jugaste.</string>
-    <string name="blacklist_hint">Introduce el AppID y presiona en el +</string>
     <string name="add_to_blacklist">Agregar juego a la lista negra</string>
     <string name="remove_from_blacklist">Quitar juego de la lista negra</string>
     <string name="open_drawer">Abrir cajón</string>

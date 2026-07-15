@@ -37,7 +37,6 @@
     <string name="sum_include_free_games">По дефаулту, бесплатне игре као Теам Фортресс 2 нису приказане (зато што технички, свако их посједује). Ако је ова опција омогућена, бит ће приказане све игре које сте икада играли.</string>
     <string name="pref_language">Језик</string>
     <string name="sum_language">Промените језик апликације (захтева поновно покретање).</string>
-    <string name="blacklist_hint">Унесите аппид и кликните +</string>
     <string name="add_to_blacklist">Додајте игру на Црну Листу</string>
     <string name="remove_from_blacklist">Уклоните игру са Црне Листе</string>
     <string name="open_drawer">Отвори латицу</string>

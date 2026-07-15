@@ -38,7 +38,6 @@ Seteaza starea ta ca "Offline", astfel incat prietenii tai sa nu vada ca esti in
     <string name="sum_include_free_games">In mod implicit, jocurile gratuite, cum ar fi Team Fortress 2, sunt excluse (din punct de vedere tehnic, toata lumea le detine). Daca aceasta opțiune este activata, acestea vor fi afișate daca jucatorul le-a jucat la un moment dat.</string>
     <string name="pref_language">Limba</string>
     <string name="sum_language">Schimba limba din aplicatie (necesita restart).</string>
-    <string name="blacklist_hint">Introdu id-ul unui joc si apasa +</string>
     <string name="add_to_blacklist">Adauga un joc pe lista neagra</string>
     <string name="remove_from_blacklist">Sterge un joc de pe lista neagra</string>
     <string name="open_drawer">Deschideti sertarul</string>

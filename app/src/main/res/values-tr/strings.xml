@@ -31,7 +31,6 @@
     <string name="sum_parental_pin">Aile Görünümünü açmak için PIN\'i girin.</string>
     <string name="pref_blacklist">Karaliste</string>
     <string name="sum_blacklist">Karalistedeki oyunlar çalıştırılmayacaktır.</string>
-    <string name="blacklist_hint">Bir uygulama ID\'si girin ve +\'ya basın</string>
     <string name="add_to_blacklist">Oyunu Karalisteye ekle</string>
     <string name="remove_from_blacklist">Oyunu Karalisteden çıkart</string>
     <string name="open_drawer">Yan menüyü aç</string>

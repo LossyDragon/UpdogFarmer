@@ -64,7 +64,6 @@
     <string name="cat_general">Obecné</string>
     <string name="pref_blacklist">Černá listina</string>
     <string name="sum_blacklist">Hry, které nechceš farmit přidej do blacklistu.</string>
-    <string name="blacklist_hint">Vlož appid a klikni na +</string>
     <string name="add_to_blacklist">Přidat hru do blacklistu</string>
     <string name="remove_from_blacklist">Odebrat hru z blacklistu</string>
     <string name="paused">Pozastaveno</string>

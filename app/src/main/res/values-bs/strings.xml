@@ -37,7 +37,6 @@
     <string name="sum_include_free_games">Po defaultu, besplatne igre kao Team Fortress 2 nisu prikazane (zato što tehnički, svako ih posjeduje). Ako je ova opcija omogućena, bit će prikazane sve igre koje ste ikada igrali.</string>
     <string name="pref_language">Jezik</string>
     <string name="sum_language">Promijenite jezik aplikacije (zahtijeva ponovno pokretanje).</string>
-    <string name="blacklist_hint">Unesite appid i kliknite +</string>
     <string name="add_to_blacklist">Dodajte igru na Crnu Listu</string>
     <string name="remove_from_blacklist">Uklonite igru sa Crne Liste</string>
     <string name="open_drawer">Otvori ladicu</string>

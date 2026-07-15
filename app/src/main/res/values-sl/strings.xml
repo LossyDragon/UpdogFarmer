@@ -35,7 +35,6 @@
     <string name="sum_hours_until">Število ur, ki so potrebni za začetek idlanje iger. Med idlanjem bo iddle daddy več iger hkrati idla, dokler ne pride do zaželene številke. Za večino uporabnikov je to 3 ure.</string>
     <string name="pref_include_free_games">Vključi zastonj igre</string>
     <string name="sum_include_free_games">Privzeto so brezplačne igre, kot je Team Fortress 2, izključene (tehnično jih ima vsakd lastnik). Če je možnost omogočena, se lahko igre idlajo.</string>
-    <string name="blacklist_hint">Vnesite appid in kliknite +</string>
     <string name="add_to_blacklist">Dodaj igro na črni seznam</string>
     <string name="remove_from_blacklist">Odstrani igro iz črnega seznama</string>
     <string name="open_drawer">Open drawer</string>

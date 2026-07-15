@@ -37,7 +37,6 @@
     <string name="sum_include_free_games">Theo mặc định, game miễn phí như Team Fortress 2 sẽ bị loại (vì hầu hết mọi người đều có game). Nếu như cài đặt này được bật, game sẽ được liệt kê nếu người chơi đã chơi tại một thời điểm nào đó.</string>
     <string name="pref_language">Ngôn ngữ</string>
     <string name="sum_language">Thay đổi ngôn ngữ của ứng dụng (Yêu cầu khởi động lại).</string>
-    <string name="blacklist_hint">Nhập appid và ấn +</string>
     <string name="add_to_blacklist">Thêm game vào danh sách đen</string>
     <string name="remove_from_blacklist">Xóa game khỏi danh sách đen</string>
     <string name="open_drawer">Mở ngăn chứa</string>

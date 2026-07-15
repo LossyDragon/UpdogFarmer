@@ -37,7 +37,6 @@
     <string name="sum_include_free_games">به صورت پیش فرض، بازی های رایگان در لیست قرار ندارند (چون اساساً همه آن ها را دارند). اگر این گزینه فعال باشد و بازیکن قبلاً آن ها را بازی کرده باشد، در لیست قرار خواهند گرفت</string>
     <string name="pref_language">زبان</string>
     <string name="sum_language">تغییر زبان برنامه (نیاز به راه اندازی مجدد)</string>
-    <string name="blacklist_hint">آیدی بازی را وارد کنید و + را بزنید</string>
     <string name="add_to_blacklist">اضافه کردن بازی به لیست سیاه</string>
     <string name="remove_from_blacklist">حذف بازی از لیست سیاه </string>
     <string name="open_drawer">باز کردن کشو</string>

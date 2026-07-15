@@ -37,7 +37,6 @@
     <string name="sum_include_free_games">افتراضيا, يتم استبعاد الألعاب المجانية مثل Team Fortress 2  (كما ان يملكها الجميع من الناحية الفنية). اذا تم تفعيل هذا الخيار, سيتم وضع اللعبة في القائمة اذا كان اللاعب قد لعب اللعبة.</string>
     <string name="pref_language">اللغة</string>
     <string name="sum_language">تغير لغة التطبيق (يتطلب اعادة التشغيل).</string>
-    <string name="blacklist_hint">ادخل appid ثم اضغط عل +</string>
     <string name="add_to_blacklist"> ادخل لعبة الى القائمة السوداء.</string>
     <string name="remove_from_blacklist">إزالة لعبة من القائمة السوداء</string>
     <string name="open_drawer">درج مفتوح</string>

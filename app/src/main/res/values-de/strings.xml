@@ -39,7 +39,6 @@
     <string name="sum_language">Ändere die Sprache der App (Erfordert Neustart).</string>
     <string name="pref_use_custom_loginid">Benutzerdefinierte Anmelde-ID verwenden</string>
     <string name="sum_use_custom_loginid">Wenn du diese Option aktivierst, können andere SteamKit-Apps (z.B. Ice Client) gleichzeitig mit Idle Daddy ausgeführt werden. Wenn du dir nicht sicher bist, lasse dies aus (Erfordert Neustart).</string>
-    <string name="blacklist_hint">Gebe eine appid ein und klicke auf das +</string>
     <string name="add_to_blacklist">Füge ein Spiel zu der schwarzen Liste hinzu</string>
     <string name="remove_from_blacklist">Entferne Spiel von der schwarzen Liste</string>
     <string name="open_drawer">Öffne das Menü</string>

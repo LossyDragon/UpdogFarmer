@@ -37,7 +37,6 @@
     <string name="sum_include_free_games">Standardowo gry, takie jak Team Fortress 2 są wykluczone z symulacji (z technicznego punktu widzenia wszyscy je posiadają). Jeśli ta opcja jest włączona darmowe gry będą pokazywane na liście aktywności, jeśli wcześniej były uruchomione.</string>
     <string name="pref_language">Język aplikacji</string>
     <string name="sum_language">Zmiana języka interfejsu aplikacji (wymaga ponownego uruchomienia).</string>
-    <string name="blacklist_hint">Wpisz AppID i naciśnij +</string>
     <string name="add_to_blacklist">Dodaj grę do listy wykluczonych</string>
     <string name="remove_from_blacklist">Usuń grę z listy wykluczonych</string>
     <string name="pref_use_custom_loginid">Użyj niestandardowego ID logowania</string>

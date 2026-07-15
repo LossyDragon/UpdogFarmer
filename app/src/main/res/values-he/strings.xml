@@ -37,7 +37,6 @@
     <string name="sum_include_free_games">כברירת מחדל, משחקים חינמיים כמו Team Fortress 2 כלולים (כשטכנית לכולם יש אותם). אם האפשרות הזו פועלת, הם ירשמו אם השחקן שיחק בהם מתישהו.</string>
     <string name="pref_language">שפה</string>
     <string name="sum_language">שנה את שפת האפליקציה (הפעלה מחדש נדרשת).</string>
-    <string name="blacklist_hint">הכנס קוד אפליקציה ולחץ +</string>
     <string name="add_to_blacklist">הוסף משחק לרשימה השחורה</string>
     <string name="remove_from_blacklist">הסר משחק מהרשימה השחורה</string>
     <string name="open_drawer">פתח תפריט</string>

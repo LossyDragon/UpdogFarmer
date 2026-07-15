@@ -37,7 +37,6 @@
     <string name="sum_include_free_games">Par défaut, les jeux gratuits comme Team Fortress 2 sont exclues (techniquement, tout le monde l\'a déjà). Si cette option est activée, ils seront listés si le joueur y a déjà joué.</string>
     <string name="pref_language">Langue</string>
     <string name="sum_language">Changer la langue de l\'application (cela requiert un redémarrage de l\'application).</string>
-    <string name="blacklist_hint">Entrer l\'ID d\'une application et cliquer sur +</string>
     <string name="add_to_blacklist">Ajouter un jeu à la liste noire</string>
     <string name="remove_from_blacklist">Enlever le jeu de la liste noire.</string>
     <string name="open_drawer">Ouvrir le drawer</string>

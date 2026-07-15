@@ -37,7 +37,6 @@
     <string name="sum_include_free_games">Secara default, game gratis seperti Team Fortress 2 tidak termasuk(Karena secara teknis semua orang mempunyai game itu). Jika opsi ini di aktifkan, game akan di daftar kan ke list jika pemain sudah pernah memainkannya dalam beberapa kasus.</string>
     <string name="pref_language">Bahasa</string>
     <string name="sum_language">Ganti bahasa(Membutuhkan Restart Aplikasi).</string>
-    <string name="blacklist_hint">Masukkan appid dan klik +</string>
     <string name="add_to_blacklist">Tambah Game ke Blacklist</string>
     <string name="remove_from_blacklist">Hapus game dari blacklist</string>
     <string name="open_drawer">Buka drawer</string>

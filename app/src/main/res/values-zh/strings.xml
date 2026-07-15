@@ -35,7 +35,6 @@
     <string name="sum_hours_until">遊戲開始掉落交易卡所需的時間。 在掛卡的時候，Idle Daddy會同時將多個遊戲掛機，直到達到這個小時數。 對於大多數用戶來說，3小時是最好的選擇。</string>
     <string name="pref_include_free_games">包含已遊玩過的免費遊戲</string>
     <string name="sum_include_free_games">默認情況下，《軍團要塞2》這壹類免費遊戲會被排除在外（從技術層面而言，每個人都擁有它們）。 如果啟用此選項，並且你在以前玩過它們，它們將會被列入名單。</string>
-    <string name="blacklist_hint">輸入壹個appid然後點擊 +</string>
     <string name="add_to_blacklist">將遊戲加入黑名單</string>
     <string name="remove_from_blacklist">將遊戲從黑名單移除</string>
     <string name="open_drawer">打開抽屜</string>
