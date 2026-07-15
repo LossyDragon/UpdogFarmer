@@ -53,9 +53,9 @@ import com.steevsapps.idledaddy.ui.component.scrollbar
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 import kotlinx.coroutines.launch
 
-private const val TYPE_APPID = 0
-private const val TYPE_CUSTOM = 1
-private const val TYPE_APPID_LIST = 2
+private const val TYPE_APPID_LIST = 0
+private const val TYPE_APPID = 1
+private const val TYPE_CUSTOM = 2
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,7 +63,7 @@ fun CustomAppDialog(
     onConfirm: (Game) -> Unit,
     onConfirmList: (List<Game>) -> Unit,
     onDismiss: () -> Unit,
-    initialTypeIndex: Int = TYPE_APPID,
+    initialTypeIndex: Int = TYPE_APPID_LIST,
     initialAppIds: List<Int> = emptyList(),
 ) {
     val resources = LocalResources.current
@@ -171,7 +171,9 @@ fun CustomAppDialog(
                         value = input,
                         onValueChange = { input = it },
                         modifier = Modifier.focusRequester(focusRequester),
-                        placeholder = stringResource(R.string.desc_custom_app),
+                        placeholder = if (typeIndex == TYPE_APPID)
+                            stringResource(R.string.custom_app_list_hint)
+                        else stringResource(R.string.desc_custom_app),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = if (typeIndex == TYPE_APPID) KeyboardType.Number else KeyboardType.Text,
                         ),
@@ -213,9 +215,9 @@ fun CustomAppDialog(
 
 private class CustomAppTypePreview : PreviewParameterProvider<Int> {
     private val types = listOf(
+        "App ID list" to TYPE_APPID_LIST,
         "App ID" to TYPE_APPID,
         "Custom name" to TYPE_CUSTOM,
-        "App ID list" to TYPE_APPID_LIST,
     )
 
     override val values = types.asSequence().map { it.second }
