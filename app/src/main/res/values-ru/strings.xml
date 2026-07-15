@@ -23,15 +23,20 @@
     <string name="settings">Настройки</string>
     <string name="logout">Выйти из аккаунта</string>
     <string name="redeem">Активировать продукт</string>
-    <string name="redeem_msg">Введите ключ продукта или appid бесплатного приложения</string>
+    <string name="redeem_msg">Введите ключ активации продукта или\nappid бесплатного приложения</string>
+    <string name="activate">Активировать</string>
     <string name="ok">OK</string>
     <string name="cat_idle">Фарм Карточек</string>
     <string name="cat_general">Общие</string>
     <string name="pref_offline">Оффлайн статус</string>
-    <string name="sum_offline">Устанавливает статус \'Не в сети\', чтобы ваши друзья не видели фарм.</string>
-    <string name="pref_stay_awake">Держать экран включенным</string>
-    <string name="sum_stay_awake">Включите эту функцию, если Idle Daddy прекращает работать, когда гаснет экран. ПРЕДУПРЕЖДЕНИЕ: Некоторые устройства могут автоматически убить приложение спустя некоторое время.</string>
-    <string name="battery_optimization_restore_hint">Чтобы восстановить оптимизацию батареи, установите для %1$s обратно значение \'Cбалансировано\'</string>
+    <string name="sum_offline">Устанавливает Steam статус \'Не в сети\', чтобы ваши друзья не видели фарм.</string>
+    <string name="pref_stay_awake">Держать устройство в активном состоянии</string>
+    <string name="pref_keep_screen_on">Держать экран включенным</string>
+    <string name="sum_keep_screen_on">Экран остается включенным, пока приложение открыто.</string>
+    <string name="pref_amoled">AMOLED Тема</string>
+    <string name="sum_amoled">Используйте более тёмную тему, чтобы снизить расход заряда батареи на OLED-дисплеях.</string>
+    <string name="battery_optimization_restore_hint">Чтобы восстановить оптимизацию батареи, верните %1$s к значениям по умолчанию.</string>
+    <string name="sum_stay_awake">Включите эту функцию, если Idle Daddy прекращает работать, когда гаснет экран. ПРЕДУПРЕЖДЕНИЕ: Некоторые устройства всё равно могут автоматически закрыть приложение спустя некоторое время.</string>
     <string name="pref_minimize_data">Минимизировать использование данных</string>
     <string name="sum_minimize_data">Отключить загрузку изображений.</string>
     <string name="pref_parental_pin">Родительский ПИН-код</string>
@@ -135,8 +140,8 @@
     <string name="idle_custom_app">Запуск Приложения</string>
     <string name="hidden_appid">appid</string>
     <string name="hidden_appid_list">Список appid</string>
-    <string name="add_app_id">Добавить App ID</string>
-    <string name="remove_app_id">Удалить App ID</string>
+    <string name="add_app_id">Добавить appid</string>
+    <string name="remove_app_id">Удалить appid</string>
     <string name="non_steam_game">Не-Steam</string>
     <string name="playing_unknown_app">Неизвестное приложение: %d</string>
     <string name="playing_non_steam_game">Не-Steam приложение: %s</string>
@@ -148,4 +153,5 @@
     <string name="license">Лицензия</string>
     <string name="translations">Переводы</string>
     <string name="status_parental">Родительский статус: %b</string>
+    <string name="go_back">Вернуться назад</string>
 </resources>
