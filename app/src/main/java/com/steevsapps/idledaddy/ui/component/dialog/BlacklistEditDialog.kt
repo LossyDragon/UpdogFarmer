@@ -24,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +34,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -56,6 +59,11 @@ fun BlacklistEditDialog(onDismiss: () -> Unit) {
     var input by rememberSaveable { mutableStateOf("") }
     val state = rememberLazyListState()
     val scope = rememberCoroutineScope()
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
 
     fun addItem() {
         val text = input.trim()
@@ -75,7 +83,9 @@ fun BlacklistEditDialog(onDismiss: () -> Unit) {
                     OreoTextField(
                         value = input,
                         onValueChange = { input = it },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .focusRequester(focusRequester),
                         placeholder = stringResource(R.string.blacklist_hint),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number,

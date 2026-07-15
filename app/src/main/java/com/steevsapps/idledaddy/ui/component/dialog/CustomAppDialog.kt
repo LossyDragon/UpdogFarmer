@@ -24,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +35,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
@@ -73,6 +76,11 @@ fun CustomAppDialog(
     val appIds = remember { initialAppIds.toMutableStateList() }
     val state = rememberLazyListState()
     val scope = rememberCoroutineScope()
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(typeIndex) {
+        focusRequester.requestFocus()
+    }
 
     fun unknownApp(appId: Int) =
         Game(appId, resources.getString(R.string.playing_unknown_app, appId), 0f, 0)
@@ -123,7 +131,9 @@ fun CustomAppDialog(
                         OreoTextField(
                             value = input,
                             onValueChange = { input = it },
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .focusRequester(focusRequester),
                             placeholder = stringResource(R.string.custom_app_list_hint),
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Number,
@@ -160,6 +170,7 @@ fun CustomAppDialog(
                     OreoTextField(
                         value = input,
                         onValueChange = { input = it },
+                        modifier = Modifier.focusRequester(focusRequester),
                         placeholder = stringResource(R.string.desc_custom_app),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = if (typeIndex == TYPE_APPID) KeyboardType.Number else KeyboardType.Text,
