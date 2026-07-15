@@ -80,6 +80,7 @@ import com.steevsapps.idledaddy.ui.component.GameItem
 import com.steevsapps.idledaddy.ui.component.OreoTextField
 import com.steevsapps.idledaddy.ui.component.dialog.GameOptionsDialog
 import com.steevsapps.idledaddy.ui.component.dialog.RedeemDialog
+import com.steevsapps.idledaddy.ui.component.scrollbar
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 import org.koin.androidx.compose.koinViewModel
 
@@ -182,7 +183,9 @@ fun GamesScreenContent(
                 ) {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .scrollbar(gridState),
                         state = gridState,
                         contentPadding = PaddingValues(
                             start = 8.dp,

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -25,11 +26,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
@@ -44,7 +46,9 @@ import androidx.compose.ui.unit.dp
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.ui.component.OreoTextField
+import com.steevsapps.idledaddy.ui.component.scrollbar
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
+import kotlinx.coroutines.launch
 
 private const val TYPE_APPID = 0
 private const val TYPE_CUSTOM = 1
@@ -57,6 +61,7 @@ fun CustomAppDialog(
     onConfirmList: (List<Game>) -> Unit,
     onDismiss: () -> Unit,
     initialTypeIndex: Int = TYPE_APPID,
+    initialAppIds: List<Int> = emptyList(),
 ) {
     val resources = LocalResources.current
     val typeOptions = stringArrayResource(R.array.custom_app_type_options)
@@ -65,7 +70,9 @@ fun CustomAppDialog(
     var input by rememberSaveable { mutableStateOf("") }
 
     // Collected app IDs for TYPE_APPID_LIST, added one at a time
-    val appIds = remember { mutableStateListOf<Int>() }
+    val appIds = remember { initialAppIds.toMutableStateList() }
+    val state = rememberLazyListState()
+    val scope = rememberCoroutineScope()
 
     fun unknownApp(appId: Int) =
         Game(appId, resources.getString(R.string.playing_unknown_app, appId), 0f, 0)
@@ -75,6 +82,7 @@ fun CustomAppDialog(
         if (id != null && id !in appIds) {
             appIds.add(0, id)
             input = ""
+            scope.launch { state.animateScrollToItem(0) }
         }
     }
 
@@ -130,7 +138,12 @@ fun CustomAppDialog(
                             )
                         }
                     }
-                    LazyColumn(modifier = Modifier.heightIn(max = 240.dp)) {
+                    LazyColumn(
+                        state = state,
+                        modifier = Modifier
+                            .heightIn(max = 240.dp)
+                            .scrollbar(state),
+                    ) {
                         items(items = appIds, key = { it }) { id ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(text = id.toString(), modifier = Modifier.weight(1f))
@@ -209,6 +222,7 @@ private fun Preview(@PreviewParameter(CustomAppTypePreview::class) typeIndex: In
                 onConfirmList = {},
                 onDismiss = {},
                 initialTypeIndex = typeIndex,
+                initialAppIds = listOf(440, 570, 730),
             )
         }
     }
