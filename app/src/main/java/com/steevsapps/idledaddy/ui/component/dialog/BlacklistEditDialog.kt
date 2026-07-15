@@ -86,7 +86,7 @@ fun BlacklistEditDialog(onDismiss: () -> Unit) {
                         modifier = Modifier
                             .weight(1f)
                             .focusRequester(focusRequester),
-                        placeholder = stringResource(R.string.blacklist_hint),
+                        placeholder = stringResource(R.string.enter_an_appid),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Done,

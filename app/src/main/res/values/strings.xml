@@ -47,7 +47,7 @@
     <string name="sum_language">Change the app\'s language. (Requires restart)</string>
     <string name="pref_use_custom_loginid">Use Custom Login ID</string>
     <string name="sum_use_custom_loginid">Enabling this option will allow you to run other SteamKit apps at the same time as Idle Daddy. If unsure, leave this off. (Requires restart)</string>
-    <string name="blacklist_hint">Enter an appid</string>
+    <string name="enter_an_appid">Enter an appid</string>
     <string name="add_to_blacklist">Add game to blacklist</string>
     <string name="remove_from_blacklist">Remove game from blacklist</string>
     <string name="open_drawer">Open drawer</string>
@@ -136,7 +136,6 @@
     <string name="idle_custom_app">Idle App</string>
     <string name="hidden_appid">appid</string>
     <string name="hidden_appid_list">appid list</string>
-    <string name="custom_app_list_hint">Enter an appid</string>
     <string name="add_app_id">Add App ID</string>
     <string name="remove_app_id">Remove App ID</string>
     <string name="non_steam_game">Non-Steam</string>

@@ -134,7 +134,7 @@ fun CustomAppDialog(
                             modifier = Modifier
                                 .weight(1f)
                                 .focusRequester(focusRequester),
-                            placeholder = stringResource(R.string.custom_app_list_hint),
+                            placeholder = stringResource(R.string.enter_an_appid),
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Number,
                                 imeAction = ImeAction.Done,
@@ -172,7 +172,7 @@ fun CustomAppDialog(
                         onValueChange = { input = it },
                         modifier = Modifier.focusRequester(focusRequester),
                         placeholder = if (typeIndex == TYPE_APPID)
-                            stringResource(R.string.custom_app_list_hint)
+                            stringResource(R.string.enter_an_appid)
                         else stringResource(R.string.desc_custom_app),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = if (typeIndex == TYPE_APPID) KeyboardType.Number else KeyboardType.Text,

@@ -46,7 +46,7 @@
     <string name="sum_language">Сменить язык приложения. (Требуется перезапуск)</string>
     <string name="pref_use_custom_loginid">Использовать Пользовательский Login ID</string>
     <string name="sum_use_custom_loginid">Включение этой опции позволит вам запускать другие SteamKit приложения одновременно с Idle Daddy. Если не уверены, оставьте по умолчанию. (Требуется перезапуск)</string>
-    <string name="blacklist_hint">Введите appid</string>
+    <string name="enter_an_appid">Введите appid</string>
     <string name="add_to_blacklist">Внести игру в чёрный список</string>
     <string name="remove_from_blacklist">Удалить игру из чёрного списка</string>
     <string name="open_drawer">Открыть ящик</string>
@@ -135,7 +135,6 @@
     <string name="idle_custom_app">Запуск Приложения</string>
     <string name="hidden_appid">appid</string>
     <string name="hidden_appid_list">Список appid</string>
-    <string name="custom_app_list_hint">Введите appid</string>
     <string name="add_app_id">Добавить App ID</string>
     <string name="remove_app_id">Удалить App ID</string>
     <string name="non_steam_game">Не-Steam</string>
