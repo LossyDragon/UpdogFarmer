@@ -9,6 +9,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -51,6 +52,7 @@ fun StopCard(
             Icon(
                 imageVector = Icons.Default.MoneyOff,
                 contentDescription = null,
+                tint = if (amoled) Color(0xFF4A4A4A) else LocalContentColor.current,
             )
         }
         Text(

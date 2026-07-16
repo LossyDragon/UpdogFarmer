@@ -1,6 +1,7 @@
 package com.steevsapps.idledaddy.ui.component.cards
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,12 +16,15 @@ import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,6 +36,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
+import coil3.annotation.ExperimentalCoilApi
+import coil3.compose.AsyncImagePainter
+import coil3.compose.AsyncImagePreviewHandler
+import coil3.compose.LocalAsyncImagePreviewHandler
 import coil3.compose.SubcomposeAsyncImage
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.steam.model.Game
@@ -69,7 +77,14 @@ fun NowPlayingCard(
                 model = game.iconUrl.takeIf { showIcon },
                 contentDescription = stringResource(R.string.desc_game_icon),
                 contentScale = ContentScale.Crop,
-                loading = { PlaceholderIcon() },
+                loading = {
+                    Box(
+                        modifier = Modifier.size(100.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                },
                 error = { PlaceholderIcon() },
             )
             Column(
@@ -118,6 +133,7 @@ fun NowPlayingCard(
                         Icon(
                             imageVector = Icons.Default.Stop,
                             contentDescription = stringResource(R.string.desc_stop_button),
+                            tint = if (amoled) Color(0xFF4A4A4A) else LocalContentColor.current,
                         )
                     }
                     IconButton(onClick = onPauseResume) {
@@ -128,6 +144,7 @@ fun NowPlayingCard(
                                 Icons.Default.Pause
                             },
                             contentDescription = stringResource(R.string.pause_button),
+                            tint = if (amoled) Color(0xFF4A4A4A) else LocalContentColor.current,
                         )
                     }
                     if (showNext) {
@@ -135,6 +152,7 @@ fun NowPlayingCard(
                             Icon(
                                 imageVector = Icons.Default.SkipNext,
                                 contentDescription = stringResource(R.string.next_button),
+                                tint = if (amoled) Color(0xFF4A4A4A) else LocalContentColor.current,
                             )
                         }
                     }
@@ -146,10 +164,12 @@ fun NowPlayingCard(
 
 @Composable
 private fun PlaceholderIcon() {
+    val amoled = LocalAmoled.current
     Icon(
         imageVector = Icons.Default.Image,
         contentDescription = null,
         modifier = Modifier.fillMaxSize(),
+        tint = if (amoled) Color(0xFF4A4A4A) else LocalContentColor.current,
     )
 }
 
@@ -186,5 +206,27 @@ private fun Preview(
             onPauseResume = {},
             onNext = {},
         )
+    }
+}
+
+@OptIn(ExperimentalCoilApi::class)
+@Preview(name = "Icon loading")
+@Composable
+private fun LoadingPreview() {
+    val previewHandler = AsyncImagePreviewHandler { _, _ ->
+        AsyncImagePainter.State.Loading(null)
+    }
+    CompositionLocalProvider(LocalAsyncImagePreviewHandler provides previewHandler) {
+        IdleTheme {
+            NowPlayingCard(
+                game = Game(440, "Team Fortress 2", 12.3f, 3),
+                isPaused = false,
+                showNext = true,
+                showIcon = true,
+                onStop = {},
+                onPauseResume = {},
+                onNext = {},
+            )
+        }
     }
 }

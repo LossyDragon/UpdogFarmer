@@ -17,6 +17,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -92,7 +93,7 @@ fun GameCard(
                         Icon(
                             imageVector = Icons.Default.Image,
                             contentDescription = null,
-                            modifier = Modifier,
+                            tint = if (amoled) Color(0xFF4A4A4A) else LocalContentColor.current,
                         )
                     },
                 )
@@ -162,5 +163,21 @@ private fun LoadingPreview() {
                 onImageError = {},
             )
         }
+    }
+}
+
+@OptIn(ExperimentalCoilApi::class)
+@Preview
+@Composable
+private fun LoadingDarkPreview() {
+    IdleTheme(amoled = true) {
+        GameCard(
+            game = Game(440, "Portal 2", 12.3f, 3),
+            selected = false,
+            showIcon = true,
+            onClick = {},
+            onLongClick = {},
+            onImageError = {},
+        )
     }
 }
