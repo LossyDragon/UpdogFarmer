@@ -202,6 +202,10 @@ private fun MainScreen(
         }
     }
 
+    val popBackStack: () -> Unit = {
+        if (backStack.size > 1) backStack.removeLastOrNull()
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -295,7 +299,7 @@ private fun MainScreen(
         NavDisplay(
             modifier = Modifier.fillMaxSize(),
             backStack = backStack,
-            onBack = { backStack.removeLastOrNull() },
+            onBack = { popBackStack() },
             entryDecorators = listOf(
                 rememberSaveableStateHolderNavEntryDecorator(),
                 rememberViewModelStoreNavEntryDecorator(),
@@ -310,11 +314,11 @@ private fun MainScreen(
                     )
                 }
                 entry<NavKeyRoot.Inventory> {
-                    InventoryScreen(onBack = backStack::removeLastOrNull)
+                    InventoryScreen(onBack = popBackStack)
                 }
                 entry<NavKeyRoot.Login> {
                     LoginScreen(
-                        onBack = backStack::removeLastOrNull,
+                        onBack = popBackStack,
                         onLoggedIn = { backStack.remove(NavKeyRoot.Login) },
                     )
                 }
@@ -322,10 +326,10 @@ private fun MainScreen(
                     GamesScreen(onMenuClick = toggleDrawer)
                 }
                 entry<NavKeyRoot.About> {
-                    AboutScreen(onBack = backStack::removeLastOrNull)
+                    AboutScreen(onBack = popBackStack)
                 }
                 entry<NavKeyRoot.Settings> {
-                    SettingsScreen(onBack = backStack::removeLastOrNull)
+                    SettingsScreen(onBack = popBackStack)
                 }
             }
         )
