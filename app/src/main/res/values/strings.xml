@@ -128,7 +128,7 @@
         <item quantity="other">You received %d new items</item>
     </plurals>
 
-    <!---- Not for translation ---->
+    <!-- Not for translation -->
     
     <string name="app_name" translatable="false">Idle Daddy</string>
     
