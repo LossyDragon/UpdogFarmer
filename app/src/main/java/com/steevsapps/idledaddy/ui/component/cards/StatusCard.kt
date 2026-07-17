@@ -37,7 +37,6 @@ import kotlin.time.Duration.Companion.seconds
 @Composable
 fun StatusCard(
     isLoggedIn: Boolean,
-    isParentalControlled: Boolean,
     isBlocked: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -95,12 +94,6 @@ fun StatusCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                if (isParentalControlled) {
-                    Text(
-                        text = stringResource(R.string.status_parental, true),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
             }
 
             val image = if (isLoggedIn && !isBlocked) Icons.Default.CheckCircle
@@ -130,27 +123,28 @@ private fun formatCountdown(seconds: Long): String = if (seconds >= 60) {
 
 private data class StatusPreviewState(
     val loggedIn: Boolean,
-    val isParentalControlled: Boolean,
     val isBlocked: Boolean = false,
     val nextRetryAtMillis: Long = 0L,
     val amoled: Boolean = false,
 )
 
 private class StatusPreview : PreviewParameterProvider<StatusPreviewState> {
-    override val values = sequenceOf(
-        StatusPreviewState(loggedIn = false, isParentalControlled = false),
-        StatusPreviewState(loggedIn = true, isParentalControlled = false),
-        StatusPreviewState(loggedIn = true, isParentalControlled = true),
-        StatusPreviewState(loggedIn = true, isParentalControlled = false, isBlocked = true),
-        StatusPreviewState(
+    private val states = listOf(
+        "Logged out" to StatusPreviewState(loggedIn = false),
+        "Logged in" to StatusPreviewState(loggedIn = true),
+        "Blocked" to StatusPreviewState(loggedIn = true, isBlocked = true),
+        "Blocked with countdown" to StatusPreviewState(
             loggedIn = true,
-            isParentalControlled = false,
             isBlocked = true,
             nextRetryAtMillis = System.currentTimeMillis() + 125_000L,
         ),
-        StatusPreviewState(loggedIn = false, isParentalControlled = false, amoled = true),
-        StatusPreviewState(loggedIn = true, isParentalControlled = false, amoled = true),
+        "AMOLED logged out" to StatusPreviewState(loggedIn = false, amoled = true),
+        "AMOLED logged in" to StatusPreviewState(loggedIn = true, amoled = true),
     )
+
+    override val values = states.asSequence().map { it.second }
+
+    override fun getDisplayName(index: Int) = states[index].first
 }
 
 @Preview
@@ -161,7 +155,6 @@ private fun Preview(
     IdleTheme(amoled = state.amoled) {
         StatusCard(
             isLoggedIn = state.loggedIn,
-            isParentalControlled = state.isParentalControlled,
             isBlocked = state.isBlocked,
             nextRetryAtMillis = state.nextRetryAtMillis,
             onClick = {},

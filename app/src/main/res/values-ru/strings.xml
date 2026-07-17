@@ -124,7 +124,6 @@
     <string name="desc_custom_app">Введите собственное имя приложения</string>
     <string name="license">Лицензия</string>
     <string name="translations">Переводы</string>
-    <string name="status_parental">Родительский статус: %b</string>
     <string name="go_back">Вернуться назад</string>
     <string name="account">Аккаунт</string>
 </resources>

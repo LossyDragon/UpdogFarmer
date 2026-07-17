@@ -127,7 +127,6 @@ fun HomeScreenContent(
             item {
                 StatusCard(
                     isLoggedIn = state.loggedIn,
-                    isParentalControlled = state.parentalStatus,
                     isBlocked = state.blocked,
                     nextRetryAtMillis = state.nextRetryAtMillis,
                     onClick = onStatusClick,
@@ -218,9 +217,8 @@ private class HomePreview : PreviewParameterProvider<HomeUiState> {
             showDropInfo = true,
             itemAnnouncements = 2,
         ),
-        "Paused with parental" to HomeUiState(
+        "Paused" to HomeUiState(
             loggedIn = true,
-            parentalStatus = true,
             currentGames = listOf(Game(440, "Team Fortress 2", 987654F, 42)),
             paused = true,
         ),

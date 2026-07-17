@@ -121,7 +121,6 @@ data class SteamServiceState(
     val steamId: Long = 0,
     val farming: Boolean = false,
     val paused: Boolean = false,
-    val parentalStatus: Boolean = false,
     val personaName: String = "",
     val avatarHash: String = "",
     val currentGames: List<Game> = emptyList(),
@@ -1243,8 +1242,6 @@ class SteamService : Service() {
                     it.copy(
                         loggedIn = true,
                         steamId = clientSteamId.convertToUInt64(),
-                        // TODO verify
-                        parentalStatus = callback.parentalSettings?.isEnabled ?: false,
                     )
                 }
 

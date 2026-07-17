@@ -86,7 +86,6 @@
     <string name="source_code">Source code (fork)</string>
     <string name="start_idling">Start farming</string>
     <string name="status">Status</string>
-    <string name="status_parental">Parental Status: %b</string>
     <string name="status_retry_countdown">Retrying in %1$s</string>
     <string name="steam_group">Steam group</string>
     <string name="steam_in_use_app">Playing app %1$d elsewhere. Will resume when possible.</string>
