@@ -119,7 +119,8 @@ private fun LicenseText() {
             color = MaterialTheme.colorScheme.surfaceVariant,
         ) {
             Text(
-                text = stringResource(R.string.about_license),
+                text = stringResource(R.string.about_license)
+                    .replace(Regex("\n[ \t]+"), "\n"), // Dumb
                 modifier = Modifier.padding(all = 16.dp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontFamily = FontFamily.Monospace,
