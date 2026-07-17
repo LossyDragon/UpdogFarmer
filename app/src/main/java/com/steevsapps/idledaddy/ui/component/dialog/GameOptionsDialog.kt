@@ -24,19 +24,14 @@ fun GameOptionsDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = game.name) },
-        text = { Text(text = stringResource(R.string.sum_blacklist)) },
+        text = {
+            val text = if (blacklisted) R.string.dialog_game_blacklist_remove
+            else R.string.dialog_game_blacklist
+            Text(text = stringResource(text, game.name))
+        },
         confirmButton = {
             TextButton(onClick = onToggleBlacklist) {
-                Text(
-                    text = stringResource(
-                        if (blacklisted) {
-                            R.string.remove_from_blacklist
-                        } else {
-                            R.string.add_to_blacklist
-                        }
-                    )
-                )
+                Text(text = stringResource(android.R.string.ok))
             }
         },
         dismissButton = {
@@ -55,6 +50,7 @@ private class BlacklistedPreview : PreviewParameterProvider<Boolean> {
 }
 
 @Preview
+@Preview(locale = "ru")
 @Composable
 private fun Preview(
     @PreviewParameter(BlacklistedPreview::class) blacklisted: Boolean,
@@ -62,7 +58,7 @@ private fun Preview(
     IdleTheme {
         Box(Modifier.fillMaxSize()) {
             GameOptionsDialog(
-                game = Game(0, "Updog Farmer", "", 0f, 0),
+                game = Game(0, "Team Fortress 2", "", 0f, 0),
                 blacklisted = blacklisted,
                 onToggleBlacklist = {},
                 onDismiss = {}

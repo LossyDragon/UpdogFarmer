@@ -16,6 +16,8 @@
     <string name="desc_stop">Прекращение работы и выход из приложения.</string>
     <string name="desc_stop_button">Кнопка Стоп</string>
     <string name="device_confirmation_prompt">Используйте мобильное приложение Steam, чтобы подтвердить вход…</string>
+    <string name="dialog_game_blacklist">Добавить %1$s в чёрный список?</string>
+    <string name="dialog_game_blacklist_remove">Удалить %1$s из чёрного списка?</string>
     <string name="enter_an_appid">Введите appid</string>
     <string name="games">Игры</string>
     <string name="go_back">Вернуться назад</string>

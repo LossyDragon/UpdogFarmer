@@ -16,6 +16,8 @@
     <string name="desc_stop">Stop the Steam service and quit the app.</string>
     <string name="desc_stop_button">Stop Button</string>
     <string name="device_confirmation_prompt">Use the Steam Mobile App to confirm your sign in…</string>
+    <string name="dialog_game_blacklist">Add %1$s to the blacklist?</string>
+    <string name="dialog_game_blacklist_remove">Remove %1$s from the blacklist?</string>
     <string name="enter_an_appid">Enter an appid</string>
     <string name="games">Games</string>
     <string name="go_back">Go Back</string>
