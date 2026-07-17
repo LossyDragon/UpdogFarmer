@@ -1,20 +1,18 @@
 <resources>
-    <string name="app_name" translatable="false">Idle Daddy</string>
-
     <string name="about">About</string>
     <string name="account">Account</string>
     <string name="activate">Activate</string>
     <string name="activated">Activated: %s</string>
     <string name="activation_failed">Activation failed</string>
     <string name="add_app_id">Add appid</string>
-    <string name="add_to_blacklist">Add game to blacklist</string>
+    <string name="add_to_blacklist">Add to Blacklist</string>
     <string name="battery_optimization_restore_hint">To restore battery optimization, set %1$s back to default</string>
     <string name="cat_general">General</string>
     <string name="cat_idle">Card Farming</string>
     <string name="channel_name">Idle Daddy notifications</string>
     <string name="desc_custom_app">Enter custom app name</string>
     <string name="desc_game_icon">Game Icon</string>
-    <string name="desc_start">Idle your games until all trading cards have dropped.</string>
+    <string name="desc_start">Start farming until all trading cards have dropped.</string>
     <string name="desc_stop">Stop the Steam service and quit the app.</string>
     <string name="desc_stop_button">Stop Button</string>
     <string name="device_confirmation_prompt">Use the Steam Mobile App to confirm your sign in…</string>
@@ -25,7 +23,7 @@
     <string name="hidden_appid_list">appid list</string>
     <string name="home">Home</string>
     <string name="idle_custom_app">Idle App</string>
-    <string name="idling_finished">No games left to idle.</string>
+    <string name="idling_finished">No apps left to idle.</string>
     <string name="idling_multiple">Idling multiple</string>
     <string name="invalid_code">Invalid code</string>
     <string name="invalid_key">Invalid key</string>
@@ -67,7 +65,6 @@
     <string name="pref_language">Language</string>
     <string name="pref_minimize_data">Minimize Data Usage</string>
     <string name="pref_offline">Offline Status</string>
-    <string name="pref_parental_pin">Parental PIN</string>
     <string name="pref_stay_awake">Keep Device Awake</string>
     <string name="product_already_owned">Product already owned</string>
     <string name="qr_login_failed">QR sign in failed. Please try again</string>
@@ -75,7 +72,7 @@
     <string name="redeem">Activate Product</string>
     <string name="redeem_msg">Enter your product code or\nthe appid of a free app</string>
     <string name="remove_app_id">Remove appid</string>
-    <string name="remove_from_blacklist">Remove game from blacklist</string>
+    <string name="remove_from_blacklist">Remove from Blacklist</string>
     <string name="resume">Resume</string>
     <string name="retry">Retry</string>
     <string name="search">Search</string>
@@ -99,14 +96,13 @@
     <string name="stop_idling">Exit</string>
     <string name="stopped">Stopped</string>
     <string name="sum_amoled">Use a darker theme to reduce battery usage on OLED displays.</string>
-    <string name="sum_blacklist">Blacklist games you don\'t want to farm.</string>
+    <string name="sum_blacklist">Apps that will not be used for farming.</string>
     <string name="sum_hours_until">The number of hours during which apps will idle simultaneously, then individually.</string>
-    <string name="sum_include_free_games">Enabling this option will allow to display of played games activated with a free license.</string>
+    <string name="sum_include_free_games">Enabling this will allow to display of played games activated with a free license in the Games tab.</string>
     <string name="sum_keep_screen_on">The screen stays on while the app is open.</string>
     <string name="sum_language">Change the app\'s language. (Requires restart)</string>
     <string name="sum_minimize_data">Disable downloading images.</string>
     <string name="sum_offline">Sets your Steam status as \'Offline\' so your friends won\'t see you idling.</string>
-    <string name="sum_parental_pin">Enter your parental PIN to unlock Family View.</string>
     <string name="sum_stay_awake">Enable this if Idle Daddy stops working when the screen is off. WARNING: Some devices may still automatically close the app after a while.</string>
     <string name="tap_to_login">Tap here to sign in</string>
     <string name="timeout_error">Connection timed out. Please try again</string>
@@ -114,6 +110,28 @@
     <string name="username">Account name</string>
     <string name="web_login_failed">Failed to sign in to Steam website!</string>
 
+    <!-- Plurals -->
+    <plurals name="card_drops_remaining">
+        <item quantity="one">%d card drop remaining</item>
+        <item quantity="other">%d card drops remaining</item>
+    </plurals>
+    <plurals name="games_left">
+        <item quantity="one">%d app left to idle</item>
+        <item quantity="other">%d apps left to idle</item>
+    </plurals>
+    <plurals name="hours_on_record">
+        <item quantity="one">%.1f hr on record</item>
+        <item quantity="other">%.1f hrs on record</item>
+    </plurals>
+    <plurals name="new_items_received">
+        <item quantity="one">You received %d new item</item>
+        <item quantity="other">You received %d new items</item>
+    </plurals>
+
+    <!---- Not for translation ---->
+    
+    <string name="app_name" translatable="false">Idle Daddy</string>
+    
     <!-- Languages -->
     <string name="lang_arabic" translatable="false">العربية</string>
     <string name="lang_bosnian_croatian" translatable="false">Bosanski/Hrvatski</string>
@@ -142,34 +160,10 @@
 
     <!-- License -->
     <string name="about_license" translatable="false">
-        Idle Daddy\nCopyright © 2017–2018  Steev\'s apps\n\nThis program
-        is free software: you can redistribute it and/or modify\nit under the terms of the GNU
-        General Public License as published by\nthe Free Software Foundation, either version 3 of
-        the License, or\n(at your option) any later version.\n\nThis program is distributed in the
-        hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty
-        of\n
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-        See the\nGNU General Public License for more details.\n\n
-        You should have received a copy
-        of the GNU General Public License\nalong with this program. If not,
-        see &lt;http://www.gnu.org/licenses&gt;.
+        Idle Daddy\n
+        Copyright © 2017–2018 Steev\'s apps\n\n
+        This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.\n\n
+        This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.\n\n
+        You should have received a copy of the GNU General Public License along with this program. If not, see &lt;http://www.gnu.org/licenses&gt;.
     </string>
-
-    <!-- Plurals -->
-    <plurals name="games_left">
-        <item quantity="one">%d game left to idle</item>
-        <item quantity="other">%d games left to idle</item>
-    </plurals>
-    <plurals name="card_drops_remaining">
-        <item quantity="one">%d card drop remaining</item>
-        <item quantity="other">%d card drops remaining</item>
-    </plurals>
-    <plurals name="hours_on_record">
-        <item quantity="one">%.1f hr on record</item>
-        <item quantity="other">%.1f hrs on record</item>
-    </plurals>
-    <plurals name="new_items_received">
-        <item quantity="one">You received %d new item</item>
-        <item quantity="other">You received %d new items</item>
-    </plurals>
 </resources>
