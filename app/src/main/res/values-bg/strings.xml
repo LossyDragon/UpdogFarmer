@@ -26,8 +26,6 @@
     <string name="sum_stay_awake">Включи това, ако Idle Daddy спира да работи щом се изключи екрана ти. ВНИМАНИЕ: Някои устройства може автоматично да спират работата на приложението след определен период от време докато тази опция е включена.</string>
     <string name="pref_minimize_data">Ограничи използването на мобилни данни</string>
     <string name="sum_minimize_data">Изключи зареждането на изображения.</string>
-    <string name="pref_parental_pin">Родителски контрол / PIN</string>
-    <string name="sum_parental_pin">Въведи своя родителски PIN , за да отключиш Family View.</string>
     <string name="pref_blacklist">Черен списък</string>
     <string name="sum_blacklist">Игри в черния списък които не искаш да точиш.</string>
     <string name="pref_hours_until">Часове до падане на първа карта</string>

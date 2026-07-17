@@ -25,8 +25,6 @@
     <string name="sum_stay_awake">Tuto funkci aktivuj, pokud tvé zařízení nepodporuje zapnutou wi-fi v režimu spánku.</string>
     <string name="pref_minimize_data">Šetření dat</string>
     <string name="sum_minimize_data">Nestahuje náhledy her.</string>
-    <string name="pref_parental_pin">Rodičovský PIN</string>
-    <string name="sum_parental_pin">Vlož svůj rodičovský PIN k odemknutí Rodinného zobrazení.</string>
     <string name="open_drawer">Otevřít drawer</string>
     <string name="home">Domů</string>
     <string name="games">Hry</string>

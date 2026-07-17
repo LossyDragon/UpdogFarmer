@@ -26,8 +26,6 @@
     <string name="sum_stay_awake">當屏幕關閉時，如果Idle Daddy停止工作，則啟用此功能。 如果啟用此選項，某些設備可能會在短時間後自動關閉應用程序。</string>
     <string name="pref_minimize_data">最低數據流量</string>
     <string name="sum_minimize_data">禁止下載圖片。</string>
-    <string name="pref_parental_pin">家長密碼（PIN）</string>
-    <string name="sum_parental_pin">輸入你的家長密碼（PIN）以解鎖家庭監護。</string>
     <string name="pref_blacklist">黑名單</string>
     <string name="sum_blacklist">將你不想掛卡的遊戲列入黑名單</string>
     <string name="pref_hours_until">直到卡牌掉落的小時數</string>

@@ -26,8 +26,6 @@
     <string name="sum_stay_awake">اگر پس از خاموش شدن صفحه، نرم افزار بسته می شود، این گزینه را فعال کنید. هشدار: شاید با فعال بودن این گزینه، برخی دستگاه ها بعد از مدت کوتاهی برنامه را ببندند</string>
     <string name="pref_minimize_data">کم کردن مصرف دیتا</string>
     <string name="sum_minimize_data">غیرفعال کردن دانلود تصاویر</string>
-    <string name="pref_parental_pin">رمز والدین</string>
-    <string name="sum_parental_pin">رمز والدین را وارد کنید تا از حالت نمایش خانوادگی خارج شوید.</string>
     <string name="pref_blacklist">لیست سیاه</string>
     <string name="sum_blacklist">بازیهایی که نمی خواهید کارت هایشان برداشت شود را در لیست سیاه قرار دهید</string>
     <string name="pref_hours_until">ساعت تا پایان برداشت کارت عا</string>

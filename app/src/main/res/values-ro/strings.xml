@@ -27,8 +27,6 @@ Seteaza starea ta ca "Offline", astfel incat prietenii tai sa nu vada ca esti in
     <string name="sum_stay_awake">Activați aceasta opțiune daca Idle Daddy nu mai funcționează atunci când ecranul este oprit. AVERTISMENT: Unele dispozitive pot ucide automat aplicația dupa o perioada scurta daca aceasta opțiune este activata.</string>
     <string name="pref_minimize_data">Minimalizeaza folosirea datelor</string>
     <string name="sum_minimize_data">Dezactiveaza descarcarea de imagini .</string>
-    <string name="pref_parental_pin">PIN Parental</string>
-    <string name="sum_parental_pin">Introduceti pin-ul parental pentru a debloca Family Share.</string>
     <string name="pref_blacklist">Lista neagra</string>
     <string name="sum_blacklist">Introduceti in lista neagra jocurile care nu vreti sa fie procesate.</string>
     <string name="pref_hours_until">Ore pana la primirea cardurilor</string>

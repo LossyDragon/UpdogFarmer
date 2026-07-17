@@ -26,8 +26,6 @@
     <string name="sum_stay_awake">Activa esta opción si Idle Daddy se detiene cuando la pantalla se apaga. Nota: Algunos dispositivos podrían cerrar automáticamente la app si se activa esta opción.</string>
     <string name="pref_minimize_data">Minimizar el uso de datos</string>
     <string name="sum_minimize_data">Desactiva la descarga de imágenes</string>
-    <string name="pref_parental_pin">Modo familiar</string>
-    <string name="sum_parental_pin">Introduce el PIN del modo familiar para ver la librería compartida.</string>
     <string name="pref_blacklist">Lista negra</string>
     <string name="sum_blacklist">Bloquea juegos para que no generen cromos.</string>
     <string name="pref_hours_until">Horas hasta reclamar los cromos</string>

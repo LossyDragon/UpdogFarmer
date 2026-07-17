@@ -26,8 +26,6 @@
     <string name="sum_stay_awake">Eğer cihazınızın ekranı kapalıyken Wi-Fi kullanamıyorsa bunu seçin.UYARI:Bazı cihazlar bu seçenek etkin iken uygulamayı otomatik olarak kapatabiliyor</string>
     <string name="pref_minimize_data">Veri kullanımını azalt</string>
     <string name="sum_minimize_data">Resimleri indirmeyi devre dışı bırak.</string>
-    <string name="pref_parental_pin">Aile PIN\'i</string>
-    <string name="sum_parental_pin">Aile Görünümünü açmak için PIN\'i girin.</string>
     <string name="pref_blacklist">Karaliste</string>
     <string name="sum_blacklist">Karalistedeki oyunlar çalıştırılmayacaktır.</string>
     <string name="add_to_blacklist">Oyunu Karalisteye ekle</string>

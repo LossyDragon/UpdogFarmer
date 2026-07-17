@@ -26,8 +26,6 @@
     <string name="sum_stay_awake">הפעל את זה אם Idle Daddy מפסיק לעבוד כשהמסך כבוי. אזהרה: מכשירים מסוימים יכולים לעצור את האפליקציה אוטומטית אחרי זמן קצר אם אפשרות זו מופעלת.</string>
     <string name="pref_minimize_data">צמצם שימוש בנתונים</string>
     <string name="sum_minimize_data">בטל הורדת תמונות.</string>
-    <string name="pref_parental_pin">קוד הורים</string>
-    <string name="sum_parental_pin">הכנס את קוד ההורים שלך כדי לפתוח את Family View.</string>
     <string name="pref_blacklist">רשימה שחורה</string>
     <string name="sum_blacklist">הכנס לרשימה השחורה משחקים שאתה לא רוצה לסרוק.</string>
     <string name="pref_hours_until">שעות עד השגת קלפים</string>

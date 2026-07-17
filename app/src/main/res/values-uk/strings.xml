@@ -26,8 +26,6 @@
     <string name="sum_stay_awake">Увімкніть цю опцію, якщо Idle Daddy перестає працювати, коли екран гасне. ПОПЕРЕДЖЕННЯ: Деякі пристрої можуть автоматично зупинити роботу програми через нетривалий період.</string>
     <string name="pref_minimize_data">Мінімізувати використання даних</string>
     <string name="sum_minimize_data">Не завантажувати зображення ігор.</string>
-    <string name="pref_parental_pin">Батьківський PIN</string>
-    <string name="sum_parental_pin">Введіть батьківський PIN, щоб відкрити сімейний доступ.</string>
     <string name="pref_blacklist">Чорний список</string>
     <string name="sum_blacklist">Ігри, які ви не хочете запускати.</string>
     <string name="pref_hours_until">Час до випадання карток</string>

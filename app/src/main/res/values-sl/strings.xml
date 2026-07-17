@@ -26,8 +26,6 @@
     <string name="sum_stay_awake">Omogočite to, če Idle Daddy neha delovati, ko je zaslon telefona izključen. OPOZORILO: nekateri telefoni lahko samodejno ugasnejo idle daddy, če je ta možnost omogočena.</string>
     <string name="pref_minimize_data">Zmanjšajte uporabo podatkov</string>
     <string name="sum_minimize_data">Onemogočite prenost slik.</string>
-    <string name="pref_parental_pin">Starševski PIN</string>
-    <string name="sum_parental_pin">Vnesite starševski PIN, da odklenete "family view".</string>
     <string name="pref_blacklist">Črni seznam</string>
     <string name="sum_blacklist">Igre na črni seznam, se ne morejo idlat.</string>
     <string name="pref_hours_until">Ure dokler se vse karte ne vržejo</string>

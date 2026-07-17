@@ -26,8 +26,6 @@
     <string name="sum_stay_awake">Omogućite ovo ako Idle Daddy prestane raditi kad je zaslon isključen. UPOZORENJE: Neki uređaji mogu automatski zaustaviti aplikaciju nakon kratkog razdoblja ako je ova opcija omogućena.</string>
     <string name="pref_minimize_data">Smanjivanje upotrebe podataka</string>
     <string name="sum_minimize_data">Onemogućava preuzimanje slika.</string>
-    <string name="pref_parental_pin">Roditeljski PIN</string>
-    <string name="sum_parental_pin">Unesite svoj roditeljski PIN za otključavanje "Family View".</string>
     <string name="pref_blacklist">Crna Lista</string>
     <string name="sum_blacklist">Na Crnu Listu stavite ogre koje ne želite idlati.</string>
     <string name="pref_hours_until">Sati dok kartica ne dropa</string>

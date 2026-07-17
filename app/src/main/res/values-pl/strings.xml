@@ -26,8 +26,6 @@
     <string name="sum_stay_awake">Włącz tę opcję jeśli Idle Daddy przestaje działać, kiedy ekran urządzenia jest wyłączony. UWAGA: Jeśli ta opcja jest włączona niektóre urządzenia automatycznie zamykają aplikacje po krótkim czasie działania.</string>
     <string name="pref_minimize_data">Zminimalizuj użycie danych</string>
     <string name="sum_minimize_data">Nie pobiera grafik gier.</string>
-    <string name="pref_parental_pin">PIN kontroli rodzicielskiej</string>
-    <string name="sum_parental_pin">Wpisz swój kod PIN kontroli rodzicielskiej, aby odblokować \"Widok rodzinny\".</string>
     <string name="pref_blacklist">Gry wykluczone</string>
     <string name="sum_blacklist">Lista gier, dla których symulacja będzie pominięta.</string>
     <string name="pref_hours_until">Godziny równoczesnej symulacji</string>

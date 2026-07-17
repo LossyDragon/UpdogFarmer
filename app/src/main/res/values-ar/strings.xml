@@ -26,8 +26,6 @@
     <string name="sum_stay_awake">قم بتمكين هذا إذا توقف التطبيق عن العمل عند إيقاف تشغيل الشاشة تحذير: قد تقتل بعض الأجهزة تلقائيا التطبيق بعد فترة قصيرة إذا تم تمكين هذا الخيار .</string>
     <string name="pref_minimize_data">تقليل استخدام البيانات</string>
     <string name="sum_minimize_data">تعطيل تنزيل الصور.</string>
-    <string name="pref_parental_pin">رقم التعريف PIN</string>
-    <string name="sum_parental_pin">ادخل رقم التعريف PIN لإالغاء قفل عرض العائلة.</string>
     <string name="pref_blacklist">القائمة السوداء</string>
     <string name="sum_blacklist">ضع الالعاب التي لا تريد ان تجمع في القائمة السوداء.</string>
     <string name="pref_hours_until">عدد الساعات حتى تحصل على بطاقات</string>

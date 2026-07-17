@@ -26,8 +26,6 @@
     <string name="sum_stay_awake">Ative isso se o seu dispositivo não manter Wi-Fi ligado durante o sono.</string>
     <string name="pref_minimize_data">Minimizar o uso de dados</string>
     <string name="sum_minimize_data">Não fazer o download da arte do jogo.</string>
-    <string name="pref_parental_pin">PIN parental</string>
-    <string name="sum_parental_pin">Digite seu PIN parental para desbloquear o Family View.</string>
     <string name="pref_blacklist">Lista negra</string>
     <string name="sum_blacklist">Jogos de lista negra que você não deseja farmar.</string>
     <string name="pref_hours_until">Horas para dropar cartas</string>

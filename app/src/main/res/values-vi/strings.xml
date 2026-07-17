@@ -26,8 +26,6 @@
     <string name="sum_stay_awake">Bật cài đặt này nếu Idle Daddy dừng hoạt động sau khi tắt máy. LƯU Ý: Một số thiết bị sẽ tự động khử ứng dụng sau một khoản thời gian ngắn nếu cài đặt này được bật.</string>
     <string name="pref_minimize_data">Tối ưu sử dụng dữ liệu</string>
     <string name="sum_minimize_data">Tắt chức năng tải về hình ảnh.</string>
-    <string name="pref_parental_pin">Parental PIN</string>
-    <string name="sum_parental_pin">Nhập parental PIN để mở khóa Family View.</string>
     <string name="pref_blacklist">Danh sách đen</string>
     <string name="sum_blacklist">Danh sách đen những game bạn không muốn treo.</string>
     <string name="pref_hours_until">Giờ đến khi card rơi</string>

@@ -26,8 +26,6 @@
     <string name="sum_stay_awake">โปรแกรมจะทำงานหน้าจอไม่ดับ ขณะทำการ จำลองการเล่น (Idle) *บางเครื่องเมื่อหน้าจอดับจะ Kill Background Process ให้เอง ทำให้ประยัดแบตเตอร์รี่ — เปิดโหมดนี้จะทำให้อายุของแบตเตอร์รี่สั้นลง  "แบตหมดเร็ว เพราะมีการทำงานตลอดเวลา"*</string>
     <string name="pref_minimize_data">ลดการกิน Bandwidth</string>
     <string name="sum_minimize_data">ไม่ต้องโหลดภาพ — ทำให้ประหยัด Data (Data Usage)</string>
-    <string name="pref_parental_pin">การควบคุม Family View (Parental Control)</string>
-    <string name="sum_parental_pin">ใส่ PIN 4 หลัก เพื่อปลดล็อก Family View ในการจำลองการเล่น (Idle) — สำหรับบัญชีที่มีการเปิดใช้งาน Family View</string>
     <string name="pref_blacklist">รายชื่อเกมที่ถูก Backlist</string>
     <string name="sum_blacklist">Blacklist เกมที่ไม่อยากให้มีการจำลองการเล่น (Idle)</string>
     <string name="pref_hours_until">ชั่วโมง จนกว่าจะเริ่มทำการจำลอง (Idle) การเล่นทีละเกม</string>

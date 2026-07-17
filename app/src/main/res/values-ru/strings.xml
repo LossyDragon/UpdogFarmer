@@ -38,8 +38,6 @@
     <string name="sum_stay_awake">Включите эту функцию, если Idle Daddy прекращает работать, когда гаснет экран. ПРЕДУПРЕЖДЕНИЕ: Некоторые устройства всё равно могут автоматически закрыть приложение спустя некоторое время.</string>
     <string name="pref_minimize_data">Минимизировать использование данных</string>
     <string name="sum_minimize_data">Отключить загрузку изображений.</string>
-    <string name="pref_parental_pin">Родительский ПИН-код</string>
-    <string name="sum_parental_pin">Введите ваш родительский ПИН-код, чтобы разблокировать семейный просмотр.</string>
     <string name="pref_blacklist">Чёрный список</string>
     <string name="sum_blacklist">Игры, которые вы не хотите фармить.</string>
     <string name="pref_hours_until">Часы одновременного фарма</string>

@@ -26,8 +26,6 @@
     <string name="sum_stay_awake">Activez cela si vous voulez que Idle Daddy arrête de fonctionner quand votre écran est éteint. ATTENTION: Certains appareils éteignent l\'application après une courte période si cette option est activée.</string>
     <string name="pref_minimize_data">Minimiser l\'utilisation de données</string>
     <string name="sum_minimize_data">Désactiver le téléchargement d\'images.</string>
-    <string name="pref_parental_pin">Code parental</string>
-    <string name="sum_parental_pin">Entrer le code parental pour déverrouiller le mode famille.</string>
     <string name="pref_blacklist">Liste noire</string>
     <string name="sum_blacklist">Liste des jeux que vous ne voulez pas farmer.</string>
     <string name="pref_hours_until">Nombres d\'heures avant que les cartes soient obtenues.</string>

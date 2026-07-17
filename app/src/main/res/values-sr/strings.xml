@@ -26,8 +26,6 @@
     <string name="sum_stay_awake">Омогућите ово ако Идле Даддy престане радити кад је заслон искључен. УПОЗОРЕЊЕ: Неки уређаји могу аутоматски зауставити апликацију након кратког раздобља ако је ова опција омогућена.</string>
     <string name="pref_minimize_data">Смањивање употребе података</string>
     <string name="sum_minimize_data">Онемогућава преузимање слика.</string>
-    <string name="pref_parental_pin">Родитељски ПИН</string>
-    <string name="sum_parental_pin">Унесите свој родитељски ПИН за откључавање "Фамилy Виеw".</string>
     <string name="pref_blacklist">Црна Листа</string>
     <string name="sum_blacklist">На Црну Листу ставите огре које не желите идлати.</string>
     <string name="pref_hours_until">Сати док картица не дропа</string>
