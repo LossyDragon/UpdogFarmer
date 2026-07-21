@@ -133,6 +133,12 @@ private fun SettingsScreenContent(
                     valueToText = { AnnotatedString(languageLabels[it] ?: it) },
                 )
                 switchPreference(
+                    key = "amoled",
+                    defaultValue = false,
+                    title = { Text(text = stringResource(R.string.pref_amoled)) },
+                    summary = { Text(text = stringResource(R.string.sum_amoled)) },
+                )
+                switchPreference(
                     key = "stay_awake",
                     defaultValue = false,
                     title = { Text(text = stringResource(R.string.pref_stay_awake)) },
@@ -143,12 +149,6 @@ private fun SettingsScreenContent(
                     defaultValue = false,
                     title = { Text(text = stringResource(R.string.pref_keep_screen_on)) },
                     summary = { Text(text = stringResource(R.string.sum_keep_screen_on)) },
-                )
-                switchPreference(
-                    key = "amoled",
-                    defaultValue = false,
-                    title = { Text(text = stringResource(R.string.pref_amoled)) },
-                    summary = { Text(text = stringResource(R.string.sum_amoled)) },
                 )
 
                 /* Account */
