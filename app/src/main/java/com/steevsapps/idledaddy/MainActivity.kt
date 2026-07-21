@@ -267,6 +267,10 @@ private fun MainScreen(
                 }
                 // Spacer(Modifier.height(8.dp))
                 drawerDestinations.forEach { destination ->
+                    if (destination.key == NavKeyRoot.Games && !serviceState.loggedIn) {
+                        return@forEach
+                    }
+
                     OreoDrawerItem(
                         label = destination.label,
                         icon = destination.icon,
@@ -283,16 +287,19 @@ private fun MainScreen(
                         },
                     )
                 }
-                HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                OreoDrawerItem(
-                    label = R.string.logout,
-                    icon = Icons.AutoMirrored.Filled.ExitToApp,
-                    selected = false,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        onLogOff()
-                    },
-                )
+
+                if (serviceState.loggedIn) {
+                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                    OreoDrawerItem(
+                        label = R.string.logout,
+                        icon = Icons.AutoMirrored.Filled.ExitToApp,
+                        selected = false,
+                        onClick = {
+                            scope.launch { drawerState.close() }
+                            onLogOff()
+                        },
+                    )
+                }
             }
         },
     ) {
