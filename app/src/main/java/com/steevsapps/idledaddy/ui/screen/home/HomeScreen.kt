@@ -62,7 +62,6 @@ fun HomeScreen(
         onPauseResume = viewModel::pauseOrResume,
         onNextGame = viewModel::skipGame,
         onStopSteam = onStopSteam,
-        onIdleCustomApp = viewModel::idleGame,
         onIdleCustomApps = viewModel::idleGames,
         onRedeem = viewModel::redeemKey,
     )
@@ -81,7 +80,6 @@ fun HomeScreenContent(
     onPauseResume: () -> Unit,
     onNextGame: () -> Unit,
     onStopSteam: () -> Unit,
-    onIdleCustomApp: (Game) -> Unit,
     onIdleCustomApps: (List<Game>) -> Unit,
     onRedeem: (String) -> Unit,
 ) {
@@ -187,11 +185,7 @@ fun HomeScreenContent(
 
     if (customAppDialogVisible) {
         CustomAppDialog(
-            onConfirm = { customGame ->
-                onIdleCustomApp(customGame)
-                customAppDialogVisible = false
-            },
-            onConfirmList = { customGames ->
+            onConfirm = { customGames ->
                 onIdleCustomApps(customGames)
                 customAppDialogVisible = false
             },
@@ -248,7 +242,6 @@ private fun Preview(@PreviewParameter(HomePreview::class) state: HomeUiState) {
             onPauseResume = {},
             onNextGame = {},
             onStopSteam = {},
-            onIdleCustomApp = {},
             onIdleCustomApps = {},
             onRedeem = {},
         )
@@ -270,7 +263,6 @@ private fun PreviewDark(@PreviewParameter(HomePreview::class) state: HomeUiState
             onPauseResume = {},
             onNextGame = {},
             onStopSteam = {},
-            onIdleCustomApp = {},
             onIdleCustomApps = {},
             onRedeem = {},
         )

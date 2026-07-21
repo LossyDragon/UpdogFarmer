@@ -19,12 +19,14 @@
     <string name="dialog_game_blacklist">Add %1$s to the blacklist?</string>
     <string name="dialog_game_blacklist_remove">Remove %1$s from the blacklist?</string>
     <string name="enter_an_appid">Enter an appid</string>
+    <string name="enter_appids">Enter appids separated by spaces</string>
     <string name="games">Games</string>
     <string name="go_back">Go Back</string>
     <string name="hidden_appid">appid</string>
-    <string name="hidden_appid_list">appid list</string>
+    <string name="hidden_appid_list">App ID(s)</string>
     <string name="home">Home</string>
-    <string name="idle_custom_app">Idle App</string>
+    <string name="idle_custom_app">Idle Custom App</string>
+    <string name="idle_custom_app_ids">Idle App(s)</string>
     <string name="idling_finished">No apps left to idle.</string>
     <string name="idling_multiple">Idling multiple</string>
     <string name="invalid_code">Invalid code</string>
@@ -48,7 +50,7 @@
     <string name="new_items">New items</string>
     <string name="next_button">Next Button</string>
     <string name="no_games_found">Couldn\'t retrieve the list of games.</string>
-    <string name="non_steam_game">Non-Steam</string>
+    <string name="non_steam_game">Non-Steam Game</string>
     <string name="now_playing2">Now playing %s</string>
     <string name="ok">OK</string>
     <string name="open_drawer">Open drawer</string>
