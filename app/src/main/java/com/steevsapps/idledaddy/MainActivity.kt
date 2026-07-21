@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material3.DrawerState
@@ -101,6 +102,7 @@ private data class DrawerDestination(
 private val drawerDestinations = listOf(
     DrawerDestination(NavKeyRoot.Home, R.string.home, Icons.Default.Home),
     DrawerDestination(NavKeyRoot.Games, R.string.games, Icons.Default.SportsEsports),
+    DrawerDestination(NavKeyRoot.Inventory, R.string.inventory, Icons.Default.Inventory),
     DrawerDestination(NavKeyRoot.Settings, R.string.settings, Icons.Default.Settings),
     DrawerDestination(NavKeyRoot.About, R.string.about, Icons.Default.Info),
 )
@@ -208,6 +210,7 @@ private fun MainScreen(
 
     ModalNavigationDrawer(
         drawerState = drawerState,
+        gesturesEnabled = currentKey != NavKeyRoot.Inventory,
         drawerContent = {
             ModalDrawerSheet(
                 modifier = Modifier.width(280.dp),
@@ -268,6 +271,10 @@ private fun MainScreen(
                 // Spacer(Modifier.height(8.dp))
                 drawerDestinations.forEach { destination ->
                     if (destination.key == NavKeyRoot.Games && !serviceState.loggedIn) {
+                        return@forEach
+                    }
+
+                    if (destination.key == NavKeyRoot.Inventory && !BuildConfig.DEBUG) {
                         return@forEach
                     }
 
