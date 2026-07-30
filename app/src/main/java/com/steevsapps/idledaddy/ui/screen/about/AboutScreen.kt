@@ -32,7 +32,6 @@ import com.steevsapps.idledaddy.ui.theme.IdleTheme
 
 private const val SOURCE_CODE_URL = "https://github.com/LossyDragon/UpdogFarmer"
 private const val STEAM_GROUP_URL = "https://steamcommunity.com/groups/idledaddy"
-private const val STEAM_COMMUNITY_URL = "https://steamcommunity.com/id/"
 private const val STEAM_COMMUNITY_PROFILE = "https://steamcommunity.com/profiles/"
 
 private data class TranslatorEntry(val language: String, val contributors: Map<String, String?>)
@@ -155,16 +154,16 @@ private val translators = listOf(
     TranslatorEntry(
         language = "German",
         contributors = mapOf(
-            "Schokoladeneis" to STEAM_COMMUNITY_URL + "Schokoladeneis"
+            "Schokoladeneis" to STEAM_COMMUNITY_PROFILE + "76561198089334562"
         ),
     ),
     TranslatorEntry(
         language = "Russian",
         contributors = mapOf(
-            "tnka" to STEAM_COMMUNITY_URL + "tnka",
+            "tnka" to STEAM_COMMUNITY_PROFILE + "76561197996432822",
             "Nikita Sychev" to null,
             "EgoruOfficial" to null,
-            "Andrei Fedoruk" to STEAM_COMMUNITY_URL + "AndreiFedorukKZ",
+            "Andrei Fedoruk" to STEAM_COMMUNITY_PROFILE + "76561198353786863",
             "Павел Соснин" to null,
         ),
     ),
@@ -177,7 +176,7 @@ private val translators = listOf(
     TranslatorEntry(
         language = "Portuguese (Brazilian)",
         contributors = mapOf(
-            "Eustress" to STEAM_COMMUNITY_URL + "rodrigo_dev",
+            "Eustress" to null,
             "FallcoN" to null,
         ),
     ),
@@ -197,13 +196,13 @@ private val translators = listOf(
     TranslatorEntry(
         language = "Polish",
         contributors = mapOf(
-            "Grzegorz Królikowski" to STEAM_COMMUNITY_URL + "ffecjaz"
+            "Grzegorz Królikowski" to STEAM_COMMUNITY_PROFILE + "76561197986731806"
         ),
     ),
     TranslatorEntry(
         language = "Turkish",
         contributors = mapOf(
-            "Bilal Bağcıoğlu" to STEAM_COMMUNITY_URL + "Lasfe",
+            "Bilal Bağcıoğlu" to STEAM_COMMUNITY_PROFILE + "76561198112868374",
             "Abdulkerim Köse" to null,
         ),
     ),
@@ -217,14 +216,14 @@ private val translators = listOf(
     TranslatorEntry(
         language = "Chinese (Simplified)",
         contributors = mapOf(
-            "Zomby7e" to STEAM_COMMUNITY_URL + "zomby7e",
-            "deluxghost" to STEAM_COMMUNITY_URL + "deluxghost",
+            "Zomby7e" to STEAM_COMMUNITY_PROFILE + "76561198362295767",
+            "deluxghost" to STEAM_COMMUNITY_PROFILE + "76561198145687920",
         ),
     ),
     TranslatorEntry(
         language = "Chinese (Traditional)",
         contributors = mapOf(
-            "Zomby7e" to STEAM_COMMUNITY_URL + "zomby7e"
+            "Zomby7e" to STEAM_COMMUNITY_PROFILE + "76561198362295767"
         ),
     ),
     TranslatorEntry(
@@ -236,19 +235,19 @@ private val translators = listOf(
     TranslatorEntry(
         language = "Slovenian",
         contributors = mapOf(
-            "Game Explorer" to STEAM_COMMUNITY_URL + "RoninHunteer1337"
+            "Game Explorer" to null
         ),
     ),
     TranslatorEntry(
         language = "French",
         contributors = mapOf(
-            "Saltyman" to STEAM_COMMUNITY_URL + "Saltymanfr"
+            "Saltyman" to STEAM_COMMUNITY_PROFILE + "76561198191076866"
         ),
     ),
     TranslatorEntry(
         language = "Romanian",
         contributors = mapOf(
-            "ediXedi" to STEAM_COMMUNITY_URL + "ediXedi",
+            "ediXedi" to STEAM_COMMUNITY_PROFILE + "76561198144069357",
             "Pakake" to null,
         ),
     ),
@@ -261,37 +260,37 @@ private val translators = listOf(
     TranslatorEntry(
         language = "Arabic",
         contributors = mapOf(
-            "Saif Jadalla (€ CrAz¥ €)" to STEAM_COMMUNITY_URL + "saifjadalla"
+            "Saif Jadalla (€ CrAz¥ €)" to null
         ),
     ),
     TranslatorEntry(
         language = "Hebrew",
         contributors = mapOf(
-            "eyal100" to STEAM_COMMUNITY_URL + "KF8"
+            "eyal100" to STEAM_COMMUNITY_PROFILE + "76561198312728063"
         ),
     ),
     TranslatorEntry(
         language = "Indonesian",
         contributors = mapOf(
-            "Steinmetz" to STEAM_COMMUNITY_URL + "Ghozizzz"
+            "Steinmetz" to STEAM_COMMUNITY_PROFILE + "76561198299463418"
         ),
     ),
     TranslatorEntry(
         language = "Vietnamese",
         contributors = mapOf(
-            "Catou" to STEAM_COMMUNITY_URL + "catouofficial"
+            "Catou" to null
         ),
     ),
     TranslatorEntry(
         language = "Persian",
         contributors = mapOf(
-            "Amir.P" to STEAM_COMMUNITY_URL + "amircry"
+            "Amir.P" to STEAM_COMMUNITY_PROFILE + "76561198086611070"
         ),
     ),
     TranslatorEntry(
         language = "Bosnian, Croatian, Serbian",
         contributors = mapOf(
-            "Eldin" to STEAM_COMMUNITY_URL + "eldinturkic"
+            "Eldin" to STEAM_COMMUNITY_PROFILE + "76561198120266850"
         ),
     ),
 )
