@@ -4,10 +4,11 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <!-- To be able to save Logcat to a file on Android Jelly Bean and earlier. KitKat and newer don't need it. -->
+    <!-- Lets CrashHandler save crash reports to the Downloads folder on Android 8-9.
+         Android 10+ writes through MediaStore instead and needs no permission. -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="18" />
+        android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <!-- specialUse instead of dataSync: Android 15+ kills dataSync services after 6h per day. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.MoreTime
 import androidx.compose.material.icons.filled.Redeem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,6 +26,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.steevsapps.idledaddy.BuildConfig
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.preferences.PrefsManager.minimizeData
 import com.steevsapps.idledaddy.steam.model.Game
@@ -97,6 +99,14 @@ fun HomeScreenContent(
                 navIcon = NavIcon.Menu,
                 actions = {
                     if (state.loggedIn) {
+                        if (BuildConfig.DEBUG) {
+                            IconButton(onClick = { throw NotImplementedError("Debug Crash") }) {
+                                Icon(
+                                    imageVector = Icons.Default.BugReport,
+                                    contentDescription = null,
+                                )
+                            }
+                        }
                         IconButton(onClick = { redeemAppDialogVisible = true }) {
                             Icon(
                                 imageVector = Icons.Default.Redeem,
