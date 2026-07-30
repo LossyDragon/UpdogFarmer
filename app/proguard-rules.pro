@@ -17,11 +17,13 @@
 #}
 
 # --- Global attributes ---
-# SourceFile/LineNumberTable: line numbers for release stack traces (de-obfuscate via mapping.txt).
+# SourceFile/LineNumberTable: real file names + line numbers in release stack traces.
 # Signature/Exceptions: generic-type + checked-exception metadata Retrofit reads reflectively.
 -keepattributes SourceFile,LineNumberTable,Signature,Exceptions
-# Hide original source file names in stack traces; mapping.txt still retraces them.
--renamesourcefileattribute SourceFile
+
+# App is open source, so there's no value in renaming classes/methods; keep shrinking/optimization
+# (smaller APK) but skip obfuscation so crash reports are readable without mapping.txt.
+-dontobfuscate
 
 # jsoup loads parser resources by package path, so its package names must survive.
 -keeppackagenames org.jsoup.nodes
