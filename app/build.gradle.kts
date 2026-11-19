@@ -43,8 +43,8 @@ android {
         minSdk = 26 // Android 8
         targetSdk = 36 // Android 16
 
-        versionCode = 113
-        versionName = "3.0.2"
+        versionCode = 114
+        versionName = "3.0.3"
 
         // val apiKey = providers.gradleProperty("steamApiKey").get()
         // buildConfigField("String", "STEAM_API_KEY", apiKey)
