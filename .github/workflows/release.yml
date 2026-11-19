@@ -16,19 +16,21 @@ concurrency:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Gate: only proceed if :app versionCode actually changed in this push.
+  # Gate: only proceed if BOTH :app versionCode and versionName changed in this
+  # push. A manual run (workflow_dispatch) always proceeds.
   # ---------------------------------------------------------------------------
   check-version:
-    name: Check versionCode changed
+    name: Check versionCode and versionName changed
     runs-on: ubuntu-latest
     outputs:
       changed: ${{ steps.diff.outputs.changed }}
       version_code: ${{ steps.diff.outputs.version_code }}
+      version_name: ${{ steps.diff.outputs.version_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Diff versionCode
+      - name: Diff versionCode and versionName
         id: diff
         env:
           BEFORE_SHA: ${{ github.event.before }}
@@ -36,13 +38,29 @@ jobs:
           set -euo pipefail
           FILE="app/build.gradle.kts"
 
-          # Kotlin DSL: "versionCode = 101"
-          CURRENT=$(grep -E '^\s*versionCode\s*=\s*[0-9]+' "$FILE" | head -n1 | sed -E 's/.*versionCode\s*=\s*([0-9]+).*/\1/')
-          echo "Current versionCode: $CURRENT"
-          echo "version_code=$CURRENT" >> "$GITHUB_OUTPUT"
+          # Kotlin DSL: versionCode = 101
+          read_code() {
+            grep -E '^\s*versionCode\s*=\s*[0-9]+' | head -n1 \
+              | sed -E 's/.*versionCode\s*=\s*([0-9]+).*/\1/' || true
+          }
+          # Kotlin DSL: versionName = "3.0.2"   (does not match versionNameSuffix)
+          read_name() {
+            grep -E '^\s*versionName\s*=\s*"' | head -n1 \
+              | sed -E 's/.*versionName\s*=\s*"([^"]*)".*/\1/' || true
+          }
+
+          CURRENT_CODE=$(read_code < "$FILE")
+          CURRENT_NAME=$(read_name < "$FILE")
+          echo "Current: versionCode=$CURRENT_CODE versionName=$CURRENT_NAME"
+          if [[ -z "$CURRENT_CODE" || -z "$CURRENT_NAME" ]]; then
+            echo "::error::Could not read versionCode/versionName from $FILE"
+            exit 1
+          fi
+          echo "version_code=$CURRENT_CODE" >> "$GITHUB_OUTPUT"
+          echo "version_name=$CURRENT_NAME" >> "$GITHUB_OUTPUT"
 
           if [[ -z "${BEFORE_SHA:-}" || "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
-            echo "No previous commit — treating as changed."
+            echo "No previous commit (manual run or new branch) — treating as changed."
             echo "changed=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -55,17 +73,16 @@ jobs:
             }
           fi
 
-          PREVIOUS=$(git show "$BEFORE_SHA:$FILE" 2>/dev/null \
-            | grep -E '^\s*versionCode\s*=\s*[0-9]+' \
-            | head -n1 \
-            | sed -E 's/.*versionCode\s*=\s*([0-9]+).*/\1/' || true)
-          echo "Previous versionCode: ${PREVIOUS:-<none>}"
+          PREVIOUS=$(git show "$BEFORE_SHA:$FILE" 2>/dev/null || true)
+          PREVIOUS_CODE=$(read_code <<< "$PREVIOUS")
+          PREVIOUS_NAME=$(read_name <<< "$PREVIOUS")
+          echo "Previous: versionCode=${PREVIOUS_CODE:-<none>} versionName=${PREVIOUS_NAME:-<none>}"
 
-          if [[ "$CURRENT" != "$PREVIOUS" ]]; then
-            echo "versionCode changed: ${PREVIOUS:-<none>} -> $CURRENT"
+          if [[ "$CURRENT_CODE" != "$PREVIOUS_CODE" && "$CURRENT_NAME" != "$PREVIOUS_NAME" ]]; then
+            echo "Both changed — building a release."
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
-            echo "versionCode unchanged — skipping build."
+            echo "versionCode and versionName did not both change — skipping."
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
 
@@ -93,14 +110,6 @@ jobs:
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/2026' }}
 
-      - name: Cache Android SDK build-cache
-        uses: actions/cache@v6
-        with:
-          path: ~/.android/build-cache
-          key: ${{ runner.os }}-android-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-android-
-
       - name: Decode keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -114,6 +123,11 @@ jobs:
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
+
+      # Unit tests only exist for the debug build type, so that is what runs here too.
+      # A failing test stops the job before anything is signed or released.
+      - name: Run unit tests
+        run: ./gradlew :app:testDebugUnitTest --build-cache --stacktrace
 
       - name: Build release APK
         env:
@@ -132,3 +146,45 @@ jobs:
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 30
+
+  # ---------------------------------------------------------------------------
+  # Publish a GitHub release titled "v<versionCode> - <versionName>" with the
+  # signed APK attached. Separate job so only this one gets a write token.
+  # ---------------------------------------------------------------------------
+  release:
+    name: Publish GitHub release
+    needs: [ check-version, build ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERSION_CODE: ${{ needs.check-version.outputs.version_code }}
+      VERSION_NAME: ${{ needs.check-version.outputs.version_name }}
+    steps:
+      - name: Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: UpdogFarmer-release-v${{ needs.check-version.outputs.version_code }}
+          path: apk
+
+      - name: Create release
+        run: |
+          set -euo pipefail
+          TAG="v${VERSION_CODE}"
+
+          # Re-runs and manual runs must not fail or overwrite an existing release.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists — skipping."
+            exit 0
+          fi
+
+          APK=$(find apk -name '*.apk' | head -n1)
+          NAMED="UpdogFarmer-v${VERSION_CODE}-${VERSION_NAME}.apk"
+          mv "$APK" "$NAMED"
+
+          gh release create "$TAG" "$NAMED" \
+            --target "$GITHUB_SHA" \
+            --title "v${VERSION_CODE} - ${VERSION_NAME}" \
+            --generate-notes
