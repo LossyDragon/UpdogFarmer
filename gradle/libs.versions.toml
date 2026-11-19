@@ -1,22 +1,22 @@
 [versions]
 activityCompose = "1.13.0" # https://mvnrepository.com/artifact/androidx.activity/activity-compose
-agp = "9.2.1" # https://mvnrepository.com/artifact/com.android.application/com.android.application.gradle.plugin
+agp = "9.5.1" # https://mvnrepository.com/artifact/com.android.application/com.android.application.gradle.plugin
 androidxMedia = "1.8.0" # https://mvnrepository.com/artifact/androidx.media/media
 androidxPreference = "1.2.1" # https://mvnrepository.com/artifact/androidx.preference/preference
-bouncycastleVersion = "1.85" # https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
-coil = "3.5.0" # https://mvnrepository.com/artifact/io.coil-kt.coil3/coil-compose
-composeBom = "2026.06.01" # https://mvnrepository.com/artifact/androidx.compose/compose-bom
-composeMaterial3 = "1.5.0-alpha23" # https://mvnrepository.com/artifact/androidx.compose.material3/material3
+bouncycastleVersion = "1.87" # https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
+coil = "3.6.3" # https://mvnrepository.com/artifact/io.coil-kt.coil3/coil-compose
+composeBom = "2026.11.01" # https://mvnrepository.com/artifact/androidx.compose/compose-bom
+composeMaterial3 = "1.5.0" # https://mvnrepository.com/artifact/androidx.compose.material3/material3
 composePreference = "2.2.0" # https://mvnrepository.com/artifact/me.zhanghai.compose.preference/preference
-depAnalysis = "3.16.1" # https://mvnrepository.com/artifact/com.autonomousapps.dependency-analysis
-javaSteam = "1.8.1-SNAPSHOT" # https://mvnrepository.com/artifact/in.dragonbra/javasteam
-jsoup = "1.22.2" # https://mvnrepository.com/artifact/org.jsoup/jsoup
+depAnalysis = "3.20.4" # https://mvnrepository.com/artifact/com.autonomousapps.dependency-analysis
+javaSteam = "1.9.0-SNAPSHOT" # https://mvnrepository.com/artifact/in.dragonbra/javasteam
+jsoup = "1.24.1" # https://mvnrepository.com/artifact/org.jsoup/jsoup
 koinBom = "4.2.2" # https://mvnrepository.com/artifact/io.insert-koin/koin-core
-kotlin = "2.4.10" # https://mvnrepository.com/artifact/org.jetbrains.kotlin.android/org.jetbrains.kotlin.android.gradle.plugin/versions
-kotlinxSerialization = "1.11.0" # https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-serialization-json-jvm
-lifecycle = "2.11.0" # https://mvnrepository.com/artifact/androidx.lifecycle/lifecycle-viewmodel-compose
-navigation3 = "1.1.4" # https://mvnrepository.com/artifact/androidx.navigation3/navigation3-runtime
-protobufs = "4.35.1" # https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java
+kotlin = "2.4.21" # https://mvnrepository.com/artifact/org.jetbrains.kotlin.android/org.jetbrains.kotlin.android.gradle.plugin/versions
+kotlinxSerialization = "1.13.0" # https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-serialization-json-jvm
+lifecycle = "2.11.1" # https://mvnrepository.com/artifact/androidx.lifecycle/lifecycle-viewmodel-compose
+navigation3 = "1.2.2" # https://mvnrepository.com/artifact/androidx.navigation3/navigation3-runtime
+protobufs = "4.36.2" # https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java
 retrofitVersion = "3.0.0" # https://mvnrepository.com/artifact/com.squareup.retrofit2/retrofit
 zxing = "3.5.4" # https://mvnrepository.com/artifact/com.google.zxing/core
 

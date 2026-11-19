@@ -32,7 +32,10 @@ kotlin {
 android {
     namespace = "com.steevsapps.idledaddy"
     compileSdk {
-        version = release(37) // Android 17
+        // https://developer.android.com/tools/releases/platform-tools
+        version = release(37) { // Android 17
+            minorApiLevel = 2
+        }
     }
 
     defaultConfig {
