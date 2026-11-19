@@ -108,6 +108,7 @@ import org.koin.android.ext.android.inject
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.zip.CRC32
 import kotlin.concurrent.Volatile
 import kotlin.time.Duration
@@ -171,9 +172,17 @@ class SteamService : Service() {
     @Volatile
     private var pendingGuardCodeFuture: CompletableFuture<String>? = null
 
-    // Farming/idling state
+    // Number of reconnects in a row that did not end in a successful logon, used to grow
+    // the reconnect delay. Reset once we are logged on again.
+    @Volatile
+    private var reconnectAttempts = 0
+
+    // Farming/idling state. Read and written from several threads
+    @Volatile
     private var farmIndex = 0
-    private var gamesToFarm: MutableList<Game>? = null
+
+    @Volatile
+    private var gamesToFarm: List<Game>? = null
 
     private val currentGames: List<Game>
         get() = state.value.currentGames
@@ -201,17 +210,18 @@ class SteamService : Service() {
 
     // Key redemption
     private var keyToRedeem: String? = null
-    private val pendingFreeLicenses = ArrayDeque<Int>()
+    private val pendingFreeLicenses = ConcurrentLinkedQueue<Int>()
 
     // Background work
     // A failed job is logged instead of crashing the whole app.
     private val scope = CoroutineScope(
         SupervisorJob() + Dispatchers.IO +
-                CoroutineExceptionHandler { _, e -> Log.e(TAG, "Uncaught service error", e) }
+            CoroutineExceptionHandler { _, e -> Log.e(TAG, "Uncaught service error", e) }
     )
     private var farmHandle: Job? = null
     private var resumeHandle: Job? = null
     private var backoffResetHandle: Job? = null
+    private var reconnectHandle: Job? = null
     private var wakeLock: WakeLock? = null
 
     /** Binder giving in-process clients direct access to the service. */
@@ -397,8 +407,8 @@ class SteamService : Service() {
                 Log.i(
                     TAG,
                     "Heartbeat: connected=$connected loggedIn=$isLoggedIn " +
-                            "wakeLockHeld=${wakeLock?.isHeld == true} " +
-                            "dozeExempt=${pm.isIgnoringBatteryOptimizations(packageName)}"
+                        "wakeLockHeld=${wakeLock?.isHeld == true} " +
+                        "dozeExempt=${pm.isIgnoringBatteryOptimizations(packageName)}"
                 )
                 delay(10.minutes)
             }
@@ -411,6 +421,7 @@ class SteamService : Service() {
     fun login(username: String, password: String) {
         Log.i(TAG, "logging in")
         loginInProgress = true
+        cancelReconnect()
 
         val details = AuthSessionDetails().apply {
             this.username = username
@@ -433,6 +444,7 @@ class SteamService : Service() {
     fun loginWithQr() {
         Log.i(TAG, "logging in via QR")
         loginInProgress = true
+        cancelReconnect()
         if (connected) {
             // Already connected (e.g. left over from a prior login attempt) - connect() won't fire
             // another ConnectedCallback, so start the QR session directly or we'd never show a code.
@@ -452,6 +464,7 @@ class SteamService : Service() {
     fun logoff() {
         Log.i(TAG, "logging off")
         loginInProgress = true
+        cancelReconnect()
         pendingAuthDetails = null
         pendingQrLogin = false
         currentRefreshToken = null
@@ -717,12 +730,10 @@ class SteamService : Service() {
             return
         }
 
-        farmIndex++
-        if (farmIndex >= games.size) {
-            farmIndex = 0
-        }
+        val next = (farmIndex + 1) % games.size
+        farmIndex = next
 
-        idleSingle(games[farmIndex])
+        idleSingle(games[next])
     }
 
     /** Stop idling entirely and clear pause/blocked state. */
@@ -782,12 +793,15 @@ class SteamService : Service() {
             return
         }
         Log.i(TAG, "Checking remaining card drops")
-        val games = withRetries(retryDelay = 500.milliseconds) { webHandler.remainingGames }
-        if (games == null) {
+        val fetched = withRetries(retryDelay = 500.milliseconds) { webHandler.remainingGames }
+        if (fetched == null) {
             Log.i(TAG, "Invalid cookie data or no internet, reconnecting")
             steamClient.disconnect()
             return
         }
+
+        // Sorted by hours played descending, as a new list (see gamesToFarm)
+        val games = fetched.sortedDescending()
         gamesToFarm = games
 
         // Count the games and cards
@@ -803,19 +817,19 @@ class SteamService : Service() {
             return
         }
 
-        // Sort by hours played descending
-        games.sortDescending()
-
-        if (farmIndex >= games.size) {
+        // Local copy of the index, reset if the list got shorter since last time
+        var index = farmIndex
+        if (index >= games.size) {
+            index = 0
             farmIndex = 0
         }
-        val game = games[farmIndex]
+        val game = games[index]
 
         val hoursUntilDrop = PrefsManager.getHoursUntilDrops()
         Log.i(TAG, "Hours until Drop: $hoursUntilDrop")
 
         // TODO: Steam only updates play time every half hour, so maybe we should keep track of it ourselves
-        if (game.hoursPlayed >= hoursUntilDrop || games.size == 1 || farmIndex > 0) {
+        if (game.hoursPlayed >= hoursUntilDrop || games.size == 1 || index > 0) {
             // Idle a single game
             idleSingle(game)
             unscheduleFarmTask()
@@ -1163,7 +1177,7 @@ class SteamService : Service() {
                 appId = it.appid,
                 name = it.name,
                 iconUrl = "https://shared.fastly.steamstatic.com/store_item_assets/" +
-                        "steam/apps/${it.appid}/header.jpg",
+                    "steam/apps/${it.appid}/header.jpg",
                 hoursPlayed = it.playtimeForever / 60f,
             )
         }
@@ -1188,7 +1202,14 @@ class SteamService : Service() {
         }
     }
 
-    /** Disconnected: reconnect after a delay unless a login is in progress. */
+    /** Cancel a pending reconnect and start the delay from the beginning next time. */
+    private fun cancelReconnect() {
+        reconnectHandle?.cancel()
+        reconnectHandle = null
+        reconnectAttempts = 0
+    }
+
+    // reconnect after a delay unless a login is in progress.
     @Suppress("unused")
     private fun onDisconnected(callback: DisconnectedCallback) {
         Log.i(TAG, "Disconnected()")
@@ -1196,9 +1217,14 @@ class SteamService : Service() {
         state.update { it.copy(loggedIn = false) }
 
         if (!loginInProgress) {
-            // Try to reconnect after a 5-second delay
-            scope.launch {
-                delay(5.seconds)
+            val exp = reconnectAttempts.coerceAtMost(16)
+            val delaySecs = (RECONNECT_BASE_SECS shl exp).coerceAtMost(RECONNECT_MAX_SECS)
+            reconnectAttempts++
+            Log.i(TAG, "Reconnecting in ${delaySecs}s (attempt $reconnectAttempts)")
+
+            reconnectHandle?.cancel()
+            reconnectHandle = scope.launch {
+                delay(delaySecs.seconds)
                 Log.i(TAG, "Reconnecting")
                 steamClient.connect()
             }
@@ -1240,6 +1266,7 @@ class SteamService : Service() {
                 // Successful login
                 Log.i(TAG, "Logged on!")
                 loginInProgress = false
+                reconnectAttempts = 0
 
                 val refreshToken = requireNotNull(currentRefreshToken)
                 PrefsManager.writeRefreshToken(refreshToken)
@@ -1331,7 +1358,7 @@ class SteamService : Service() {
 
     /** Toast the result of a free-license request. */
     private fun onFreeLicense(callback: FreeLicenseCallback) {
-        val freeLicense = pendingFreeLicenses.removeFirstOrNull()
+        val freeLicense = pendingFreeLicenses.poll()
         if (callback.grantedApps.isNotEmpty()) {
             showToast(getString(R.string.activated, callback.grantedApps[0].toString()))
         } else if (callback.grantedPackages.isNotEmpty()) {
@@ -1577,6 +1604,10 @@ class SteamService : Service() {
         private const val RESUME_BACKOFF_BASE_SECS = 60L
         private const val RESUME_BACKOFF_MAX_SECS = 1800L
         private const val BACKOFF_RESET_GRACE_SECS = 120L
+
+        // Delay before reconnecting after a disconnect; doubles per failed attempt up to the cap.
+        private const val RECONNECT_BASE_SECS = 5L
+        private const val RECONNECT_MAX_SECS = 300L
 
         // Some Huawei phones reportedly kill apps when they hold a WakeLock for a long time.
         // This can be prevented by using a WakeLock tag from the PowerGenie whitelist.
