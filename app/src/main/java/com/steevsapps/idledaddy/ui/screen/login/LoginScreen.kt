@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,7 +39,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.ui.component.IdleTopAppBar
+import com.steevsapps.idledaddy.ui.component.OreoSecureTextField
 import com.steevsapps.idledaddy.ui.component.OreoTextField
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 import org.koin.androidx.compose.koinViewModel
@@ -172,7 +173,7 @@ private fun CredentialsComponent(
     onToggleLoginType: () -> Unit,
 ) {
     var username by rememberSaveable { mutableStateOf(initialUsername) }
-    var password by rememberSaveable { mutableStateOf("") }
+    val password = rememberTextFieldState()
     var twoFactorCode by rememberSaveable { mutableStateOf("") }
 
     Column(
@@ -192,22 +193,23 @@ private fun CredentialsComponent(
             singleLine = true,
         )
         /* Password Field */
-        OreoTextField(
-            value = password,
-            onValueChange = { password = it },
+        OreoSecureTextField(
+            state = password,
             modifier = Modifier.fillMaxWidth(),
             placeholder = stringResource(R.string.password),
             isError = passwordError != null,
             supportingText = passwordError?.let { { Text(text = it) } },
-            visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
                 imeAction = if (twoFactorRequired) ImeAction.Next else ImeAction.Done,
             ),
-            keyboardActions = KeyboardActions(
-                onDone = { onLogin(username, password, twoFactorCode) },
-            ),
-            singleLine = true,
+            onKeyboardAction = { moveToNextField ->
+                if (twoFactorRequired) {
+                    moveToNextField()
+                } else {
+                    onLogin(username, password.text.toString(), twoFactorCode)
+                }
+            },
         )
         /* Two-Factor Code Field */
         if (twoFactorRequired) {
@@ -224,7 +226,7 @@ private fun CredentialsComponent(
                     imeAction = ImeAction.Done,
                 ),
                 keyboardActions = KeyboardActions(
-                    onDone = { onLogin(username, password, twoFactorCode) },
+                    onDone = { onLogin(username, password.text.toString(), twoFactorCode) },
                 ),
             )
         }
@@ -234,7 +236,7 @@ private fun CredentialsComponent(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Button(
-                onClick = { onLogin(username, password, twoFactorCode) },
+                onClick = { onLogin(username, password.text.toString(), twoFactorCode) },
                 enabled = !loginInProgress,
                 shape = MaterialTheme.shapes.small,
             ) {
