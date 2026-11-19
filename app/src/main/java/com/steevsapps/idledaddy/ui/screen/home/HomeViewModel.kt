@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 @Immutable
 data class HomeUiState(
@@ -65,7 +64,7 @@ class HomeViewModel(private val connection: SteamServiceConnection) : ViewModel(
      * Redeem a Steam key or free game ID
      */
     fun redeemKey(text: String) {
-        val key = text.uppercase(Locale.getDefault()).trim()
+        val key = text.uppercase().trim()
         if (key.isNotEmpty()) {
             service?.redeemKey(key)
         }

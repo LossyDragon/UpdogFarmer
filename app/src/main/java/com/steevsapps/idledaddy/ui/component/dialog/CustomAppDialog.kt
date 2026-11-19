@@ -72,7 +72,7 @@ fun CustomAppDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            val text = if(initialTypeIndex == TYPE_CUSTOM) stringResource(R.string.idle_custom_app)
+            val text = if (typeIndex == TYPE_CUSTOM) stringResource(R.string.idle_custom_app)
             else stringResource(R.string.idle_custom_app_ids)
             Text(text = text) },
         text = {

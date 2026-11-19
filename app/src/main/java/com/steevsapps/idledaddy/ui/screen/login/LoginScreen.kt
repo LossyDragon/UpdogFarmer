@@ -221,7 +221,8 @@ private fun CredentialsComponent(
                 isError = twoFactorError != null,
                 supportingText = twoFactorError?.let { { Text(text = it) } },
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
+                    // Steam Guard codes contain letters as well as digits
+                    keyboardType = KeyboardType.Ascii,
                     capitalization = KeyboardCapitalization.Characters,
                     imeAction = ImeAction.Done,
                 ),

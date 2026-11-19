@@ -71,10 +71,12 @@ class LoginViewModel(private val connection: SteamServiceConnection) : ViewModel
         }
 
         override fun onQrChallenge(url: String) {
+            stopTimeout()
             uiState.update { it.copy(qrCode = generateQrBitmap(url)) }
         }
 
         override fun onDeviceConfirmation() {
+            stopTimeout()
             uiState.update { it.copy(snackbar = LoginSnackbar.DEVICE_CONFIRMATION) }
         }
     }
@@ -127,6 +129,7 @@ class LoginViewModel(private val connection: SteamServiceConnection) : ViewModel
             service?.loginWithQr()
             startTimeout()
         } else {
+            service?.cancelLogin()
             stopTimeout()
         }
     }
@@ -194,9 +197,11 @@ class LoginViewModel(private val connection: SteamServiceConnection) : ViewModel
         timeoutJob?.cancel()
         timeoutJob = viewModelScope.launch {
             delay(30.seconds)
+            service?.cancelLogin()
             uiState.update {
                 it.copy(
                     loginInProgress = false,
+                    twoFactorRequired = false,
                     qrCode = null,
                     qrFailed = it.loginType == LoginType.QR,
                     snackbar = LoginSnackbar.TIMEOUT,

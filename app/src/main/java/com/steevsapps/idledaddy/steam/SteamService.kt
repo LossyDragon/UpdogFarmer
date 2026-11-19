@@ -222,6 +222,9 @@ class SteamService : Service() {
     private var resumeHandle: Job? = null
     private var backoffResetHandle: Job? = null
     private var reconnectHandle: Job? = null
+
+    @Volatile
+    private var loginHandle: Job? = null
     private var wakeLock: WakeLock? = null
 
     /** Binder giving in-process clients direct access to the service. */
@@ -422,6 +425,7 @@ class SteamService : Service() {
         Log.i(TAG, "logging in")
         loginInProgress = true
         cancelReconnect()
+        cancelLogin()
 
         val details = AuthSessionDetails().apply {
             this.username = username
@@ -445,6 +449,7 @@ class SteamService : Service() {
         Log.i(TAG, "logging in via QR")
         loginInProgress = true
         cancelReconnect()
+        cancelLogin()
         if (connected) {
             // Already connected (e.g. left over from a prior login attempt) - connect() won't fire
             // another ConnectedCallback, so start the QR session directly or we'd never show a code.
@@ -453,6 +458,18 @@ class SteamService : Service() {
             pendingQrLogin = true
             scope.launch { steamClient.connect() }
         }
+    }
+
+    /**
+     * Abandon the login attempt in progress, if any: the user switched login type, retried,
+     * or the login screen gave up waiting. No login result is sent for a cancelled attempt.
+     */
+    fun cancelLogin() {
+        loginHandle?.cancel()
+        loginHandle = null
+        pendingAuthDetails = null
+        pendingQrLogin = false
+        cancelPendingGuardCode()
     }
 
     /** Supply the Steam Guard code requested during login. */
@@ -465,10 +482,8 @@ class SteamService : Service() {
         Log.i(TAG, "logging off")
         loginInProgress = true
         cancelReconnect()
-        pendingAuthDetails = null
-        pendingQrLogin = false
+        cancelLogin()
         currentRefreshToken = null
-        cancelPendingGuardCode()
         keyToRedeem = null
         pendingFreeLicenses.clear()
         stopFarming()
@@ -495,7 +510,8 @@ class SteamService : Service() {
      * refresh token. Must start right after connecting.
      */
     private fun doCredentialsLogin(details: AuthSessionDetails) {
-        scope.launch {
+        loginHandle?.cancel()
+        loginHandle = scope.launch {
             try {
                 val authSession: CredentialsAuthSession = steamClient.authentication
                     .beginAuthSessionViaCredentials(details)
@@ -518,7 +534,8 @@ class SteamService : Service() {
 
     /** Run the QR auth session on the service scope, then log on once the user approves. */
     private fun doQrLogin() {
-        scope.launch {
+        loginHandle?.cancel()
+        loginHandle = scope.launch {
             try {
                 val details = AuthSessionDetails().apply {
                     clientOSType = EOSType.AndroidUnknown
