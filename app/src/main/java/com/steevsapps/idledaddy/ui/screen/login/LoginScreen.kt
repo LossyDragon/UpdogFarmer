@@ -92,7 +92,6 @@ fun LoginScreen(
         qrCode = state.qrCode,
         qrFailed = state.qrFailed,
         initialUsername = viewModel.savedUsername,
-        initialPassword = viewModel.savedPassword,
         snackbarHostState = snackbarHostState,
         onToggleLoginType = viewModel::toggleLoginType,
         onLogin = viewModel::doLogin,
@@ -103,7 +102,6 @@ fun LoginScreen(
 @Composable
 private fun LoginScreenComponent(
     onBack: () -> Unit,
-    initialPassword: String,
     initialUsername: String,
     loginInProgress: Boolean,
     loginType: LoginType,
@@ -148,7 +146,6 @@ private fun LoginScreenComponent(
                     passwordError = passwordError,
                     twoFactorError = twoFactorError,
                     initialUsername = initialUsername,
-                    initialPassword = initialPassword,
                     onLogin = onLogin,
                     onToggleLoginType = onToggleLoginType,
                 )
@@ -171,12 +168,11 @@ private fun CredentialsComponent(
     passwordError: String?,
     twoFactorError: String?,
     initialUsername: String,
-    initialPassword: String,
     onLogin: (username: String, password: String, twoFactorCode: String) -> Unit,
     onToggleLoginType: () -> Unit,
 ) {
     var username by rememberSaveable { mutableStateOf(initialUsername) }
-    var password by rememberSaveable { mutableStateOf(initialPassword) }
+    var password by rememberSaveable { mutableStateOf("") }
     var twoFactorCode by rememberSaveable { mutableStateOf("") }
 
     Column(
@@ -346,7 +342,6 @@ private fun Preview(@PreviewParameter(LoginPreview::class) state: LoginUiState) 
     IdleTheme {
         LoginScreenComponent(
             onBack = {},
-            initialPassword = "idledaddy",
             initialUsername = "steev",
             loginInProgress = state.loginInProgress,
             loginType = state.loginType,

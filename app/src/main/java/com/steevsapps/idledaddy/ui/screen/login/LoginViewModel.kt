@@ -59,8 +59,6 @@ class LoginViewModel(private val connection: SteamServiceConnection) : ViewModel
         field = MutableStateFlow(LoginUiState())
 
     val savedUsername: String = PrefsManager.getUsername()
-    val savedPassword: String = PrefsManager.getPassword()
-    private var pendingPassword = ""
 
     private val service: SteamService?
         get() = connection.service.value
@@ -90,7 +88,6 @@ class LoginViewModel(private val connection: SteamServiceConnection) : ViewModel
     override fun onCleared() {
         stopTimeout()
         service?.loginEventListener = null
-        pendingPassword = ""
     }
 
     fun doLogin(username: String, password: String, twoFactorCode: String) {
@@ -111,7 +108,6 @@ class LoginViewModel(private val connection: SteamServiceConnection) : ViewModel
         val user = Utils.removeSpecialChars(username).trim()
         val pass = Utils.removeSpecialChars(password).trim()
         if (user.isNotEmpty() && pass.isNotEmpty()) {
-            pendingPassword = pass
             uiState.update { it.copy(loginInProgress = true, passwordError = null) }
             service.login(user, pass)
             startTimeout()
@@ -150,11 +146,8 @@ class LoginViewModel(private val connection: SteamServiceConnection) : ViewModel
 
         val current = uiState.value
         if (result == EResult.OK) {
-            // Save password for autofill next time (SteamService persists the username itself,
-            // since the QR flow never has one typed in)
-            if (current.loginType == LoginType.CREDENTIAL) {
-                PrefsManager.writePassword(pendingPassword)
-            }
+            // The password is never saved: SteamService keeps the username and the
+            // (encrypted) refresh token instead.
             uiState.value = current.copy(loginInProgress = false, loggedIn = true)
             return
         }

@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.steevsapps.idledaddy.steam.model.Game
-import com.steevsapps.idledaddy.utils.CryptHelper
+import com.steevsapps.idledaddy.utils.TokenCipher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.json.Json
 import me.zhanghai.compose.preference.Preferences
@@ -18,10 +18,10 @@ import kotlin.random.Random
  * SharedPreferences manager
  */
 object PrefsManager {
-    private const val CURRENT_VERSION = 5
+    private const val CURRENT_VERSION = 6
 
     private const val USERNAME = "username"
-    private const val PASSWORD = "password"
+    private const val PASSWORD = "password" // No longer saved; only removed on upgrade/logout
     private const val REFRESH_TOKEN = "login_key"
     private const val GUARD_DATA = "sentry_hash"
     private const val OFFLINE = "offline"
@@ -98,6 +98,15 @@ object PrefsManager {
                 prefs.edit { putFloat(HOURS_UNTIL_DROPS, index.toFloat()) }
             }
         }
+        if (oldVersion < 6) {
+            // The password is no longer saved, and the refresh token is now stored encrypted.
+            prefs.edit { remove(PASSWORD) }
+            val stored = prefs.getString(REFRESH_TOKEN, "")!!
+            if (stored.isNotEmpty() && !TokenCipher.isEncrypted(stored)) {
+                // If encrypting fails the token is dropped and the user signs in again
+                writeRefreshToken(stored)
+            }
+        }
         writeVersion(CURRENT_VERSION)
     }
 
@@ -109,7 +118,7 @@ object PrefsManager {
     fun clearUser() {
         prefs.edit {
             putString(USERNAME, "")
-            putString(PASSWORD, "")
+            remove(PASSWORD)
             putString(REFRESH_TOKEN, "")
             putString(GUARD_DATA, "")
             putString(BLACKLIST, "")
@@ -127,16 +136,20 @@ object PrefsManager {
         writePref(USERNAME, username)
     }
 
-    fun getPassword(): String =
-        CryptHelper.decryptString(prefs.getString(PASSWORD, ""))
-
-    fun writePassword(password: String) {
-        writePref(PASSWORD, CryptHelper.encryptString(password))
+    /** The saved refresh token, or "" if there is none or it can no longer be decrypted. */
+    fun getRefreshToken(): String {
+        val stored = prefs.getString(REFRESH_TOKEN, "")!!
+        if (stored.isEmpty()) return ""
+        return TokenCipher.decrypt(stored) ?: ""
     }
 
-    fun getRefreshToken(): String = prefs.getString(REFRESH_TOKEN, "")!!
+    /** Saves the refresh token encrypted, see [TokenCipher]. Never written as plain text. */
     fun writeRefreshToken(refreshToken: String?) {
-        writePref(REFRESH_TOKEN, refreshToken)
+        if (refreshToken.isNullOrEmpty()) {
+            writePref(REFRESH_TOKEN, "")
+        } else {
+            writePref(REFRESH_TOKEN, TokenCipher.encrypt(refreshToken) ?: "")
+        }
     }
 
     fun getGuardData(): String = prefs.getString(GUARD_DATA, "")!!
