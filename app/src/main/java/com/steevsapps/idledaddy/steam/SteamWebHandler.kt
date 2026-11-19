@@ -190,13 +190,14 @@ class SteamWebHandler {
      * @return true if successful
      */
     fun addFreeLicense(subId: Int): Boolean {
+        val sessionId = sessionId ?: return false
         val url = STEAM_STORE + "checkout/addfreelicense"
         try {
             val doc = Jsoup.connect(url)
                 .referrer(STEAM_STORE)
                 .followRedirects(true)
                 .cookies(generateWebCookies())
-                .data("sessionid", sessionId!!)
+                .data("sessionid", sessionId)
                 .data("subid", subId.toString())
                 .data("action", "add_to_cart")
                 .post()

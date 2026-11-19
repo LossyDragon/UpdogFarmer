@@ -10,6 +10,7 @@ import com.steevsapps.idledaddy.steam.SteamServiceConnection
 import com.steevsapps.idledaddy.steam.SteamWebHandler
 import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.ui.screen.games.GamesViewModel.Companion.MAX_GAMES
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChangedBy
@@ -147,7 +148,8 @@ class GamesViewModel(
     }
 
     fun refresh() {
-        if (service == null || !service!!.state.value.loggedIn) {
+        val service = service
+        if (service == null || !service.state.value.loggedIn) {
             return
         }
 
@@ -159,7 +161,7 @@ class GamesViewModel(
             setGames(games)
         } else {
             uiState.update { it.copy(refreshing = true) }
-            fetchGames()
+            fetchGames(service)
         }
     }
 
@@ -208,12 +210,20 @@ class GamesViewModel(
         }
     }
 
-    private fun fetchGames() {
+    private fun fetchGames(service: SteamService) {
         Log.i(TAG, "Fetching games...")
         viewModelScope.launch {
-            val ownedGames = service!!.getOwnedGames()
-            Log.i(TAG, "Got ${ownedGames.first} games!")
-            setGames(ownedGames.second)
+            try {
+                val ownedGames = service.getOwnedGames()
+                Log.i(TAG, "Got ${ownedGames.first} games!")
+                setGames(ownedGames.second)
+            } catch (e: Exception) {
+                // Stop here if the screen was closed; otherwise the request itself failed
+                // (e.g. Steam disconnected), so keep the old list and hide the spinner.
+                ensureActive()
+                Log.i(TAG, "Failed to fetch games", e)
+                uiState.update { it.copy(refreshing = false) }
+            }
         }
     }
 

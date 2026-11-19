@@ -91,6 +91,7 @@ import `in`.dragonbra.javasteam.util.IDebugNetworkListener
 import `in`.dragonbra.javasteam.util.Strings
 import `in`.dragonbra.javasteam.util.log.LogManager
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -203,7 +204,11 @@ class SteamService : Service() {
     private val pendingFreeLicenses = ArrayDeque<Int>()
 
     // Background work
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    // A failed job is logged instead of crashing the whole app.
+    private val scope = CoroutineScope(
+        SupervisorJob() + Dispatchers.IO +
+                CoroutineExceptionHandler { _, e -> Log.e(TAG, "Uncaught service error", e) }
+    )
     private var farmHandle: Job? = null
     private var resumeHandle: Job? = null
     private var backoffResetHandle: Job? = null
@@ -321,6 +326,20 @@ class SteamService : Service() {
             setWakeLock(true)
         }
 
+        // Registered here so it always pairs with unregisterReceiver() in onDestroy()
+        val filter = IntentFilter().apply {
+            addAction(SKIP_INTENT)
+            addAction(STOP_INTENT)
+            addAction(PAUSE_INTENT)
+            addAction(RESUME_INTENT)
+        }
+        ContextCompat.registerReceiver(
+            this,
+            receiver,
+            filter,
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+
         createChannel()
 
         startForeground(NOTIF_ID, notificationBuilder(getString(R.string.service_started)).build())
@@ -329,18 +348,6 @@ class SteamService : Service() {
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         if (!running) {
             Log.i(TAG, "Command starting")
-            val filter = IntentFilter().apply {
-                addAction(SKIP_INTENT)
-                addAction(STOP_INTENT)
-                addAction(PAUSE_INTENT)
-                addAction(RESUME_INTENT)
-            }
-            ContextCompat.registerReceiver(
-                this,
-                receiver,
-                filter,
-                ContextCompat.RECEIVER_NOT_EXPORTED
-            )
             start()
         }
         return START_NOT_STICKY
@@ -1324,11 +1331,13 @@ class SteamService : Service() {
 
     /** Toast the result of a free-license request. */
     private fun onFreeLicense(callback: FreeLicenseCallback) {
-        val freeLicense = pendingFreeLicenses.removeFirst()
+        val freeLicense = pendingFreeLicenses.removeFirstOrNull()
         if (callback.grantedApps.isNotEmpty()) {
             showToast(getString(R.string.activated, callback.grantedApps[0].toString()))
         } else if (callback.grantedPackages.isNotEmpty()) {
             showToast(getString(R.string.activated, callback.grantedPackages[0].toString()))
+        } else if (freeLicense == null) {
+            showToast(getString(R.string.activation_failed))
         } else {
             // Try activating it with the web handler
             scope.launch {
