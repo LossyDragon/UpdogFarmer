@@ -24,7 +24,6 @@ configurations.configureEach {
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs.add("-Xexplicit-backing-fields")
         jvmTarget.set(JvmTarget.JVM_17)
     }
 }

@@ -1,6 +1,6 @@
 [versions]
 activityCompose = "1.13.0" # https://mvnrepository.com/artifact/androidx.activity/activity-compose
-agp = "9.5.1" # https://mvnrepository.com/artifact/com.android.application/com.android.application.gradle.plugin
+agp = "9.5.2" # https://mvnrepository.com/artifact/com.android.application/com.android.application.gradle.plugin
 androidxMedia = "1.8.0" # https://mvnrepository.com/artifact/androidx.media/media
 androidxPreference = "1.2.1" # https://mvnrepository.com/artifact/androidx.preference/preference
 bouncycastleVersion = "1.87" # https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on

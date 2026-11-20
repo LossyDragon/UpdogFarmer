@@ -830,7 +830,7 @@ class SteamService : Service() {
     }
 
     /** One farming pass: fetch remaining card drops and choose what to idle. */
-    private suspend fun farm() = farmMutex.withLock {
+    private suspend fun farm(): Unit = farmMutex.withLock {
         // Re-checked under the lock: a pass that waited for another one may no longer apply.
         // Not logged in means a reconnect is already pending and will resume farming.
         if (!isFarming || isPaused || blocked || !isLoggedIn) {
@@ -1197,7 +1197,9 @@ class SteamService : Service() {
     }
 
     /** Acquire or release the CPU wake lock. */
-    @SuppressLint("WakelockTimeout") // Held for the service's whole lifetime, released in onDestroy()
+    // Held for the service's whole lifetime and released in onDestroy(), so acquire and
+    // release are deliberately in separate calls and there is no timeout.
+    @SuppressLint("WakelockTimeout", "Wakelock")
     fun setWakeLock(acquire: Boolean = PrefsManager.stayAwake()) {
         if (acquire) {
             if (wakeLock == null) {

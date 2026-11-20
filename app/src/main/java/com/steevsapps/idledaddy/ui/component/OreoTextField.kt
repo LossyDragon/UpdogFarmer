@@ -10,7 +10,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.sp
 
 /**
@@ -26,7 +25,6 @@ fun OreoTextField(
     label: String? = null,
     isError: Boolean = false,
     supportingText: @Composable (() -> Unit)? = null,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
     singleLine: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
@@ -55,7 +53,6 @@ fun OreoTextField(
         label = label?.let { { Text(text = it) } },
         isError = isError,
         supportingText = supportingText,
-        visualTransformation = visualTransformation,
         singleLine = singleLine,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
