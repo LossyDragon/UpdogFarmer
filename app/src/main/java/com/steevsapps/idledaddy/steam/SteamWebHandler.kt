@@ -1,5 +1,6 @@
 package com.steevsapps.idledaddy.steam
 
+import android.os.SystemClock
 import com.steevsapps.idledaddy.preferences.PrefsManager.getBlacklist
 import com.steevsapps.idledaddy.steam.model.Game
 import `in`.dragonbra.javasteam.util.Strings.toHex
@@ -24,6 +25,13 @@ class SteamWebHandler {
     private var sessionId: String? = null
     private var accessToken: String? = null
     private var steamParental: String? = null
+
+    // Badge page scan state, see getRemainingGames()
+    @Volatile
+    private var scanStart = 2
+
+    @Volatile
+    private var lastFullScan: FullScan? = null
 
     private val api: SteamAPI
 
@@ -57,6 +65,11 @@ class SteamWebHandler {
      * @return true if authenticated
      */
     fun authenticate(steamId: Long, accessToken: String?, parentalToken: String? = null): Boolean {
+        if (steamId != this.steamId) {
+            // Different account, different badge pages
+            scanStart = 2
+            lastFullScan = null
+        }
         this.steamId = steamId
         this.accessToken = accessToken
         this.sessionId = toHex(CryptoHelper.generateRandomBlock(4))
@@ -87,24 +100,123 @@ class SteamWebHandler {
     }
 
     /**
-     * Get a list of games with card drops remaining
-     * @return list of games with remaining drops
+     * Games with card drops remaining, as found by [getRemainingGames].
+     * @param complete false if the scan stopped early, so later badge pages may hold more games
      */
-    val remainingGames: MutableList<Game>?
-        get() {
-            val url = STEAM_COMMUNITY + "my/badges?l=english"
-            val badgeList: MutableList<Game> = mutableListOf()
-            val blacklist = getBlacklist()
+    class RemainingGames(val games: List<Game>, val complete: Boolean)
 
-            // Each page is reduced to its games before the next one is fetched, so only one
-            // parsed page is ever held in memory.
-            val pageCount = loadBadgePage(url, blacklist, badgeList) ?: return null
-            for (i in 2..pageCount) {
-                loadBadgePage("$url&p=$i", blacklist, badgeList)
-            }
+    /**
+     * Get the games with card drops remaining.
+     *
+     * Large accounts have hundreds of badge pages, and fetching them all on every check is slow
+     * and gets rate limited, so a check reads as few pages as it can:
+     * - It stops once [enough] games are found. Games on the remaining pages are picked up
+     *   once the earlier ones run out of drops.
+     * - It starts at the first page that had drops last time ([scanStart]) and wraps around,
+     *   so pages that are already farmed out are only read when nothing else is left.
+     * - After a scan that covered every page, only the pages that had drops are re-read until
+     *   [FULL_SCAN_INTERVAL_MS] has passed or they run dry.
+     * - It stops at the first page that fails to load (e.g. rate limited) and continues from
+     *   that page on the next check.
+     *
+     * The first page is always read: it tells us whether the cookies are valid and how many
+     * pages there are.
+     * @param enough stop scanning once this many games are found
+     * @return the games found, or null if the first page failed or the cookies are invalid
+     */
+    fun getRemainingGames(enough: Int): RemainingGames? {
+        val url = STEAM_COMMUNITY + "my/badges?l=english"
+        val games: MutableList<Game> = mutableListOf()
+        val blacklist = getBlacklist()
 
-            return badgeList
+        // Each page is reduced to its games before the next one is fetched, so only one
+        // parsed page is ever held in memory.
+        val pageCount = loadBadgePage(url, blacklist, games) ?: return null
+        val fetched = hashSetOf(1)
+        val pagesWithDrops = sortedSetOf<Int>()
+        if (games.isNotEmpty()) {
+            pagesWithDrops.add(1)
         }
+
+        // Returns false if the page could not be read
+        fun load(page: Int): Boolean {
+            val before = games.size
+            loadBadgePage("$url&p=$page", blacklist, games) ?: return false
+            fetched.add(page)
+            if (games.size > before) {
+                pagesWithDrops.add(page)
+            }
+            return true
+        }
+
+        // A recent scan covered every page, so only the pages that had drops need checking
+        val known = lastFullScan
+        if (known != null && known.isUsable(pageCount, blacklist)) {
+            for (page in known.pagesWithDrops) {
+                if (games.size >= enough) {
+                    return RemainingGames(games, complete = false)
+                }
+                if (page !in fetched && !load(page)) {
+                    return RemainingGames(games, complete = false)
+                }
+            }
+            if (games.isNotEmpty()) {
+                return RemainingGames(games, complete = true)
+            }
+            // Nothing left where drops were last seen. Scan everything again to be sure.
+        }
+        lastFullScan = null
+
+        // Go around pages 2..pageCount once, starting where drops were last found
+        var page = scanStart.coerceIn(2, maxOf(2, pageCount))
+        var firstPageWithDrops = 0
+        var complete = true
+        repeat(pageCount - 1) {
+            if (games.size >= enough) {
+                complete = false
+                return@repeat
+            }
+            if (page !in fetched) {
+                val before = games.size
+                if (!load(page)) {
+                    scanStart = page
+                    return RemainingGames(games, complete = false)
+                }
+                if (firstPageWithDrops == 0 && games.size > before) {
+                    firstPageWithDrops = page
+                }
+            }
+            page = if (page >= pageCount) 2 else page + 1
+        }
+
+        if (firstPageWithDrops != 0) {
+            scanStart = firstPageWithDrops
+        } else if (complete) {
+            scanStart = 2
+        }
+        if (complete) {
+            lastFullScan = FullScan(
+                atMillis = SystemClock.elapsedRealtime(),
+                pageCount = pageCount,
+                blacklist = blacklist.toList(),
+                pagesWithDrops = pagesWithDrops.toList(),
+            )
+        }
+        return RemainingGames(games, complete)
+    }
+
+    /** What the last scan of every badge page found, see [getRemainingGames]. */
+    private class FullScan(
+        val atMillis: Long,
+        val pageCount: Int,
+        val blacklist: List<String?>,
+        val pagesWithDrops: List<Int>,
+    ) {
+        fun isUsable(pageCount: Int, blacklist: List<String?>): Boolean =
+            SystemClock.elapsedRealtime() - atMillis < FULL_SCAN_INTERVAL_MS &&
+                pageCount == this.pageCount &&
+                blacklist == this.blacklist
+    }
 
     /**
      * Fetch one badge page and add its games with drops remaining to [out].
@@ -206,6 +318,9 @@ class SteamWebHandler {
 
     companion object {
         private const val TIMEOUT_SECS = 30
+
+        // How long a scan of every badge page is trusted before all pages are read again
+        private const val FULL_SCAN_INTERVAL_MS = 60 * 60 * 1000L
 
         private const val STEAM_STORE = "https://store.steampowered.com/"
         const val STEAM_COMMUNITY = "https://steamcommunity.com/"

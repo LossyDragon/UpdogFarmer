@@ -131,6 +131,8 @@ data class SteamServiceState(
     val currentGames: List<Game> = emptyList(),
     val gameCount: Int = 0,
     val cardCount: Int = 0,
+    // The drop check stopped before the last badge page, so the counts are lower bounds
+    val dropsPartial: Boolean = false,
     val personaState: EPersonaState = EPersonaState.Offline,
     val blockedIdle: Boolean = false,
     val nextRetryAtMillis: Long = 0L,
@@ -835,7 +837,9 @@ class SteamService : Service() {
             return
         }
         Log.i(TAG, "Checking remaining card drops")
-        val fetched = withRetries(retryDelay = 500.milliseconds) { webHandler.remainingGames }
+        val fetched = withRetries(retryDelay = 500.milliseconds) {
+            webHandler.getRemainingGames(enough = MAX_SIMULTANEOUS_GAMES)
+        }
         if (fetched == null) {
             val failures = farmFailures.incrementAndGet()
             Log.i(TAG, "Invalid cookie data or no internet, reconnecting (failure $failures)")
@@ -845,15 +849,25 @@ class SteamService : Service() {
         farmFailures.set(0)
 
         // Sorted by hours played descending, as a new list (see gamesToFarm)
-        val games = fetched.sortedDescending()
+        val games = fetched.games.sortedDescending()
         gamesToFarm = games
 
         // Count the games and cards
         state.update { s ->
-            s.copy(gameCount = games.size, cardCount = games.sumOf { it.dropsRemaining })
+            s.copy(
+                gameCount = games.size,
+                cardCount = games.sumOf { it.dropsRemaining },
+                dropsPartial = !fetched.complete,
+            )
         }
 
         if (games.isEmpty()) {
+            if (!fetched.complete) {
+                // Some badge pages could not be read, so this is not the end. Check again later.
+                Log.i(TAG, "Drop check incomplete, checking again later")
+                scheduleFarmTask()
+                return
+            }
             Log.i(TAG, "Finished idling")
             stopPlaying()
             updateNotification(getString(R.string.idling_finished))
@@ -953,7 +967,7 @@ class SteamService : Service() {
     /** Idle up to 32 games at once and show the big-text notification. */
     private fun idleMultiple(games: List<Game>) {
         Log.i(TAG, "Idling multiple")
-        val playing = games.take(32)
+        val playing = games.take(MAX_SIMULTANEOUS_GAMES)
         state.update { it.copy(paused = false, currentGames = playing) }
         playGames(playing)
         showMultipleNotification(playing.joinToString("\n") { gameDisplayName(it) })
@@ -1654,6 +1668,10 @@ class SteamService : Service() {
         // Delay before reconnecting after a disconnect; doubles per failed attempt up to the cap.
         private const val RECONNECT_BASE_SECS = 5L
         private const val RECONNECT_MAX_SECS = 300L
+
+        // The most games idled at once. Also how many games with drops a farm pass looks for
+        // before it stops reading badge pages.
+        private const val MAX_SIMULTANEOUS_GAMES = 32
 
         // Some Huawei phones reportedly kill apps when they hold a WakeLock for a long time.
         // This can be prevented by using a WakeLock tag from the PowerGenie whitelist.

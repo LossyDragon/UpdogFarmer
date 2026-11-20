@@ -22,6 +22,7 @@ data class HomeUiState(
     val currentGames: List<Game> = emptyList(),
     val gameCount: Int = 0,
     val cardCount: Int = 0,
+    val dropsPartial: Boolean = false,
     val showDropInfo: Boolean = false,
     val customAppDialogVisible: Boolean = false,
     val redeemAppDialogVisible: Boolean = false,
@@ -52,6 +53,7 @@ class HomeViewModel(private val connection: SteamServiceConnection) : ViewModel(
                         currentGames = state.currentGames,
                         gameCount = state.gameCount,
                         cardCount = state.cardCount,
+                        dropsPartial = state.dropsPartial,
                         showDropInfo = state.farming,
                         itemAnnouncements = state.itemAnnouncements,
                     )

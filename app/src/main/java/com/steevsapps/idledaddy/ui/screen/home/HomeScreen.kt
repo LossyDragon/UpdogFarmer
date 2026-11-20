@@ -165,7 +165,8 @@ fun HomeScreenContent(
                 item {
                     DropInfoCard(
                         gameCount = state.gameCount,
-                        cardCount = state.cardCount
+                        cardCount = state.cardCount,
+                        partial = state.dropsPartial,
                     )
                 }
             }

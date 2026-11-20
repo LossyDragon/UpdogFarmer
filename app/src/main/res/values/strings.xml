@@ -18,6 +18,7 @@
     <string name="device_confirmation_prompt">Use the Steam Mobile App to confirm your sign in…</string>
     <string name="dialog_game_blacklist">Add %1$s to the blacklist?</string>
     <string name="dialog_game_blacklist_remove">Remove %1$s from the blacklist?</string>
+    <string name="drop_info_partial">Counted so far. More apps on later badge pages will be picked up as these finish.</string>
     <string name="enter_an_appid">Enter an appid</string>
     <string name="enter_appids">Enter appids separated by spaces</string>
     <string name="games">Games</string>
