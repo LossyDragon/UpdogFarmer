@@ -997,14 +997,14 @@ class SteamService : Service() {
     /** Tell Steam we're playing [games]. */
     private fun playGames(games: List<Game>) {
         sendGamesPlayed {
-            for (game in games) {
-                if (game.appId == 0) {
+            for ((appId, name) in games) {
+                if (appId == 0) {
                     // Non-Steam game
                     val gameId = GameID(0).apply {
                         appType = GameID.GameType.SHORTCUT
                     }
                     val crc = CRC32().apply {
-                        update(game.name.toByteArray())
+                        update(name.toByteArray())
                     }
                     // set the high-bit on the mod-id
                     // reduces crc32 to 31bits, but lets us use the modID as a guaranteed unique
@@ -1012,9 +1012,9 @@ class SteamService : Service() {
                     gameId.modID = crc.value or (-0x80000000).toLong()
                     addGamesPlayedBuilder()
                         .setGameId(gameId.convertToUInt64())
-                        .setGameExtraInfo(game.name)
+                        .setGameExtraInfo(name)
                 } else {
-                    addGamesPlayedBuilder().setGameId(game.appId.toLong())
+                    addGamesPlayedBuilder().setGameId(appId.toLong())
                 }
             }
         }

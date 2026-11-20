@@ -234,6 +234,6 @@ class LoginViewModel(private val connection: SteamServiceConnection) : ViewModel
     }
 
     companion object {
-        private val TAG: String = LoginViewModel::class.java.getSimpleName()
+        private val TAG: String = LoginViewModel::class.java.simpleName
     }
 }

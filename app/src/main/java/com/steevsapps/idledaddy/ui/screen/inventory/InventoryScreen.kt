@@ -39,7 +39,6 @@ fun InventoryScreen(onBack: () -> Unit) {
 }
 
 @SuppressLint("SetJavaScriptEnabled")
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InventoryScreenContent(
     url: String,

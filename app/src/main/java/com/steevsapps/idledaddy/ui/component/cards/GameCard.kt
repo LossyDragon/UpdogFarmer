@@ -166,7 +166,6 @@ private fun LoadingPreview() {
     }
 }
 
-@OptIn(ExperimentalCoilApi::class)
 @Preview
 @Composable
 private fun LoadingDarkPreview() {

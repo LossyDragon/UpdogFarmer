@@ -115,7 +115,6 @@ fun GamesScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GamesScreenContent(
     state: GamesScreenState,
@@ -244,7 +243,6 @@ fun GamesScreenContent(
         }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GamesTopBar(
     tab: Int,

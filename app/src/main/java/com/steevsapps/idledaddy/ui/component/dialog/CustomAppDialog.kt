@@ -40,7 +40,6 @@ import com.steevsapps.idledaddy.ui.theme.IdleTheme
 private const val TYPE_APPID_LIST = 0
 private const val TYPE_CUSTOM = 1
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomAppDialog(
     onConfirm: (List<Game>) -> Unit,
