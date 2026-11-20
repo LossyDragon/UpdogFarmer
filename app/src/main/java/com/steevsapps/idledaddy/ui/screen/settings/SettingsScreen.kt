@@ -150,6 +150,12 @@ private fun SettingsScreenContent(
                     title = { Text(text = stringResource(R.string.pref_keep_screen_on)) },
                     summary = { Text(text = stringResource(R.string.sum_keep_screen_on)) },
                 )
+                switchPreference(
+                    key = "crash_logger",
+                    defaultValue = false,
+                    title = { Text(text = stringResource(R.string.pref_crash_logger)) },
+                    summary = { Text(text = stringResource(R.string.sum_crash_logger)) },
+                )
 
                 /* Account */
                 preferenceCategory(

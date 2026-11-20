@@ -38,3 +38,5 @@ app/release/baselineProfiles/
 
 # ProGuard/R8 seed mappings. Use "-printseeds seeds.txt"
 app/seeds.txt
+
+.crashes

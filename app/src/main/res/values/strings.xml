@@ -63,6 +63,7 @@
     <string name="playing_unknown_app">Unknown app: %d</string>
     <string name="pref_amoled">AMOLED Theme</string>
     <string name="pref_blacklist">Blacklist</string>
+    <string name="pref_crash_logger">Crash Logger</string>
     <string name="pref_hours_until">Hours of Simultaneously Farming</string>
     <string name="pref_include_free_games">Include Played Free Games</string>
     <string name="pref_keep_screen_on">Keep Screen On</string>
@@ -100,6 +101,7 @@
     <string name="stopped">Stopped</string>
     <string name="sum_amoled">Use a darker theme to reduce battery usage on OLED displays.</string>
     <string name="sum_blacklist">Apps that will not be used for farming.</string>
+    <string name="sum_crash_logger">Save a crash report to the Downloads folder when the app crashes. Out-of-memory crashes also save a large heap dump to the app\'s files folder.</string>
     <string name="sum_hours_until">The number of hours during which apps will idle simultaneously, then individually.</string>
     <string name="sum_include_free_games">Enabling this will allow to display of played games activated with a free license in the Games tab.</string>
     <string name="sum_keep_screen_on">The screen stays on while the app is open.</string>

@@ -104,11 +104,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.koin.android.ext.android.inject
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.zip.CRC32
 import kotlin.concurrent.Volatile
 import kotlin.time.Duration
@@ -212,11 +215,27 @@ class SteamService : Service() {
     private var keyToRedeem: String? = null
     private val pendingFreeLicenses = ConcurrentLinkedQueue<Int>()
 
+    // Consecutive failed card-drop fetches. A failed fetch forces a reconnect, and the logon
+    // that follows succeeds, so this is tracked apart from reconnectAttempts to keep that
+    // loop backing off. Reset once a fetch succeeds.
+    private val farmFailures = AtomicInteger(0)
+
+    // Only one farm pass at a time: each one downloads and parses the badge pages.
+    private val farmMutex = Mutex()
+
     // Background work
-    // A failed job is logged instead of crashing the whole app.
+    // A failed job is logged instead of crashing the whole app. Errors (OutOfMemoryError
+    // etc.) are not recoverable, so those still go to the crash handler.
     private val scope = CoroutineScope(
         SupervisorJob() + Dispatchers.IO +
-            CoroutineExceptionHandler { _, e -> Log.e(TAG, "Uncaught service error", e) }
+            CoroutineExceptionHandler { _, e ->
+                if (e is Error) {
+                    val thread = Thread.currentThread()
+                    thread.uncaughtExceptionHandler?.uncaughtException(thread, e)
+                } else {
+                    Log.e(TAG, "Uncaught service error", e)
+                }
+            }
     )
     private var farmHandle: Job? = null
     private var resumeHandle: Job? = null
@@ -406,12 +425,15 @@ class SteamService : Service() {
         // Heartbeat
         scope.launch {
             val pm = getSystemService(POWER_SERVICE) as PowerManager
+            val runtime = Runtime.getRuntime()
             while (isActive) {
+                val usedMb = (runtime.totalMemory() - runtime.freeMemory()) shr 20
                 Log.i(
                     TAG,
                     "Heartbeat: connected=$connected loggedIn=$isLoggedIn " +
                         "wakeLockHeld=${wakeLock?.isHeld == true} " +
-                        "dozeExempt=${pm.isIgnoringBatteryOptimizations(packageName)}"
+                        "dozeExempt=${pm.isIgnoringBatteryOptimizations(packageName)} " +
+                        "heap=${usedMb}MB/${runtime.maxMemory() shr 20}MB"
                 )
                 delay(10.minutes)
             }
@@ -758,6 +780,7 @@ class SteamService : Service() {
         state.update { it.copy(paused = false) }
         playingWasBlocked = false
         blockRetryCount = 0
+        farmFailures.set(0)
         backoffResetHandle?.cancel()
         unscheduleResume()
         setBlocked(false)
@@ -805,17 +828,21 @@ class SteamService : Service() {
     }
 
     /** One farming pass: fetch remaining card drops and choose what to idle. */
-    private suspend fun farm() {
-        if (isPaused || blocked) {
+    private suspend fun farm() = farmMutex.withLock {
+        // Re-checked under the lock: a pass that waited for another one may no longer apply.
+        // Not logged in means a reconnect is already pending and will resume farming.
+        if (!isFarming || isPaused || blocked || !isLoggedIn) {
             return
         }
         Log.i(TAG, "Checking remaining card drops")
         val fetched = withRetries(retryDelay = 500.milliseconds) { webHandler.remainingGames }
         if (fetched == null) {
-            Log.i(TAG, "Invalid cookie data or no internet, reconnecting")
+            val failures = farmFailures.incrementAndGet()
+            Log.i(TAG, "Invalid cookie data or no internet, reconnecting (failure $failures)")
             steamClient.disconnect()
             return
         }
+        farmFailures.set(0)
 
         // Sorted by hours played descending, as a new list (see gamesToFarm)
         val games = fetched.sortedDescending()
@@ -1224,6 +1251,7 @@ class SteamService : Service() {
         reconnectHandle?.cancel()
         reconnectHandle = null
         reconnectAttempts = 0
+        farmFailures.set(0)
     }
 
     // reconnect after a delay unless a login is in progress.
@@ -1234,7 +1262,8 @@ class SteamService : Service() {
         state.update { it.copy(loggedIn = false) }
 
         if (!loginInProgress) {
-            val exp = reconnectAttempts.coerceAtMost(16)
+            // Failed card-drop fetches count too: the logon in between resets reconnectAttempts.
+            val exp = maxOf(reconnectAttempts, farmFailures.get()).coerceAtMost(16)
             val delaySecs = (RECONNECT_BASE_SECS shl exp).coerceAtMost(RECONNECT_MAX_SECS)
             reconnectAttempts++
             Log.i(TAG, "Reconnecting in ${delaySecs}s (attempt $reconnectAttempts)")

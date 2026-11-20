@@ -3,11 +3,13 @@ package com.steevsapps.idledaddy.utils
 import android.content.ContentValues
 import android.content.Context
 import android.os.Build
+import android.os.Debug
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.steevsapps.idledaddy.BuildConfig
+import com.steevsapps.idledaddy.preferences.PrefsManager
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -26,10 +28,27 @@ class CrashHandler private constructor(
 ) : Thread.UncaughtExceptionHandler {
 
     override fun uncaughtException(thread: Thread, throwable: Throwable) {
-        try {
-            saveCrashReport(throwable)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to save crash report", e)
+        // Read at crash time, so toggling the setting needs no restart.
+        val enabled = try {
+            PrefsManager.crashLogger()
+        } catch (_: Throwable) {
+            false
+        }
+        val heapDump = if (enabled && isOutOfMemory(throwable)) heapDumpFile() else null
+        if (enabled) {
+            try {
+                saveCrashReport(throwable, heapDump)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to save crash report", e)
+            }
+        }
+        if (heapDump != null) {
+            // After the report, so a failed or slow dump can't cost us the stack trace.
+            try {
+                Debug.dumpHprofData(heapDump.absolutePath)
+            } catch (t: Throwable) {
+                Log.e(TAG, "Failed to dump heap", t)
+            }
         }
         if (defaultHandler != null) {
             defaultHandler.uncaughtException(thread, throwable)
@@ -38,13 +57,27 @@ class CrashHandler private constructor(
         }
     }
 
-    private fun saveCrashReport(throwable: Throwable) {
+    /** True if [throwable] or anything in its cause chain is an [OutOfMemoryError]. */
+    private fun isOutOfMemory(throwable: Throwable): Boolean =
+        generateSequence(throwable) { it.cause }.take(MAX_CAUSE_DEPTH).any { it is OutOfMemoryError }
+
+    /**
+     * Where the heap dump goes: the app's external files dir (`Android/data/<package>/files`),
+     * reachable over USB/adb. One fixed name, so a new dump replaces the old one.
+     */
+    private fun heapDumpFile(): File =
+        File(context.getExternalFilesDir(null) ?: context.filesDir, HEAP_DUMP_NAME)
+
+    private fun saveCrashReport(throwable: Throwable, heapDump: File?) {
         val stackTrace = StringWriter().also { throwable.printStackTrace(PrintWriter(it)) }.toString()
         val report = buildString {
             appendLine("Time: ${TIMESTAMP_FORMAT.format(Date())}")
             appendLine("App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
             appendLine("Android version: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})")
             appendLine("Device: ${Build.MANUFACTURER} ${Build.MODEL}")
+            if (heapDump != null) {
+                appendLine("Heap dump: ${heapDump.absolutePath}")
+            }
             appendLine()
             append(stackTrace)
         }
@@ -80,6 +113,8 @@ class CrashHandler private constructor(
         private val TAG: String = CrashHandler::class.java.simpleName
         private val TIMESTAMP_FORMAT = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
         private val FILE_NAME_FORMAT = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
+        private const val HEAP_DUMP_NAME = "IdleDaddy_oom.hprof"
+        private const val MAX_CAUSE_DEPTH = 16
 
         fun install(context: Context) {
             val current = Thread.getDefaultUncaughtExceptionHandler()

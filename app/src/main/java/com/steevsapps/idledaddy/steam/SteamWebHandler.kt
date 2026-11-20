@@ -94,85 +94,81 @@ class SteamWebHandler {
         get() {
             val url = STEAM_COMMUNITY + "my/badges?l=english"
             val badgeList: MutableList<Game> = mutableListOf()
-            val doc = try {
-                Jsoup.connect(url)
-                    .followRedirects(true)
-                    .cookies(generateWebCookies())
-                    .get()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                return null
-            }
-
-            if (doc.select("a.user_avatar").first() == null) {
-                // Invalid cookie data
-                return null
-            }
-
-            val badges = doc.select("div.badge_title_row")
-
-            val pages = doc.select("a.pagelink").last()
-            if (pages != null) {
-                // Multiple pages
-                val p = pages.text().toInt()
-                // Try to combine all the pages
-                for (i in 2..p) {
-                    try {
-                        val doc2 = Jsoup.connect("$url&p=$i")
-                            .followRedirects(true)
-                            .cookies(generateWebCookies())
-                            .get()
-                        val badges2 = doc2.select("div.badge_title_row")
-                        badges.addAll(badges2)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-
             val blacklist = getBlacklist()
-            var m: Matcher
-            for (b in badges) {
-                // Get app id
-                val playGame = b.select("div.badge_title_playgame").first() ?: continue
-                m = playPattern.matcher(playGame.select("a[href]").first()!!.attr("href"))
-                if (!m.find()) {
-                    continue
-                }
 
-                if (blacklist.contains(m.group(1))) {
-                    // Skip appids in the blacklist
-                    continue
-                }
-
-                val appId = m.group(1)!!.toInt()
-
-                // Get remaining card drops
-                val progressInfo = b.select("span.progress_info_bold").first() ?: continue
-                m = dropPattern.matcher(progressInfo.text())
-                if (!m.find()) {
-                    continue
-                }
-                val drops = m.group(1)!!.toInt()
-
-                // Get app name
-                val badgeTitle = b.select("div.badge_title").first() ?: continue
-                val name = badgeTitle.ownText().trim()
-
-                // Get play time
-                val playTime = b.select("div.badge_title_stats_playtime").first() ?: continue
-                val playTimeText = playTime.text().trim()
-                m = timePattern.matcher(playTimeText)
-                var time = 0f
-                if (m.find()) {
-                    time = m.group(1)!!.toFloat()
-                }
-
-                badgeList.add(Game(appId, name, time, drops))
+            // Each page is reduced to its games before the next one is fetched, so only one
+            // parsed page is ever held in memory.
+            val pageCount = loadBadgePage(url, blacklist, badgeList) ?: return null
+            for (i in 2..pageCount) {
+                loadBadgePage("$url&p=$i", blacklist, badgeList)
             }
 
             return badgeList
         }
+
+    /**
+     * Fetch one badge page and add its games with drops remaining to [out].
+     * @return the number of badge pages, or null if the fetch failed or the cookies are invalid
+     */
+    private fun loadBadgePage(url: String, blacklist: List<String?>, out: MutableList<Game>): Int? {
+        val doc = try {
+            Jsoup.connect(url)
+                .followRedirects(true)
+                .cookies(generateWebCookies())
+                .get()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
+        }
+
+        if (doc.select("a.user_avatar").first() == null) {
+            // Invalid cookie data
+            return null
+        }
+
+        var m: Matcher
+        for (b in doc.select("div.badge_title_row")) {
+            // Get app id
+            val playGame = b.select("div.badge_title_playgame").first() ?: continue
+            val href = playGame.select("a[href]").first()?.attr("href") ?: continue
+            m = playPattern.matcher(href)
+            if (!m.find()) {
+                continue
+            }
+
+            if (blacklist.contains(m.group(1))) {
+                // Skip appids in the blacklist
+                continue
+            }
+
+            val appId = m.group(1)!!.toInt()
+
+            // Get remaining card drops
+            val progressInfo = b.select("span.progress_info_bold").first() ?: continue
+            m = dropPattern.matcher(progressInfo.text())
+            if (!m.find()) {
+                continue
+            }
+            val drops = m.group(1)!!.toInt()
+
+            // Get app name
+            val badgeTitle = b.select("div.badge_title").first() ?: continue
+            val name = badgeTitle.ownText().trim()
+
+            // Get play time
+            val playTime = b.select("div.badge_title_stats_playtime").first() ?: continue
+            val playTimeText = playTime.text().trim()
+            m = timePattern.matcher(playTimeText)
+            var time = 0f
+            if (m.find()) {
+                time = m.group(1)!!.toFloat()
+            }
+
+            out.add(Game(appId, name, time, drops))
+        }
+
+        return doc.select("a.pagelink").last()?.text()?.toIntOrNull() ?: 1
+    }
 
     /**
      * Get the store header image url for an app, used as a fallback when the icon fails to load

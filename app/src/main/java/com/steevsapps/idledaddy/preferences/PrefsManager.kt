@@ -27,6 +27,7 @@ object PrefsManager {
     private const val OFFLINE = "offline"
     private const val STAY_AWAKE = "stay_awake"
     private const val MINIMIZE_DATA = "minimize_data"
+    private const val CRASH_LOGGER = "crash_logger"
     private const val PARENTAL_PIN = "parental_pin"
     private const val BLACKLIST = "blacklist"
     private const val LAST_SESSION = "last_session"
@@ -221,6 +222,8 @@ object PrefsManager {
     fun stayAwake(): Boolean = prefs.getBoolean(STAY_AWAKE, false)
 
     fun minimizeData(): Boolean = prefs.getBoolean(MINIMIZE_DATA, false)
+
+    fun crashLogger(): Boolean = prefs.getBoolean(CRASH_LOGGER, false)
 
     fun getParentalPin(): String = prefs.getString(PARENTAL_PIN, "")!!
 
