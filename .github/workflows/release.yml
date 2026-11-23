@@ -6,6 +6,11 @@ on:
     paths:
       - 'app/build.gradle.kts'
   workflow_dispatch:
+    inputs:
+      prerelease:
+        description: 'Publish as the rolling pre-release instead of a full release'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -16,14 +21,18 @@ concurrency:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Gate: only proceed if BOTH :app versionCode and versionName changed in this
-  # push. A manual run (workflow_dispatch) always proceeds.
+  # Gate: decide what this push publishes, based on :app versionCode/versionName.
+  #   both changed          -> kind=release     (full release, tag v<versionCode>)
+  #   only versionCode      -> kind=prerelease  (rolling pre-release, replaced each time)
+  #   anything else         -> kind=none        (skip)
+  # A manual run (workflow_dispatch) always proceeds; its "prerelease" input
+  # picks which kind.
   # ---------------------------------------------------------------------------
   check-version:
     name: Check versionCode and versionName changed
     runs-on: ubuntu-latest
     outputs:
-      changed: ${{ steps.diff.outputs.changed }}
+      kind: ${{ steps.diff.outputs.kind }}
       version_code: ${{ steps.diff.outputs.version_code }}
       version_name: ${{ steps.diff.outputs.version_name }}
     steps:
@@ -34,6 +43,7 @@ jobs:
         id: diff
         env:
           BEFORE_SHA: ${{ github.event.before }}
+          PRERELEASE_INPUT: ${{ inputs.prerelease }}
         run: |
           set -euo pipefail
           FILE="app/build.gradle.kts"
@@ -60,15 +70,20 @@ jobs:
           echo "version_name=$CURRENT_NAME" >> "$GITHUB_OUTPUT"
 
           if [[ -z "${BEFORE_SHA:-}" || "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
-            echo "No previous commit (manual run or new branch) — treating as changed."
-            echo "changed=true" >> "$GITHUB_OUTPUT"
+            if [[ "${PRERELEASE_INPUT:-}" == "true" ]]; then
+              echo "No previous commit (manual run) — building a pre-release as requested."
+              echo "kind=prerelease" >> "$GITHUB_OUTPUT"
+            else
+              echo "No previous commit (manual run or new branch) — building a release."
+              echo "kind=release" >> "$GITHUB_OUTPUT"
+            fi
             exit 0
           fi
 
           if ! git cat-file -e "$BEFORE_SHA^{commit}" 2>/dev/null; then
             git fetch --depth=1 origin "$BEFORE_SHA" 2>/dev/null || {
-              echo "Could not fetch $BEFORE_SHA — treating as changed."
-              echo "changed=true" >> "$GITHUB_OUTPUT"
+              echo "Could not fetch $BEFORE_SHA — building a release."
+              echo "kind=release" >> "$GITHUB_OUTPUT"
               exit 0
             }
           fi
@@ -80,16 +95,19 @@ jobs:
 
           if [[ "$CURRENT_CODE" != "$PREVIOUS_CODE" && "$CURRENT_NAME" != "$PREVIOUS_NAME" ]]; then
             echo "Both changed — building a release."
-            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "kind=release" >> "$GITHUB_OUTPUT"
+          elif [[ "$CURRENT_CODE" != "$PREVIOUS_CODE" ]]; then
+            echo "Only versionCode changed — building a pre-release."
+            echo "kind=prerelease" >> "$GITHUB_OUTPUT"
           else
-            echo "versionCode and versionName did not both change — skipping."
-            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "versionCode did not change — skipping."
+            echo "kind=none" >> "$GITHUB_OUTPUT"
           fi
 
   build:
     name: Build signed release APK
     needs: check-version
-    if: needs.check-version.outputs.changed == 'true'
+    if: needs.check-version.outputs.kind != 'none'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -150,6 +168,9 @@ jobs:
   # ---------------------------------------------------------------------------
   # Publish a GitHub release titled "v<versionCode> - <versionName>" with the
   # signed APK attached. Separate job so only this one gets a write token.
+  #   release:    tag v<versionCode>, never overwritten.
+  #   prerelease: fixed tag "pre-release"; the previous one is deleted and
+  #               recreated at this commit, so there is only ever one.
   # ---------------------------------------------------------------------------
   release:
     name: Publish GitHub release
@@ -162,6 +183,7 @@ jobs:
       GH_REPO: ${{ github.repository }}
       VERSION_CODE: ${{ needs.check-version.outputs.version_code }}
       VERSION_NAME: ${{ needs.check-version.outputs.version_name }}
+      KIND: ${{ needs.check-version.outputs.kind }}
     steps:
       - name: Download APK
         uses: actions/download-artifact@v4
@@ -172,6 +194,29 @@ jobs:
       - name: Create release
         run: |
           set -euo pipefail
+          APK=$(find apk -name '*.apk' | head -n1)
+
+          if [[ "$KIND" == "prerelease" ]]; then
+            TAG="pre-release"
+            NAMED="UpdogFarmer-v${VERSION_CODE}-${VERSION_NAME}-pre.apk"
+            mv "$APK" "$NAMED"
+
+            # Rolling pre-release: drop the old release and its tag so the tag
+            # is recreated at this commit.
+            if gh release view "$TAG" >/dev/null 2>&1; then
+              gh release delete "$TAG" --yes --cleanup-tag
+            fi
+            # A tag left behind without a release would pin the new one to an old commit.
+            gh api -X DELETE "repos/${GH_REPO}/git/refs/tags/${TAG}" >/dev/null 2>&1 || true
+
+            gh release create "$TAG" "$NAMED" \
+              --target "$GITHUB_SHA" \
+              --title "v${VERSION_CODE} - ${VERSION_NAME} (pre-release)" \
+              --prerelease \
+              --generate-notes
+            exit 0
+          fi
+
           TAG="v${VERSION_CODE}"
 
           # Re-runs and manual runs must not fail or overwrite an existing release.
@@ -180,7 +225,6 @@ jobs:
             exit 0
           fi
 
-          APK=$(find apk -name '*.apk' | head -n1)
           NAMED="UpdogFarmer-v${VERSION_CODE}-${VERSION_NAME}.apk"
           mv "$APK" "$NAMED"
 
