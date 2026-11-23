@@ -72,21 +72,23 @@ fun NowPlayingCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            SubcomposeAsyncImage(
-                modifier = Modifier.size(100.dp),
-                model = game.iconUrl.takeIf { showIcon },
-                contentDescription = stringResource(R.string.desc_game_icon),
-                contentScale = ContentScale.Crop,
-                loading = {
-                    Box(
-                        modifier = Modifier.size(100.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                },
-                error = { PlaceholderIcon() },
-            )
+            if (showIcon) {
+                SubcomposeAsyncImage(
+                    modifier = Modifier.size(100.dp),
+                    model = game.iconUrl,
+                    contentDescription = stringResource(R.string.desc_game_icon),
+                    contentScale = ContentScale.Crop,
+                    loading = {
+                        Box(
+                            modifier = Modifier.size(100.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    },
+                    error = { PlaceholderIcon() },
+                )
+            }
             Column(
                 modifier = Modifier
                     .weight(1f)

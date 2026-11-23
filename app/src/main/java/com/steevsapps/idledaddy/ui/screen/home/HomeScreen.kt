@@ -10,8 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.MoreTime
-import androidx.compose.material.icons.filled.Redeem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -30,8 +28,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.steevsapps.idledaddy.BuildConfig
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.preferences.PrefsManager.minimizeData
-import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.steam.LoginPhase
+import com.steevsapps.idledaddy.steam.model.Game
 import com.steevsapps.idledaddy.ui.component.IdleTopAppBar
 import com.steevsapps.idledaddy.ui.component.NavIcon
 import com.steevsapps.idledaddy.ui.component.cards.DropInfoCard
