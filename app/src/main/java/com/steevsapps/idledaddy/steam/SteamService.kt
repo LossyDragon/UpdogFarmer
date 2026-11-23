@@ -144,6 +144,11 @@ data class SteamServiceState(
     val loginPhase: LoginPhase = LoginPhase.Idle,
     // Account being logged in, empty while loginPhase is Idle
     val loginUsername: String = "",
+    // Why the last login attempt or session ended, cleared once a logon succeeds.
+    // NoConnection also stands for a connect attempt that never reached Steam.
+    val loginError: EResult? = null,
+    // Logged on to Steam, but the Steam website login failed
+    val webLoginFailed: Boolean = false,
     val steamId: Long = 0,
     val farming: Boolean = false,
     val paused: Boolean = false,
@@ -474,6 +479,7 @@ class SteamService : Service() {
         cancelLogin()
         // The login screen shows its own progress until the logon itself starts
         setLoginPhase(LoginPhase.Idle)
+        clearLoginError()
 
         val details = AuthSessionDetails().apply {
             this.username = username
@@ -499,6 +505,7 @@ class SteamService : Service() {
         cancelReconnect()
         cancelLogin()
         setLoginPhase(LoginPhase.Idle)
+        clearLoginError()
         if (connected) {
             // Already connected (e.g. left over from a prior login attempt) - connect() won't fire
             // another ConnectedCallback, so start the QR session directly or we'd never show a code.
@@ -545,6 +552,8 @@ class SteamService : Service() {
                 loggedIn = false,
                 loginPhase = LoginPhase.Idle,
                 loginUsername = "",
+                loginError = null,
+                webLoginFailed = false,
                 steamId = 0,
                 personaName = "",
                 avatarHash = "",
@@ -650,6 +659,11 @@ class SteamService : Service() {
     private fun setLoginPhase(phase: LoginPhase) {
         val username = if (phase == LoginPhase.Idle) "" else PrefsManager.getUsername()
         state.update { it.copy(loginPhase = phase, loginUsername = username) }
+    }
+
+    /** Forget the last login failure shown on the status card. */
+    private fun clearLoginError() {
+        state.update { it.copy(loginError = null, webLoginFailed = false) }
     }
 
     /** Log on with the saved refresh token, if any. */
@@ -1318,8 +1332,15 @@ class SteamService : Service() {
     @Suppress("unused")
     private fun onDisconnected(callback: DisconnectedCallback) {
         Log.i(TAG, "Disconnected()")
+        // Dropped without ever connecting: Steam is down or there is no network
+        val connectFailed = !connected && !callback.isUserInitiated
         connected = false
-        state.update { it.copy(loggedIn = false) }
+        state.update {
+            it.copy(
+                loggedIn = false,
+                loginError = if (connectFailed) EResult.NoConnection else it.loginError,
+            )
+        }
         // Only a reconnect that can restore the saved session counts as logging in
         val willRestore = !loginInProgress && hasSavedLogin()
         setLoginPhase(if (willRestore) LoginPhase.WaitingToReconnect else LoginPhase.Idle)
@@ -1361,6 +1382,9 @@ class SteamService : Service() {
             showToast(getString(R.string.login_revoked))
             logoff()
             return
+        } else if (callback.result != EResult.OK && !loginInProgress) {
+            // Steam ended the session, show why until we are logged on again
+            state.update { it.copy(loginError = callback.result) }
         }
 
         // Reconnect
@@ -1370,6 +1394,10 @@ class SteamService : Service() {
     /** Logon result: on success persist the session, authenticate on the web, and resume. */
     private fun onLoggedOn(callback: LoggedOnCallback) {
         val result = callback.result
+
+        if (result != EResult.OK) {
+            state.update { it.copy(loginError = result) }
+        }
 
         when (result) {
             EResult.OK -> {
@@ -1386,6 +1414,8 @@ class SteamService : Service() {
                     it.copy(
                         loggedIn = true,
                         loginPhase = LoginPhase.WebAuth,
+                        loginError = null,
+                        webLoginFailed = false,
                         steamId = clientSteamId.convertToUInt64(),
                     )
                 }
@@ -1422,6 +1452,7 @@ class SteamService : Service() {
                             resumeFarming()
                         }
                     } else {
+                        state.update { it.copy(webLoginFailed = true) }
                         updateNotification(getString(R.string.web_login_failed))
                     }
                 }

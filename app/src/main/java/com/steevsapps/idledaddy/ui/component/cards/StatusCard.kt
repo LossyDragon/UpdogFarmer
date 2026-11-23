@@ -33,6 +33,7 @@ import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.steam.LoginPhase
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 import com.steevsapps.idledaddy.ui.theme.LocalAmoled
+import `in`.dragonbra.javasteam.enums.EResult
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.seconds
 
@@ -45,6 +46,8 @@ fun StatusCard(
     nextRetryAtMillis: Long = 0L,
     loginPhase: LoginPhase = LoginPhase.Idle,
     loginUsername: String = "",
+    loginError: EResult? = null,
+    webLoginFailed: Boolean = false,
 ) {
     val amoled = LocalAmoled.current
     // Occupied (incl. the brief reconnect gap while retrying) wins over a login in
@@ -94,6 +97,19 @@ fun StatusCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                if (!isBlocked && !isLoggedIn && loginError != null) {
+                    // Why the last attempt (or the session) ended
+                    Text(
+                        text = stringResource(R.string.status_login_error, loginError.name),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+                if (!isBlocked && !loggingIn && isLoggedIn && webLoginFailed) {
+                    Text(
+                        text = stringResource(R.string.web_login_failed),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
                 if (isBlocked && nextRetryAtMillis > 0L) {
                     // Live countdown until the next resume attempt.
                     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
@@ -122,10 +138,10 @@ fun StatusCard(
                         .size(40.dp),
                 )
             } else {
-                val image = if (isLoggedIn && !isBlocked) Icons.Default.CheckCircle
-                else Icons.Default.Error
-                val color = if (isLoggedIn && !isBlocked) Color(0xFF90BA3C)
-                else Color(0xFFFFBB33)
+                // Without the website login farming can't run, so that isn't a healthy state
+                val healthy = isLoggedIn && !isBlocked && !webLoginFailed
+                val image = if (healthy) Icons.Default.CheckCircle else Icons.Default.Error
+                val color = if (healthy) Color(0xFF90BA3C) else Color(0xFFFFBB33)
                 Icon(
                     modifier = Modifier.size(48.dp),
                     imageVector = image,
@@ -155,6 +171,8 @@ private data class StatusPreviewState(
     val amoled: Boolean = false,
     val loginPhase: LoginPhase = LoginPhase.Idle,
     val loginUsername: String = "",
+    val loginError: EResult? = null,
+    val webLoginFailed: Boolean = false,
 )
 
 private class StatusPreview : PreviewParameterProvider<StatusPreviewState> {
@@ -165,6 +183,17 @@ private class StatusPreview : PreviewParameterProvider<StatusPreviewState> {
             loginPhase = LoginPhase.Connecting,
             loginUsername = "gaben",
         ),
+        "Reconnecting after error" to StatusPreviewState(
+            loggedIn = false,
+            loginPhase = LoginPhase.WaitingToReconnect,
+            loginUsername = "gaben",
+            loginError = EResult.ServiceUnavailable,
+        ),
+        "Logged out with error" to StatusPreviewState(
+            loggedIn = false,
+            loginError = EResult.NoConnection,
+        ),
+        "Web sign in failed" to StatusPreviewState(loggedIn = true, webLoginFailed = true),
         "Web sign in" to StatusPreviewState(
             loggedIn = true,
             loginPhase = LoginPhase.WebAuth,
@@ -198,6 +227,8 @@ private fun Preview(
             nextRetryAtMillis = state.nextRetryAtMillis,
             loginPhase = state.loginPhase,
             loginUsername = state.loginUsername,
+            loginError = state.loginError,
+            webLoginFailed = state.webLoginFailed,
             onClick = {},
         )
     }

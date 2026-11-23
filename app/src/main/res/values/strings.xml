@@ -98,6 +98,7 @@
     <string name="status">Status</string>
     <string name="status_logging_in_as">Logging in as %1$s</string>
     <string name="status_login_connecting">Connecting to Steam…</string>
+    <string name="status_login_error">Last attempt failed: %1$s</string>
     <string name="status_login_logging_on">Logging on…</string>
     <string name="status_login_reconnect_wait">Waiting to reconnect…</string>
     <string name="status_login_web">Signing in to Steam website…</string>

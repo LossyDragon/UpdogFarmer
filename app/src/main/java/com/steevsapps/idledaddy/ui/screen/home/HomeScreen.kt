@@ -138,6 +138,8 @@ fun HomeScreenContent(
                     isBlocked = state.blocked,
                     loginPhase = state.loginPhase,
                     loginUsername = state.loginUsername,
+                    loginError = state.loginError,
+                    webLoginFailed = state.webLoginFailed,
                     nextRetryAtMillis = state.nextRetryAtMillis,
                     onClick = onStatusClick,
                 )
