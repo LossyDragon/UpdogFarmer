@@ -43,7 +43,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.dropShadow
@@ -80,6 +83,7 @@ import com.steevsapps.idledaddy.steam.SteamService
 import com.steevsapps.idledaddy.steam.SteamServiceConnection
 import com.steevsapps.idledaddy.steam.SteamServiceState
 import com.steevsapps.idledaddy.ui.compat.setEdgeToEdgeConfig
+import com.steevsapps.idledaddy.ui.component.dialog.SignOutDialog
 import com.steevsapps.idledaddy.ui.screen.about.AboutScreen
 import com.steevsapps.idledaddy.ui.screen.games.GamesScreen
 import com.steevsapps.idledaddy.ui.screen.home.HomeScreen
@@ -185,7 +189,7 @@ class MainActivity : ComponentActivity() {
                     serviceState = serviceState,
                     backStack = backStack,
                     drawerState = drawerState,
-                    onLogOff = { serviceConnection.service.value?.logoff() },
+                    onLogOff = { erase -> serviceConnection.service.value?.logoff(erase) },
                     onStopSteam = ::stopSteam,
                 )
             }
@@ -198,11 +202,22 @@ private fun MainScreen(
     serviceState: SteamServiceState,
     backStack: NavBackStack<NavKey>,
     drawerState: DrawerState,
-    onLogOff: () -> Unit,
+    onLogOff: (eraseSavedLogin: Boolean) -> Unit,
     onStopSteam: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val currentKey = backStack.lastOrNull()
+    var signOutDialogVisible by rememberSaveable { mutableStateOf(false) }
+
+    if (signOutDialogVisible) {
+        SignOutDialog(
+            onConfirm = { eraseSavedLogin ->
+                signOutDialogVisible = false
+                onLogOff(eraseSavedLogin)
+            },
+            onDismiss = { signOutDialogVisible = false },
+        )
+    }
 
     val toggleDrawer: () -> Unit = {
         scope.launch {
@@ -310,7 +325,7 @@ private fun MainScreen(
                         selected = false,
                         onClick = {
                             scope.launch { drawerState.close() }
-                            onLogOff()
+                            signOutDialogVisible = true
                         },
                     )
                 }

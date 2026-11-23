@@ -119,10 +119,31 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
+/** Where a login with the saved session (or the tail end of a fresh login) currently is. */
+enum class LoginPhase {
+    /** No login under way. */
+    Idle,
+
+    /** Disconnected, waiting out the delay before the next reconnect. */
+    WaitingToReconnect,
+
+    /** Connecting to the Steam network. */
+    Connecting,
+
+    /** Connected, logon sent, waiting for Steam's answer. */
+    LoggingOn,
+
+    /** Logged on to Steam, now authenticating on the Steam website. */
+    WebAuth,
+}
+
 /** UI-facing snapshot of the service, published to [SteamService.state]. */
 @Immutable
 data class SteamServiceState(
     val loggedIn: Boolean = false,
+    val loginPhase: LoginPhase = LoginPhase.Idle,
+    // Account being logged in, empty while loginPhase is Idle
+    val loginUsername: String = "",
     val steamId: Long = 0,
     val farming: Boolean = false,
     val paused: Boolean = false,
@@ -410,6 +431,7 @@ class SteamService : Service() {
         running = true
         if (PrefsManager.getRefreshToken().isNotEmpty()) {
             // We can log in using saved credentials
+            if (hasSavedLogin()) setLoginPhase(LoginPhase.Connecting)
             scope.launch { steamClient.connect() }
         }
         // Run the callback pump
@@ -450,6 +472,8 @@ class SteamService : Service() {
         loginInProgress = true
         cancelReconnect()
         cancelLogin()
+        // The login screen shows its own progress until the logon itself starts
+        setLoginPhase(LoginPhase.Idle)
 
         val details = AuthSessionDetails().apply {
             this.username = username
@@ -474,6 +498,7 @@ class SteamService : Service() {
         loginInProgress = true
         cancelReconnect()
         cancelLogin()
+        setLoginPhase(LoginPhase.Idle)
         if (connected) {
             // Already connected (e.g. left over from a prior login attempt) - connect() won't fire
             // another ConnectedCallback, so start the QR session directly or we'd never show a code.
@@ -501,8 +526,12 @@ class SteamService : Service() {
         pendingGuardCodeFuture?.complete(code)
     }
 
-    /** Log out, clear the saved session, and reset login/farming state. */
-    fun logoff() {
+    /**
+     * Log out and reset login/farming state. The saved session and the rest of the user's
+     * data are wiped too unless [eraseSavedLogin] is false, in which case the saved session
+     * is restored the next time the service starts.
+     */
+    fun logoff(eraseSavedLogin: Boolean = true) {
         Log.i(TAG, "logging off")
         loginInProgress = true
         cancelReconnect()
@@ -514,6 +543,8 @@ class SteamService : Service() {
         state.update {
             it.copy(
                 loggedIn = false,
+                loginPhase = LoginPhase.Idle,
+                loginUsername = "",
                 steamId = 0,
                 personaName = "",
                 avatarHash = "",
@@ -525,7 +556,9 @@ class SteamService : Service() {
             steamUser.logOff()
             steamClient.disconnect()
         }
-        PrefsManager.clearUser()
+        if (eraseSavedLogin) {
+            PrefsManager.clearUser()
+        }
         updateNotification(getString(R.string.logged_out))
     }
 
@@ -594,6 +627,7 @@ class SteamService : Service() {
         currentRefreshToken = refreshToken
         // Always keep this current: the QR login flow never types a username for LoginActivity to save
         PrefsManager.writeUsername(username)
+        setLoginPhase(LoginPhase.LoggingOn)
 
         val details = LogOnDetails(
             username = username,
@@ -606,6 +640,16 @@ class SteamService : Service() {
             // uiMode = EUIMode.DesktopUI
         )
         steamUser.logOn(details)
+    }
+
+    /** Whether there is a saved session that [attemptRestoreLogin] can log on with. */
+    private fun hasSavedLogin(): Boolean =
+        PrefsManager.getUsername().isNotEmpty() && PrefsManager.getRefreshToken().isNotEmpty()
+
+    /** Publish the login progress shown on the status card, for the saved username. */
+    private fun setLoginPhase(phase: LoginPhase) {
+        val username = if (phase == LoginPhase.Idle) "" else PrefsManager.getUsername()
+        state.update { it.copy(loginPhase = phase, loginUsername = username) }
     }
 
     /** Log on with the saved refresh token, if any. */
@@ -1276,6 +1320,9 @@ class SteamService : Service() {
         Log.i(TAG, "Disconnected()")
         connected = false
         state.update { it.copy(loggedIn = false) }
+        // Only a reconnect that can restore the saved session counts as logging in
+        val willRestore = !loginInProgress && hasSavedLogin()
+        setLoginPhase(if (willRestore) LoginPhase.WaitingToReconnect else LoginPhase.Idle)
 
         if (!loginInProgress) {
             // Failed card-drop fetches count too: the logon in between resets reconnectAttempts.
@@ -1288,6 +1335,7 @@ class SteamService : Service() {
             reconnectHandle = scope.launch {
                 delay(delaySecs.seconds)
                 Log.i(TAG, "Reconnecting")
+                if (hasSavedLogin()) setLoginPhase(LoginPhase.Connecting)
                 steamClient.connect()
             }
         } else {
@@ -1337,6 +1385,7 @@ class SteamService : Service() {
                 state.update {
                     it.copy(
                         loggedIn = true,
+                        loginPhase = LoginPhase.WebAuth,
                         steamId = clientSteamId.convertToUInt64(),
                     )
                 }
@@ -1355,6 +1404,15 @@ class SteamService : Service() {
 
                 scope.launch {
                     val gotAuth = attemptWebAuthentication(clientSteamId, refreshToken)
+                    // Login is over either way. Leave the phase alone if a disconnect or
+                    // logoff already moved it on while we were authenticating.
+                    state.update {
+                        if (it.loginPhase == LoginPhase.WebAuth) {
+                            it.copy(loginPhase = LoginPhase.Idle, loginUsername = "")
+                        } else {
+                            it
+                        }
+                    }
                     if (gotAuth) {
                         // If we were just blocked, wait out the delay before retrying so
                         // we don't immediately get kicked again; otherwise resume now.

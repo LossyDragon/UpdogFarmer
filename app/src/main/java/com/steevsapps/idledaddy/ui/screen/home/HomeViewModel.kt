@@ -3,6 +3,7 @@ package com.steevsapps.idledaddy.ui.screen.home
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.steevsapps.idledaddy.steam.LoginPhase
 import com.steevsapps.idledaddy.steam.SteamService
 import com.steevsapps.idledaddy.steam.SteamServiceConnection
 import com.steevsapps.idledaddy.steam.SteamServiceState
@@ -15,6 +16,8 @@ import kotlinx.coroutines.launch
 @Immutable
 data class HomeUiState(
     val loggedIn: Boolean = false,
+    val loginPhase: LoginPhase = LoginPhase.Idle,
+    val loginUsername: String = "",
     val farming: Boolean = false,
     val paused: Boolean = false,
     val blocked: Boolean = false,
@@ -46,6 +49,8 @@ class HomeViewModel(private val connection: SteamServiceConnection) : ViewModel(
                 uiState.update {
                     it.copy(
                         loggedIn = state.loggedIn,
+                        loginPhase = state.loginPhase,
+                        loginUsername = state.loginUsername,
                         farming = state.farming,
                         paused = state.paused,
                         blocked = state.blockedIdle,

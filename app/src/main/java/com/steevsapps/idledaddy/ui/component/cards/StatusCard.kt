@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,6 +30,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.steevsapps.idledaddy.R
+import com.steevsapps.idledaddy.steam.LoginPhase
 import com.steevsapps.idledaddy.ui.theme.IdleTheme
 import com.steevsapps.idledaddy.ui.theme.LocalAmoled
 import kotlinx.coroutines.delay
@@ -41,8 +43,13 @@ fun StatusCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     nextRetryAtMillis: Long = 0L,
+    loginPhase: LoginPhase = LoginPhase.Idle,
+    loginUsername: String = "",
 ) {
     val amoled = LocalAmoled.current
+    // Occupied (incl. the brief reconnect gap while retrying) wins over a login in
+    // progress and the logged-out state so we don't flash "logging in"/"tap to login".
+    val loggingIn = !isBlocked && loginPhase != LoginPhase.Idle
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
@@ -65,17 +72,28 @@ fun StatusCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = stringResource(R.string.status))
                 Text(
-                    text = stringResource(
-                        when {
-                            // Occupied (incl. the brief reconnect gap while retrying) wins
-                            // over the logged-out state so we don't flash "tap to login".
-                            isBlocked -> R.string.logged_in_elsewhere
-                            isLoggedIn -> R.string.logged_in
-                            else -> R.string.tap_to_login
-                        }
-                    ),
+                    text = when {
+                        isBlocked -> stringResource(R.string.logged_in_elsewhere)
+                        loggingIn -> stringResource(R.string.status_logging_in_as, loginUsername)
+                        isLoggedIn -> stringResource(R.string.logged_in)
+                        else -> stringResource(R.string.tap_to_login)
+                    },
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (loggingIn) {
+                    // Where the login currently is
+                    Text(
+                        text = stringResource(
+                            when (loginPhase) {
+                                LoginPhase.WaitingToReconnect -> R.string.status_login_reconnect_wait
+                                LoginPhase.LoggingOn -> R.string.status_login_logging_on
+                                LoginPhase.WebAuth -> R.string.status_login_web
+                                LoginPhase.Connecting, LoginPhase.Idle -> R.string.status_login_connecting
+                            }
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 if (isBlocked && nextRetryAtMillis > 0L) {
                     // Live countdown until the next resume attempt.
                     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
@@ -96,16 +114,25 @@ fun StatusCard(
                 }
             }
 
-            val image = if (isLoggedIn && !isBlocked) Icons.Default.CheckCircle
-            else Icons.Default.Error
-            val color = if (isLoggedIn && !isBlocked) Color(0xFF90BA3C)
-            else Color(0xFFFFBB33)
-            Icon(
-                modifier = Modifier.size(48.dp),
-                imageVector = image,
-                tint = color,
-                contentDescription = stringResource(R.string.status),
-            )
+            if (loggingIn) {
+                // Same 48dp footprint as the icon
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .size(40.dp),
+                )
+            } else {
+                val image = if (isLoggedIn && !isBlocked) Icons.Default.CheckCircle
+                else Icons.Default.Error
+                val color = if (isLoggedIn && !isBlocked) Color(0xFF90BA3C)
+                else Color(0xFFFFBB33)
+                Icon(
+                    modifier = Modifier.size(48.dp),
+                    imageVector = image,
+                    tint = color,
+                    contentDescription = stringResource(R.string.status),
+                )
+            }
         }
     }
 }
@@ -126,11 +153,23 @@ private data class StatusPreviewState(
     val isBlocked: Boolean = false,
     val nextRetryAtMillis: Long = 0L,
     val amoled: Boolean = false,
+    val loginPhase: LoginPhase = LoginPhase.Idle,
+    val loginUsername: String = "",
 )
 
 private class StatusPreview : PreviewParameterProvider<StatusPreviewState> {
     private val states = listOf(
         "Logged out" to StatusPreviewState(loggedIn = false),
+        "Connecting" to StatusPreviewState(
+            loggedIn = false,
+            loginPhase = LoginPhase.Connecting,
+            loginUsername = "gaben",
+        ),
+        "Web sign in" to StatusPreviewState(
+            loggedIn = true,
+            loginPhase = LoginPhase.WebAuth,
+            loginUsername = "gaben",
+        ),
         "Logged in" to StatusPreviewState(loggedIn = true),
         "Blocked" to StatusPreviewState(loggedIn = true, isBlocked = true),
         "Blocked with countdown" to StatusPreviewState(
@@ -157,6 +196,8 @@ private fun Preview(
             isLoggedIn = state.loggedIn,
             isBlocked = state.isBlocked,
             nextRetryAtMillis = state.nextRetryAtMillis,
+            loginPhase = state.loginPhase,
+            loginUsername = state.loginUsername,
             onClick = {},
         )
     }

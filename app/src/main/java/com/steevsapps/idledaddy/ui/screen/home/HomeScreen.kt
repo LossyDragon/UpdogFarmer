@@ -30,6 +30,7 @@ import com.steevsapps.idledaddy.BuildConfig
 import com.steevsapps.idledaddy.R
 import com.steevsapps.idledaddy.preferences.PrefsManager.minimizeData
 import com.steevsapps.idledaddy.steam.model.Game
+import com.steevsapps.idledaddy.steam.LoginPhase
 import com.steevsapps.idledaddy.ui.component.IdleTopAppBar
 import com.steevsapps.idledaddy.ui.component.NavIcon
 import com.steevsapps.idledaddy.ui.component.cards.DropInfoCard
@@ -135,6 +136,8 @@ fun HomeScreenContent(
                 StatusCard(
                     isLoggedIn = state.loggedIn,
                     isBlocked = state.blocked,
+                    loginPhase = state.loginPhase,
+                    loginUsername = state.loginUsername,
                     nextRetryAtMillis = state.nextRetryAtMillis,
                     onClick = onStatusClick,
                 )
@@ -212,6 +215,10 @@ fun HomeScreenContent(
 private class HomePreview : PreviewParameterProvider<HomeUiState> {
     private val states = listOf(
         "Logged out" to HomeUiState(),
+        "Logging in" to HomeUiState(
+            loginPhase = LoginPhase.Connecting,
+            loginUsername = "gaben",
+        ),
         "Idling" to HomeUiState(
             loggedIn = true,
             currentGames = listOf(Game(440, "Team Fortress 2", 987654F, 42)),
