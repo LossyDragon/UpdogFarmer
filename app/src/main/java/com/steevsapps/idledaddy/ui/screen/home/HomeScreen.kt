@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.MoreTime
 import androidx.compose.material.icons.filled.Redeem
@@ -109,7 +110,7 @@ fun HomeScreenContent(
                         }
                         IconButton(onClick = { redeemAppDialogVisible = true }) {
                             Icon(
-                                imageVector = Icons.Default.Redeem,
+                                imageVector = Icons.Default.AddCircle,
                                 contentDescription = stringResource(R.string.redeem),
                             )
                         }
