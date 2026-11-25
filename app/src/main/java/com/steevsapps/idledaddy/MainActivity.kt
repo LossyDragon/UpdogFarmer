@@ -13,6 +13,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -60,6 +61,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -280,12 +284,22 @@ private fun MainScreen(
                             Text(
                                 text = serviceState.personaName.trim(),
                                 color = Color.White,
-                                style = MaterialTheme.typography.titleMedium.copy(shadow = textShadow),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.titleLarge.copy(shadow = textShadow),
                             )
                             Text(
                                 text = serviceState.personaState.name,
                                 color = Color.White.copy(alpha = 0.7f),
                                 style = MaterialTheme.typography.bodyMedium.copy(shadow = textShadow),
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = serviceState.loginUsername.trim(),
+                                color = Color.White.copy(alpha = 0.7f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.labelSmall.copy(shadow = textShadow),
                             )
                         }
                     }
@@ -417,7 +431,8 @@ private fun Preview() {
         IdleTheme {
             MainScreen(
                 serviceState = SteamServiceState(
-                    personaName = "Steev"
+                    personaName = "Steev",
+                    loginUsername = "idledaddyusername"
                 ),
                 backStack = backStack,
                 drawerState = drawerState,

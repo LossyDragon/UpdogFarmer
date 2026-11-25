@@ -1438,7 +1438,7 @@ class SteamService : Service() {
                     // logoff already moved it on while we were authenticating.
                     state.update {
                         if (it.loginPhase == LoginPhase.WebAuth) {
-                            it.copy(loginPhase = LoginPhase.Idle, loginUsername = "")
+                            it.copy(loginPhase = LoginPhase.Idle, /*loginUsername = ""*/)
                         } else {
                             it
                         }
