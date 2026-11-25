@@ -56,7 +56,7 @@ fun StatusCard(
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        enabled = !isLoggedIn && !isBlocked,
+        enabled = !isLoggedIn && !isBlocked && !loggingIn,
         colors = CardDefaults.cardColors(
             containerColor = if (amoled) Color(0xFF101010) else MaterialTheme.colorScheme.surfaceContainerHigh,
             disabledContainerColor = if (amoled) Color(0xFF101010) else MaterialTheme.colorScheme.surfaceContainerHigh,
