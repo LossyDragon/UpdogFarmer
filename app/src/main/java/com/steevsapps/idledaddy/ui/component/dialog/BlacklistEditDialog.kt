@@ -61,10 +61,13 @@ fun BlacklistEditDialog(onDismiss: () -> Unit) {
     }
 
     fun addItem() {
-        val text = input.trim()
-        if (text.matches("\\d+".toRegex()) && text !in ids) {
-            ids.add(0, text)
-            input = ""
+        // Several appids can be added at once, separated by spaces and/or commas
+        val parsed = parseAppIdInput(input)
+        val newIds = parsed.appIds.map { it.toString() }.filter { it !in ids }
+        // Anything that isn't an appid stays behind so it can be corrected
+        input = parsed.rejected
+        if (newIds.isNotEmpty()) {
+            ids.addAll(0, newIds)
             scope.launch { state.animateScrollToItem(0) }
         }
     }

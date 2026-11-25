@@ -20,7 +20,6 @@
     <string name="dialog_game_blacklist_remove">Удалить %1$s из чёрного списка?</string>
     <string name="drop_info_partial">Подсчитано на данный момент. Приложения с последующих страниц значков будут добавлены по мере завершения этих.</string>
     <string name="enter_an_appid">Введите AppID</string>
-    <string name="enter_appids">Вводите AppID, разделённыe пробелами</string>
     <string name="games">Игры</string>
     <string name="go_back">Вернуться назад</string>
     <string name="hidden_appid">AppID</string>
